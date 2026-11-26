@@ -66,7 +66,7 @@ export function SiteFooter() {
         </div>
         <FooterCol title="Product" links={[["Studio", href("/studio")], ["Presets", href("/presets")], ["Widgets", href("/docs/widgets")]]} />
         <FooterCol title="Docs" links={[["Getting started", href("/docs")], ["Action reference", href("/docs/action")], ["Config reference", href("/docs/config")], ["AI agents", href("/docs/agents")], ["FAQ", href("/docs/faq")]]} />
-        <FooterCol title="Source" links={[["GitHub", REPO_URL], ["Issues", `${REPO_URL}/issues`], ["MIT License", `${REPO_URL}/blob/main/LICENSE`]]} />
+        <FooterCol title="Source" links={[["GitHub", REPO_URL], ["Issues", `${REPO_URL}/issues`], ["MIT License", `${REPO_URL}/blob/main/LICENSE`], ["Privacy", "./privacy.html"], ["Terms", "./terms.html"]]} />
       </div>
       <div className="wrap site-footer__base">
         <span>No servers, no tracking. Your design lives in your browser and your repository.</span>

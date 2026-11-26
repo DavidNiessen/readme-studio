@@ -1609,7 +1609,10 @@ function ExtensionGuide() {
         extension. It needs the client ID of a GitHub OAuth App with <i>Enable Device Flow</i> ticked, built in or entered on the options page. A personal access token
         works too: fine-grained with Contents and Workflows read &amp; write on the repository, or classic with <code>public_repo</code> and <code>workflow</code>.
       </p>
-      <Note label="Privacy">The extension talks only to GitHub. Tokens stay in the browser's extension storage, and nothing is sent anywhere else.</Note>
+      <Note label="Privacy">
+        The extension talks only to GitHub. Tokens stay in the browser's extension storage, and nothing is sent anywhere else. The full <a href="./privacy.html">privacy policy</a> covers the
+        website, the extension and the Action.
+      </Note>
     </>
   );
 }

@@ -99,6 +99,13 @@ function Options() {
           help="On by default. Off: the button shows only on repositories that already have a design, and on your profile repository."
         />
       </section>
+
+      <p className="muted">
+        Settings and your GitHub sign-in stay in this browser and are sent only to GitHub.{" "}
+        <a href="https://readme.niessen.dev/privacy.html" target="_blank" rel="noopener">
+          Privacy policy
+        </a>
+      </p>
     </main>
   );
 }

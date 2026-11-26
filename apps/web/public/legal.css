@@ -1,0 +1,116 @@
+/* The privacy and terms pages: plain HTML in the site's colours, readable without the app. */
+:root {
+  --paper: #f6f5f1;
+  --ink: #151413;
+  --muted: #5f5c55;
+  --line: #e2dfd6;
+  --accent: #e5532d;
+  --code: #ebe8e0;
+  color-scheme: light dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #0e0e0d;
+    --ink: #edebe6;
+    --muted: #a19e96;
+    --line: #2a2926;
+    --accent: #f26a45;
+    --code: #1c1b19;
+  }
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 16px/1.65 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+header,
+main,
+footer {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+header {
+  padding-top: 28px;
+}
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--ink);
+  font-weight: 600;
+  text-decoration: none;
+}
+.brand svg {
+  width: 26px;
+  height: 26px;
+}
+.brand em {
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 400;
+}
+.mark-bg {
+  fill: var(--ink);
+}
+.mark-fg {
+  fill: var(--paper);
+}
+.mark-accent {
+  fill: var(--accent);
+}
+main {
+  padding-top: 40px;
+  padding-bottom: 48px;
+}
+h1 {
+  margin: 0;
+  font-size: clamp(32px, 6vw, 44px);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+h2 {
+  margin: 36px 0 8px;
+  font-size: 20px;
+}
+.meta {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+.lead {
+  margin-top: 24px;
+  font-size: 18px;
+}
+p,
+li {
+  overflow-wrap: anywhere;
+}
+ul {
+  padding-left: 1.2em;
+}
+li + li {
+  margin-top: 8px;
+}
+a {
+  color: var(--accent);
+}
+code {
+  padding: 0.1em 0.35em;
+  border-radius: 5px;
+  background: var(--code);
+  font: 0.88em ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+footer {
+  padding-top: 20px;
+  padding-bottom: 40px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 14px;
+}
+footer a {
+  color: var(--muted);
+}
