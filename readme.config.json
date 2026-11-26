@@ -4,16 +4,6 @@
   "kind": "project",
   "profile": {
     "login": "DavidNiessen",
-    "name": "DavidNiessen",
-    "roles": [
-      "Software Engineer",
-      "Open-source tinkerer",
-      "Coffee-driven developer"
-    ],
-    "bio": "I build calm, fast software and the tools around it.",
-    "company": "",
-    "pronouns": "",
-    "birthday": "",
     "location": {
       "city": "San Francisco",
       "latitude": 37.77,
@@ -43,10 +33,6 @@
   },
   "project": {
     "repo": "DavidNiessen/readme-studio",
-    "name": "",
-    "tagline": "Design animated, self-updating READMEs for your GitHub profile and your projects, in the browser.\nA GitHub Action re-renders every image on a schedule, so streaks, stars, contributors and releases are",
-    "logo": "book",
-    "homepage": "",
     "packages": {
       "npm": "",
       "pypi": "",
@@ -74,6 +60,7 @@
           "type": "project-hero",
           "options": {
             "title": "Readme  Studio",
+            "tagline": "Design animated, self-updating READMEs for your GitHub profile and your projects, in the browser.\nA GitHub Action re-renders every image on a schedule, so streaks, stars, contributors and releases are",
             "align": "left",
             "version": true,
             "stats": true,
@@ -97,12 +84,10 @@
           "type": "shields",
           "options": {
             "badges": [
+              "ci",
               "version",
-              "contributors",
               "issues",
-              "prs",
-              "license",
-              "ci"
+              "prs"
             ],
             "style": "outline",
             "color": "accent",
