@@ -83,14 +83,19 @@ export function SaveDialog({ platform }: { platform: GitHubPlatform }) {
   const [done, setDone] = useState<SaveResult | null>(null);
   const close = () => openDialog(null);
 
+  // a fresh start each time the dialog opens; not when a save updates the session, or the
+  // confirmation of that save would vanish the moment it appears
   useEffect(() => {
     if (!open) return;
     platform.loadSaveMode().then(setMode);
     platform.loadAuth().then((a) => setSession({ auth: a }));
     setDone(null);
     setPrBranch(defaultPrBranch());
-    if (!opened) setRepoText(suggestedRepo(useStudio.getState().config));
-  }, [open, opened, platform]);
+  }, [open, platform]);
+  const hasOpened = !!opened;
+  useEffect(() => {
+    if (open && !hasOpened) setRepoText(suggestedRepo(useStudio.getState().config));
+  }, [open, hasOpened]);
 
   // a design opened from a repository saves back there; otherwise check the one typed in
   useEffect(() => {
