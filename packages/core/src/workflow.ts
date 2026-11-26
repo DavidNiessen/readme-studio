@@ -3,7 +3,7 @@ import { assetRepository, type StudioConfig } from "./config";
 /** The published action users reference from their profile repository. */
 export const ACTION_REPO = "DavidNiessen/readme-studio";
 export const ACTION_REF = `${ACTION_REPO}@v1`;
-export const STUDIO_URL = "https://davidniessen.github.io/readme-studio/";
+export const STUDIO_URL = "https://readme.niessen.dev/";
 
 export interface WorkflowOptions {
   /** action reference, e.g. DavidNiessen/readme-studio@v1 */

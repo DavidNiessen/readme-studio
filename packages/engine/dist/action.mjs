@@ -7459,7 +7459,7 @@ function getWidget(type) {
 
 // ../core/src/config.ts
 var CONFIG_VERSION = 1;
-var SCHEMA_URL = "https://davidniessen.github.io/readme-studio/schema.json";
+var SCHEMA_URL = "https://readme.niessen.dev/schema.json";
 var DEFAULT_PROFILE = {
   login: "octocat",
   name: "Mona Octocat",

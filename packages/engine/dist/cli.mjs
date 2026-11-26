@@ -7454,7 +7454,7 @@ function getWidget(type) {
 
 // ../core/src/config.ts
 var CONFIG_VERSION = 1;
-var SCHEMA_URL = "https://davidniessen.github.io/readme-studio/schema.json";
+var SCHEMA_URL = "https://readme.niessen.dev/schema.json";
 var DEFAULT_PROFILE = {
   login: "octocat",
   name: "Mona Octocat",
@@ -8204,7 +8204,7 @@ function presetConfig(id, profile = {}) {
 // ../core/src/workflow.ts
 var ACTION_REPO = "DavidNiessen/readme-studio";
 var ACTION_REF = `${ACTION_REPO}@v1`;
-var STUDIO_URL = "https://davidniessen.github.io/readme-studio/";
+var STUDIO_URL = "https://readme.niessen.dev/";
 function describeCron(cron) {
   const [min, hour, dom, mon, dow] = cron.trim().split(/\s+/);
   const pad = (n) => n.padStart(2, "0");

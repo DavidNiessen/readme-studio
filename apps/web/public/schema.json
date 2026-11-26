@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://davidniessen.github.io/readme-studio/schema.json",
+  "$id": "https://readme.niessen.dev/schema.json",
   "title": "Readme Studio config",
   "description": "Design of an animated GitHub profile README, rendered by the Readme Studio action.",
   "type": "object",

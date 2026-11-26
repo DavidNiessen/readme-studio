@@ -5,7 +5,7 @@
 **Design an animated, self-updating GitHub profile README in the browser.**<br>
 A GitHub Action re-renders every image on a schedule, so your streaks, graphs and releases are never stale.
 
-[Open the studio](https://davidniessen.github.io/readme-studio/#/studio) · [Presets](https://davidniessen.github.io/readme-studio/#/presets) · [Docs](https://davidniessen.github.io/readme-studio/#/docs)
+[Open the studio](https://readme.niessen.dev/#/studio) · [Presets](https://readme.niessen.dev/#/presets) · [Docs](https://readme.niessen.dev/#/docs)
 
 </div>
 
@@ -25,7 +25,7 @@ Everything is static: no server, no database, no third-party image host. Your de
 
 ## Quick start
 
-1. Open the [studio](https://davidniessen.github.io/readme-studio/#/studio) and design your README (or pick a preset).
+1. Open the [studio](https://readme.niessen.dev/#/studio) and design your README (or pick a preset).
 2. Click **Export** and download the project. It contains:
    ```
    readme.config.json              your design

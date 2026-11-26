@@ -1,5 +1,5 @@
 {
-  "$schema": "https://davidniessen.github.io/readme-studio/schema.json",
+  "$schema": "https://readme.niessen.dev/schema.json",
   "version": 1,
   "profile": {
     "login": "octocat",
@@ -53,7 +53,7 @@
   },
   "layout": [
     {
-      "id": "r3th04wv1",
+      "id": "rpm8q44f1",
       "align": "center",
       "blocks": [
         {
@@ -73,7 +73,7 @@
       ]
     },
     {
-      "id": "r3th01yl2",
+      "id": "rpm8q4y22",
       "align": "center",
       "blocks": [
         {
@@ -88,7 +88,7 @@
       ]
     },
     {
-      "id": "r3th0uk3",
+      "id": "rpm8q6ri3",
       "align": "center",
       "blocks": [
         {
@@ -102,7 +102,7 @@
       ]
     },
     {
-      "id": "r3th06oa4",
+      "id": "rpm8q5sf4",
       "align": "center",
       "blocks": [
         {
@@ -150,7 +150,7 @@
       ]
     },
     {
-      "id": "r3th02l95",
+      "id": "rpm8q3j45",
       "align": "center",
       "blocks": [
         {
@@ -172,7 +172,7 @@
       ]
     },
     {
-      "id": "r3th02k26",
+      "id": "rpm8q1916",
       "align": "center",
       "blocks": [
         {
@@ -190,7 +190,7 @@
       ]
     },
     {
-      "id": "r3th03h27",
+      "id": "rpm8q2707",
       "align": "center",
       "blocks": [
         {
@@ -205,7 +205,7 @@
       ]
     },
     {
-      "id": "r3th04uv8",
+      "id": "rpm8q4jo8",
       "align": "center",
       "blocks": [
         {
@@ -220,7 +220,7 @@
       ]
     },
     {
-      "id": "r3th06np9",
+      "id": "rpm8q5g69",
       "align": "center",
       "blocks": [
         {
@@ -234,7 +234,7 @@
       ]
     },
     {
-      "id": "r3th01mya",
+      "id": "rpm8q2dca",
       "align": "center",
       "blocks": [
         {
@@ -250,7 +250,7 @@
       ]
     },
     {
-      "id": "r3th01flb",
+      "id": "rpm8q775b",
       "align": "center",
       "blocks": [
         {
@@ -294,7 +294,7 @@
       ]
     },
     {
-      "id": "r3th025rc",
+      "id": "rpm8q4rcc",
       "align": "center",
       "blocks": [
         {
@@ -319,7 +319,7 @@
       ]
     },
     {
-      "id": "r3th01ypd",
+      "id": "rpm8q2swd",
       "align": "center",
       "blocks": [
         {
@@ -334,7 +334,7 @@
       ]
     },
     {
-      "id": "r3th03zbe",
+      "id": "rpm8q5cde",
       "align": "center",
       "blocks": [
         {
@@ -350,7 +350,7 @@
       ]
     },
     {
-      "id": "r3th027vf",
+      "id": "rpm8q50vf",
       "align": "center",
       "blocks": [
         {
@@ -380,7 +380,7 @@
       ]
     },
     {
-      "id": "r3th05l1g",
+      "id": "rpm8q7dhg",
       "align": "center",
       "blocks": [
         {
@@ -410,7 +410,7 @@
       ]
     },
     {
-      "id": "r3th025oh",
+      "id": "rpm8q42eh",
       "align": "center",
       "blocks": [
         {
@@ -495,7 +495,7 @@
       ]
     },
     {
-      "id": "r3th016ai",
+      "id": "rpm8q34qi",
       "align": "center",
       "blocks": [
         {
@@ -509,7 +509,7 @@
       ]
     },
     {
-      "id": "r3th02xcj",
+      "id": "rpm8qg2j",
       "align": "center",
       "blocks": [
         {

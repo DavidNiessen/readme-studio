@@ -28,10 +28,10 @@ jobs:
 
       - run: npm ci
 
+      # The studio uses hash routing and a relative base, so the same build works
+      # on the custom domain (readme.niessen.dev) and on <user>.github.io/<repo>/.
       - name: Build the studio
         run: npm run build
-        env:
-          BASE_PATH: /${{ github.event.repository.name }}/
 
       - uses: actions/configure-pages@v5
 

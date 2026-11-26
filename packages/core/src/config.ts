@@ -6,7 +6,7 @@ import { getWidget } from "./widgets/registry";
 import { palettePresets } from "./theme";
 
 export const CONFIG_VERSION = 1;
-export const SCHEMA_URL = "https://davidniessen.github.io/readme-studio/schema.json";
+export const SCHEMA_URL = "https://readme.niessen.dev/schema.json";
 
 export interface ProfileLink {
   /** icon id (github, linkedin, x, website, mail, …) */
