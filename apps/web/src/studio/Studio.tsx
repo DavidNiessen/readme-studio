@@ -20,6 +20,8 @@ import {
   Upload,
   Layers,
   BookOpen,
+  User,
+  Plus,
   Check,
   ChevronDown,
   FileText,
@@ -47,22 +49,6 @@ import { parseRepo } from "../github/repo";
 import { OpenFailed } from "./github/OpenFailed";
 import { webPlatform } from "./github/webPlatform";
 import { StudioHostContext, useStudioHost, type StudioHost } from "./host";
-
-function SavedIndicator() {
-  const savedAt = useStudio((s) => s.savedAt);
-  const [, tick] = useState(0);
-  useEffect(() => {
-    const t = window.setInterval(() => tick((x) => x + 1), 15_000);
-    return () => window.clearInterval(t);
-  }, []);
-  if (!savedAt) return null;
-  const s = Math.round((Date.now() - savedAt) / 1000);
-  return (
-    <span className="saved hide-md" title="Designs are saved in this browser">
-      <span className="dot" /> {s < 10 ? "Saved" : s < 60 ? `Saved ${s}s ago` : `Saved ${Math.round(s / 60)}m ago`}
-    </span>
-  );
-}
 
 export function useUiTheme(): ["light" | "dark" | "system", (t: "light" | "dark" | "system") => void] {
   const [t, setT] = useState<"light" | "dark" | "system">(() => getPref("ui-theme-choice", "system"));
@@ -108,8 +94,28 @@ function TopBar() {
           }
           items={() => recentProjects(s.designId, s.openDesign, () => s.openDialog("designs"))}
         />
+        <Menu
+          align="start"
+          label="New project"
+          trigger={
+            <button type="button" className="icon-btn icon-btn--sm design-switch" aria-label="New project" title="New project">
+              <Plus />
+            </button>
+          }
+          items={[
+            { heading: "New project" },
+            { label: "Profile README", icon: <User />, onSelect: () => (s.newDesign("command-center"), toast("New profile README started")) },
+            {
+              label: "Project README",
+              icon: <FolderGit2 />,
+              onSelect: () => (s.newDesign(layoutPresets.find((p) => p.kind === "project")?.id ?? "command-center"), toast("New project README started")),
+            },
+            "sep",
+            { label: "From a preset…", icon: <LayoutTemplate />, onSelect: () => s.openDialog("presets") },
+            { label: "Import…", icon: <Upload />, hint: "config, Markdown, GitHub", onSelect: () => s.openDialog("import") },
+          ]}
+        />
         <input aria-label="Design name" value={s.name} onChange={(e) => s.setName(e.target.value)} onBlur={(e) => !e.target.value.trim() && s.setName("Untitled design")} />
-        <SavedIndicator />
         {host?.context && (
           <span className="host-context hide-sm" title={`Editing ${host.context}`}>
             {host.context}

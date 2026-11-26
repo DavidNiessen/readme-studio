@@ -54,8 +54,13 @@
 }
 .design-switch {
   flex: none;
-  /* sits right against the name it switches */
-  margin-right: -6px;
+}
+/* the switch and new-project buttons sit close together, right against the name */
+.design-name {
+  gap: 2px;
+}
+.design-name input {
+  margin-left: 4px;
 }
 .design-name input {
   width: 200px;
@@ -89,18 +94,6 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.saved {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: var(--t-xs);
-  color: var(--faint);
-  white-space: nowrap;
-}
-.saved .dot {
-  color: var(--ok);
-}
-
 .logo {
   display: inline-flex;
   align-items: center;
