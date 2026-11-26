@@ -220,6 +220,27 @@ import { appendFileSync, copyFileSync as copyFileSync2, mkdtempSync } from "node
 import { tmpdir } from "node:os";
 import { join as join5, resolve } from "node:path";
 
+// src/branch.ts
+import { readFileSync } from "node:fs";
+function runBranches(env = process.env, read = (p) => readFileSync(p, "utf8")) {
+  const ref = env.GITHUB_REF_TYPE === "tag" ? "" : env.GITHUB_REF_NAME ?? "";
+  let defaultBranch = null;
+  if (env.GITHUB_EVENT_PATH) {
+    try {
+      const payload = JSON.parse(read(env.GITHUB_EVENT_PATH));
+      if (typeof payload.repository?.default_branch === "string" && payload.repository.default_branch) defaultBranch = payload.repository.default_branch;
+    } catch {
+    }
+  }
+  return { ref, defaultBranch };
+}
+function publishBlocker(event, b) {
+  if (event === "pull_request" || event === "pull_request_target") return "pull request";
+  if (!b.defaultBranch) return null;
+  if (b.ref !== b.defaultBranch) return `not the default branch (${b.ref || "a tag"}; ${b.defaultBranch} publishes)`;
+  return null;
+}
+
 // src/build.ts
 import { mkdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { join as join3 } from "node:path";
@@ -12935,7 +12956,7 @@ var blockVariants = widgetList.map((w) => ({
 }));
 
 // src/raster.ts
-import { existsSync as existsSync2, readFileSync as readFileSync2 } from "node:fs";
+import { existsSync as existsSync2, readFileSync as readFileSync3 } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname as dirname2, join as join2 } from "node:path";
 import { fileURLToPath as fileURLToPath2 } from "node:url";
@@ -13520,7 +13541,7 @@ function isCustomFontsOptions(value) {
 }
 
 // src/fonts.ts
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync as readFileSync2 } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { inflateSync } from "node:zlib";
@@ -13582,7 +13603,7 @@ function sfntFonts(ids) {
       if (!buf) {
         const file = join(dir, `${key}.woff`);
         if (!existsSync(file)) continue;
-        buf = new Uint8Array(woffToSfnt(readFileSync(file)));
+        buf = new Uint8Array(woffToSfnt(readFileSync2(file)));
         cache.set(key, buf);
       }
       out.push(buf);
@@ -13601,7 +13622,7 @@ function wasmPath() {
   return join2(dirname2(require2.resolve("@resvg/resvg-wasm")), "index_bg.wasm");
 }
 function initRaster() {
-  ready ??= initWasm(readFileSync2(wasmPath()));
+  ready ??= initWasm(readFileSync3(wasmPath()));
   return ready;
 }
 function forRaster(svg2, fonts) {
@@ -13812,12 +13833,12 @@ function previewHtml(config, data13, now) {
 }
 
 // src/io.ts
-import { existsSync as existsSync3, readFileSync as readFileSync3 } from "node:fs";
+import { existsSync as existsSync3, readFileSync as readFileSync4 } from "node:fs";
 function readConfig(path) {
   if (!existsSync3(path)) throw new Error(`config not found: ${path}`);
   let raw;
   try {
-    raw = JSON.parse(readFileSync3(path, "utf8"));
+    raw = JSON.parse(readFileSync4(path, "utf8"));
   } catch (e) {
     throw new Error(`${path} is not valid JSON: ${e.message}`);
   }
@@ -13826,7 +13847,7 @@ function readConfig(path) {
 
 // src/publish.ts
 import { execFileSync } from "node:child_process";
-import { copyFileSync, existsSync as existsSync4, readFileSync as readFileSync4, rmSync as rmSync2 } from "node:fs";
+import { copyFileSync, existsSync as existsSync4, readFileSync as readFileSync5, rmSync as rmSync2 } from "node:fs";
 import { join as join4 } from "node:path";
 var BOT_NAME = "github-actions[bot]";
 var BOT_EMAIL = "41898282+github-actions[bot]@users.noreply.github.com";
@@ -13854,8 +13875,8 @@ function publishAssets(o) {
 }
 function commitReadme(o) {
   const target = join4(o.workspace, o.target);
-  const before = existsSync4(target) ? readFileSync4(target, "utf8") : null;
-  const after = readFileSync4(o.source, "utf8");
+  const before = existsSync4(target) ? readFileSync5(target, "utf8") : null;
+  const after = readFileSync5(o.source, "utf8");
   if (before === after) return false;
   copyFileSync(o.source, target);
   git(["config", "user.name", BOT_NAME], o.workspace);
@@ -13896,7 +13917,8 @@ async function main() {
   mask(token);
   mask(profileToken);
   const event = process.env.GITHUB_EVENT_NAME ?? "";
-  const dryRun = bool("dry-run", false) || event === "pull_request";
+  const blocker = publishBlocker(event, runBranches());
+  const dryRun = bool("dry-run", false) || blocker !== null;
   const mock = bool("mock", false);
   const repository = process.env.GITHUB_REPOSITORY ?? "";
   const { config, warnings } = readConfig(configPath);
@@ -13937,7 +13959,7 @@ ${result.assets.map((a) => `| \`${a.file}\` | ${(a.bytes / 1024).toFixed(1)} KB 
     throw new Error(`${result.errors.length} asset(s) failed`);
   }
   if (dryRun) {
-    console.log(`Dry run${event === "pull_request" ? " (pull request)" : ""}: nothing published. Assets are in ${outDir}.`);
+    console.log(`Dry run${blocker ? `, ${blocker}` : ""}: rendered only, nothing published. Assets are in ${outDir}.`);
     output("readme-changed", "false");
     return;
   }

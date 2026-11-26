@@ -6,6 +6,7 @@
 import { appendFileSync, copyFileSync, mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
+import { publishBlocker, runBranches } from "./branch";
 import { build } from "./build";
 import { readConfig } from "./io";
 import { commitReadme, publishAssets } from "./publish";
@@ -42,7 +43,8 @@ async function main(): Promise<void> {
   mask(token);
   mask(profileToken);
   const event = process.env.GITHUB_EVENT_NAME ?? "";
-  const dryRun = bool("dry-run", false) || event === "pull_request";
+  const blocker = publishBlocker(event, runBranches());
+  const dryRun = bool("dry-run", false) || blocker !== null;
   const mock = bool("mock", false);
   const repository = process.env.GITHUB_REPOSITORY ?? "";
 
@@ -84,7 +86,7 @@ async function main(): Promise<void> {
   }
 
   if (dryRun) {
-    console.log(`Dry run${event === "pull_request" ? " (pull request)" : ""}: nothing published. Assets are in ${outDir}.`);
+    console.log(`Dry run${blocker ? `, ${blocker}` : ""}: rendered only, nothing published. Assets are in ${outDir}.`);
     output("readme-changed", "false");
     return;
   }

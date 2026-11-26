@@ -31,7 +31,7 @@ inputs:
     description: Use deterministic sample data instead of the GitHub API (for testing).
     default: "false"
   dry-run:
-    description: Render only; publish nothing. Pull requests always run dry.
+    description: Render only; publish nothing. Pull requests and branches other than the default branch always run dry.
     default: "false"
 
 outputs:
