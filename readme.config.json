@@ -44,8 +44,8 @@
   "project": {
     "repo": "DavidNiessen/readme-studio",
     "name": "",
-    "tagline": "A tiny, fast design-token compiler for multi-brand UI kits.",
-    "logo": "",
+    "tagline": "Design animated, self-updating READMEs for your GitHub profile and your projects, in the browser.\nA GitHub Action re-renders every image on a schedule, so streaks, stars, contributors and releases are",
+    "logo": "book",
     "homepage": "",
     "packages": {
       "npm": "",
@@ -73,12 +73,12 @@
           "id": "hero",
           "type": "project-hero",
           "options": {
-            "title": "",
+            "title": "Readme  Studio",
             "align": "left",
             "version": true,
             "stats": true,
             "third": "license",
-            "install": "npm i {npm}",
+            "install": "",
             "emblem": "book",
             "emblemStyle": "orbit",
             "scanline": true,
@@ -108,19 +108,6 @@
             "color": "accent",
             "icons": true,
             "custom": []
-          }
-        }
-      ]
-    },
-    {
-      "id": "r2",
-      "align": "left",
-      "blocks": [
-        {
-          "id": "readme",
-          "type": "markdown",
-          "options": {
-            "text": "<div align=\"center\">\n\n# Readme Studio\n\n**Design animated, self-updating READMEs for your GitHub profile and your projects, in the browser.**<br>\nA GitHub Action re-renders every image on a schedule, so streaks, stars, contributors and releases are never stale.\n\n[Open the studio](https://readme.niessen.dev/#/studio) · [Presets](https://readme.niessen.dev/#/presets) · [Docs](https://readme.niessen.dev/#/docs)\n\n</div>\n\n---"
           }
         }
       ]
