@@ -105,6 +105,7 @@ export const trophies = defineWidget({
   type: "trophies",
   title: "Achievements",
   description: "Hexagonal trophies that unlock in three tiers as your streaks, stars and years on GitHub grow.",
+  scope: "profile",
   category: "Stats",
   kind: "svg",
   width: "half",

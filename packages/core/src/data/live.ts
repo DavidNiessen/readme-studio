@@ -31,7 +31,7 @@ export interface FetchOptions {
 
 const LEVELS: Record<string, ContributionDay["level"]> = { NONE: 0, FIRST_QUARTILE: 1, SECOND_QUARTILE: 2, THIRD_QUARTILE: 3, FOURTH_QUARTILE: 4 };
 
-class Http {
+export class Http {
   constructor(private o: FetchOptions) {}
   private get f(): typeof fetch {
     return this.o.fetch ?? globalThis.fetch.bind(globalThis);
@@ -53,11 +53,17 @@ class Http {
     };
   }
   async gh<T>(path: string): Promise<T> {
-    const url = path.startsWith("http") ? path : `https://api.github.com${path}`;
-    let res = await this.raw(url, { headers: this.headers() });
-    if ((res.status === 401 || res.status === 403) && this.o.token) res = await this.raw(url, { headers: this.headers(false) });
+    const res = await this.ghRes(path);
     if (!res.ok) throw new Error(`GET ${path} → ${res.status}`);
     return (await res.json()) as T;
+  }
+  /** Raw GitHub REST response (for headers such as Link, or 202 polling). */
+  async ghRes(path: string, accept?: string): Promise<Response> {
+    const url = path.startsWith("http") ? path : `https://api.github.com${path}`;
+    const h = (auth: boolean) => ({ ...this.headers(auth), ...(accept ? { accept } : {}) });
+    let res = await this.raw(url, { headers: h(true) });
+    if ((res.status === 401 || res.status === 403) && this.o.token) res = await this.raw(url, { headers: h(false) });
+    return res;
   }
   async graphql<T>(query: string, variables: Record<string, unknown>): Promise<T> {
     if (!this.o.token) throw new Error("no GitHub token for GraphQL");
@@ -284,7 +290,7 @@ interface OpenMeteo {
   daily: { temperature_2m_max: number[]; temperature_2m_min: number[] };
 }
 
-async function fetchWeather(http: Http, loc: { latitude: number; longitude: number }, tz: string): Promise<Weather> {
+export async function fetchWeather(http: Http, loc: { latitude: number; longitude: number }, tz: string): Promise<Weather> {
   const res = await http.raw(
     `https://api.open-meteo.com/v1/forecast?latitude=${loc.latitude}&longitude=${loc.longitude}` +
       `&current=temperature_2m,weather_code,is_day,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min` +
@@ -331,7 +337,7 @@ export function parseFeed(xml: string, max = 10): Post[] {
   });
 }
 
-async function fetchFeed(http: Http, url: string): Promise<Post[]> {
+export async function fetchFeed(http: Http, url: string): Promise<Post[]> {
   const res = await http.raw(url, { headers: { accept: "application/rss+xml, application/atom+xml, application/xml, text/xml" } });
   if (!res.ok) throw new Error(`feed ${url} → ${res.status}`);
   return parseFeed(await res.text());

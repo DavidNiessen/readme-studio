@@ -75,6 +75,7 @@ export const year = defineWidget({
   type: "year",
   title: "Year in review",
   description: "Your year, wrapped: total contributions, busiest month, best day, favourite weekday and more, over a monthly bar chart.",
+  scope: "profile",
   category: "Stats",
   kind: "svg",
   width: "full",

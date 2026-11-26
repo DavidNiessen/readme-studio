@@ -16,15 +16,33 @@ export interface RenderEnv {
 /** Build the render context for one colour mode. */
 export function createCtx(config: StudioConfig, data: ProfileData, mode: Mode, env: RenderEnv = {}): Ctx {
   const date = env.date ?? new Date();
+  const d = viewData(config, data);
   return {
     theme: resolveTheme(config.theme, mode),
-    data,
-    d: derive(data),
+    data: d,
+    d: derive(d),
     now: localParts(date, config.profile.location.timezone),
     date,
     profile: config.profile,
+    kind: config.kind,
+    project: config.project,
     run: env.run ?? null,
   };
+}
+
+/**
+ * The data widgets see. In project designs, shared widgets (languages, releases, …)
+ * show the repository's numbers instead of the account's.
+ */
+export function viewData(config: Pick<StudioConfig, "kind">, data: ProfileData): ProfileData {
+  const p = data.project;
+  if (config.kind !== "project" || !p) return data;
+  return { ...data, languages: p.languages, releases: p.releases };
+}
+
+/** The slice of context needed to work out parts, alt text and links (no theme). */
+export function metaCtx(config: StudioConfig, data: ProfileData): Pick<Ctx, "profile" | "data" | "project" | "kind"> {
+  return { profile: config.profile, data: viewData(config, data), project: config.project, kind: config.kind };
 }
 
 /** One image (or markdown snippet) produced by a block. */
@@ -42,7 +60,7 @@ export interface PartMeta {
   fixedHeight?: number;
 }
 
-export function blockParts(block: Block, ctx: Pick<Ctx, "profile" | "data">): PartMeta[] {
+export function blockParts(block: Block, ctx: Pick<Ctx, "profile" | "data" | "project" | "kind">): PartMeta[] {
   const def = getWidget(block.type);
   if (!def) return [];
   const o = { ...def.defaults, ...block.options };
@@ -114,7 +132,7 @@ export function renderFrames(part: PartMeta, ctx: Ctx): GifFrames {
 
 /** All visible parts of a config in layout order. */
 export function layoutParts(config: StudioConfig, data: ProfileData): PartMeta[][] {
-  const ctx = { profile: config.profile, data };
+  const ctx = metaCtx(config, data);
   return config.layout.map((row) => row.blocks.filter((b) => !b.hidden).flatMap((b) => blockParts(b, ctx)));
 }
 

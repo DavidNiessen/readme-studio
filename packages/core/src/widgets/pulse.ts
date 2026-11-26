@@ -48,6 +48,7 @@ export const pulse = defineWidget({
   type: "pulse",
   title: "Heartbeat",
   description: "Your recent contributions drawn as an ECG trace, one heartbeat per day, with a glowing pulse running along it.",
+  scope: "profile",
   category: "Activity",
   kind: "svg",
   width: "full",

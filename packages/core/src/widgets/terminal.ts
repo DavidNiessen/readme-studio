@@ -243,6 +243,7 @@ export const terminal = defineWidget({
   type: "terminal",
   title: "Terminal",
   description: "A shell session that types out commands about you, with live placeholders, syntax colours and a tmux-style status bar.",
+  scope: "profile",
   category: "Identity",
   kind: "svg",
   width: "full",

@@ -11,6 +11,7 @@ export const journey = defineWidget({
   type: "journey",
   title: "Journey timeline",
   description: "Your years on GitHub as a timeline: contributions per year above the axis, repositories you started below.",
+  scope: "profile",
   category: "Activity",
   kind: "svg",
   width: "full",

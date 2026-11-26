@@ -42,6 +42,7 @@ export const about = defineWidget({
   type: "about",
   title: "About card",
   description: "A typographic introduction: monogram, name and pronouns, your roles, a short bio and chips for where you work and live.",
+  scope: "profile",
   category: "Identity",
   kind: "svg",
   width: "full",

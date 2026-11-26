@@ -116,4 +116,76 @@ export interface ProfileData {
   releases: Release[];
   /** feed items fetched for blog widgets, keyed by feed URL */
   feeds: Record<string, Post[]>;
+  /** repository data, present for project designs */
+  project?: ProjectData;
+}
+
+export interface Contributor {
+  login: string;
+  /** avatar as a data: URI (embedded so it renders inside SVG images), or "" */
+  avatar: string;
+  contributions: number;
+}
+
+export interface Milestone {
+  title: string;
+  open: number;
+  closed: number;
+  /** ISO date or "" */
+  dueOn: string;
+  url: string;
+}
+
+export interface PackageDownloads {
+  registry: "npm" | "pypi" | "crates";
+  name: string;
+  /** downloads in the last 7 / 30 days and all time (null when the registry doesn't say) */
+  lastWeek: number | null;
+  lastMonth: number | null;
+  total: number | null;
+  /** weekly downloads, oldest first (up to 52) */
+  weekly: number[];
+  /** latest published version */
+  version: string;
+}
+
+/** Everything project widgets can show about one repository. */
+export interface ProjectData {
+  owner: string;
+  name: string;
+  fullName: string;
+  description: string;
+  homepage: string;
+  url: string;
+  topics: string[];
+  /** SPDX id or name, "" when none */
+  license: string;
+  defaultBranch: string;
+  createdAt: string;
+  pushedAt: string;
+  stars: number;
+  forks: number;
+  watchers: number;
+  openIssues: number;
+  closedIssues: number;
+  openPulls: number;
+  mergedPulls: number;
+  /** repository size in KB */
+  size: number;
+  language: { name: string; color: string } | null;
+  languages: LanguageShare[];
+  contributors: Contributor[];
+  contributorCount: number;
+  /** commits per week for the last 52 weeks, oldest first */
+  commitWeeks: number[];
+  lastCommit: { message: string; sha: string; date: string; author: string } | null;
+  releases: Release[];
+  /** release notes of the latest releases (markdown stripped), keyed by tag */
+  releaseNotes: Record<string, string>;
+  /** cumulative stars over time, oldest first */
+  starHistory: { date: string; stars: number }[];
+  /** status of the latest workflow run on the default branch */
+  ci: { name: string; status: "passing" | "failing" | "running" | "unknown"; url: string } | null;
+  milestones: Milestone[];
+  downloads: PackageDownloads[];
 }

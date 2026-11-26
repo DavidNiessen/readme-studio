@@ -28,6 +28,7 @@ export const rhythm = defineWidget({
   type: "rhythm",
   title: "Coding rhythm",
   description: "A 24-hour radial clock of when you commit, with your chronotype and busiest weekday.",
+  scope: "profile",
   category: "Activity",
   kind: "svg",
   width: "half",

@@ -32,6 +32,7 @@ export const followers = defineWidget({
   type: "followers",
   title: "Follower milestone",
   description: "Your follower count on a rolling counter with a progress bar towards the next milestone.",
+  scope: "profile",
   category: "Stats",
   kind: "svg",
   width: "half",

@@ -86,29 +86,38 @@ ${
 export function setupGuide(config: StudioConfig): string {
   const repo = assetRepository(config);
   const login = config.profile.login;
-  return `# Setting up your animated profile README
+  const project = config.kind === "project";
+  return `# Setting up your animated ${project ? "project" : "profile"} README
 
-This folder was exported from [Readme Studio](${STUDIO_URL}). It contains everything your
-profile repository needs:
+This folder was exported from [Readme Studio](${STUDIO_URL}). It contains everything ${project ? `**${repo}**` : "your profile repository"}
+needs:
 
 | File | Purpose |
 |---|---|
 | \`readme.config.json\` | Your design: theme, layout and widget options. Re-import it in the studio any time. |
 | \`.github/workflows/readme.yml\` | Rebuilds every image ${describeCron(config.output.schedule)} and on every config change. |
-| \`README.md\` | The generated layout. It only contains \`<picture>\` tags pointing at the \`${config.output.branch}\` branch. |
+| \`README.md\` | The generated layout${project ? " (edit the markdown blocks in the studio, not this file)" : ""}. Images point at the \`${config.output.branch}\` branch. |
 
-## 1. Create your profile repository
+${
+  project
+    ? `## 1. Open your project repository
+
+Use the repository the README is for: **[github.com/${repo}](https://github.com/${repo})**. The images are
+published to an orphan \`${config.output.branch}\` branch of that repository, so your history stays clean.
+`
+    : `## 1. Create your profile repository
 
 GitHub shows the README of the repository named exactly like your username on your profile:
 **[github.com/${login}/${login}](https://github.com/${login}/${login})**. Create it (public) if it doesn't exist yet.
-
+`
+}
 ## 2. Add the files
 
 Copy the three files into the repository root (keep the \`.github/workflows\` folder structure) and push:
 
 \`\`\`bash
 git add readme.config.json README.md .github/workflows/readme.yml
-git commit -m "feat: animated profile readme"
+git commit -m "docs: animated ${project ? "project" : "profile"} readme"
 git push
 \`\`\`
 

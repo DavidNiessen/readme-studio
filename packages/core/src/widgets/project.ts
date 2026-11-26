@@ -54,6 +54,7 @@ export const project = defineWidget({
   type: "project",
   title: "Project card",
   description: "One repository as a polished card with its description, language and stars, framed by a running accent light.",
+  scope: "profile",
   category: "Projects",
   kind: "svg",
   width: "half",

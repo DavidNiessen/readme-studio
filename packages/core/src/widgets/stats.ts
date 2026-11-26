@@ -97,6 +97,7 @@ export const stats = defineWidget({
   type: "stats",
   title: "Stats board",
   description: "Rolling odometer counters for your key numbers, with an optional year-progress ring.",
+  scope: "profile",
   category: "Stats",
   kind: "svg",
   width: "full",

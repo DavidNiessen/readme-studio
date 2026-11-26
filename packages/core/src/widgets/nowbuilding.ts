@@ -79,6 +79,7 @@ export const nowBuilding = defineWidget({
   type: "now",
   title: "Now building",
   description: "Spotlights the project you are pushing to right now, with an animated git graph and the last 30 days of activity.",
+  scope: "profile",
   category: "Projects",
   kind: "svg",
   width: "full",
