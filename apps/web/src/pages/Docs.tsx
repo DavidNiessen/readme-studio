@@ -597,6 +597,28 @@ function ConfigReference() {
         Run <code>validate</code> from the <DocLink to="action" anchor="cli">CLI</DocLink> to see the warnings without rendering.
       </p>
 
+      <Heading id="kind">kind and project</Heading>
+      <p>
+        <code>kind</code> says what the README is for: <code>"profile"</code> (default) or <code>"project"</code>. Project designs read the repository named in{" "}
+        <code>project.repo</code>, and the widget library offers the project widgets.
+      </p>
+      <Table
+        caption="kind and project fields"
+        className="t-ref"
+        head={["Field", "Type", "Description"]}
+        rows={[
+          [<code>kind</code>, <code>"profile" | "project"</code>, "What the README is for. Unknown values fall back to profile."],
+          [<code>project.repo</code>, "owner/name", "Public repository the project widgets read. GitHub URLs are accepted and trimmed."],
+          [<code>project.name</code>, "string ≤ 80", "Display name. Empty uses the repository name; available as {project}."],
+          [<code>project.tagline</code>, "string ≤ 200", "One-line description for the project hero; {tagline}."],
+          [<code>project.logo</code>, "icon id", "Emblem for the project hero. Empty draws a monogram."],
+          [<code>project.homepage</code>, "URL", "Where the hero links to."],
+          [<code>project.packages.npm</code>, "string", "npm package: version, weekly downloads and install commands."],
+          [<code>project.packages.pypi</code>, "string", "PyPI package: version and recent downloads."],
+          [<code>project.packages.crates</code>, "string", "crates.io crate: version and downloads."],
+        ]}
+      />
+
       <Heading id="profile">profile</Heading>
       <Table
         caption="profile fields"
@@ -931,6 +953,7 @@ function WidgetEntry({ w }: { w: WidgetDef }) {
         <span className="d-widget__badges">
           <span className={`badge${w.kind !== "svg" ? " badge--accent" : ""}`}>{w.kind}</span>
           <span className="badge">{w.width}</span>
+          {w.scope && w.scope !== "any" && <span className="badge">{w.scope} only</span>}
         </span>
       </header>
       <p className="d-widget__desc">{w.description}</p>
@@ -1410,6 +1433,64 @@ function FaqPage() {
   );
 }
 
+function ProjectReadmes() {
+  return (
+    <>
+      <p>
+        Everything that works for a profile also works for a repository&rsquo;s own README. A project design points at one public repository and keeps its README current: stars
+        over time, the people who built it, the latest releases, CI status, download counts and a typed-out install command, all redrawn on your schedule.
+      </p>
+
+      <Heading id="start">Start a project design</Heading>
+      <Steps>
+        <Step title="Pick a project preset">
+          <p>
+            Open the <a href={href("/presets?kind=project")}>project presets</a>, or switch <strong>README for</strong> to <strong>Project</strong> in the studio&rsquo;s Project tab.
+            The widget library then offers the project widgets first.
+          </p>
+        </Step>
+        <Step title="Point it at your repository">
+          <p>
+            In the <strong>Project</strong> tab, enter <code>owner/name</code>, a tagline and, if you publish one, the npm, PyPI or crates.io package. The <strong>Data</strong> tab
+            can load the real numbers into the preview.
+          </p>
+        </Step>
+        <Step title="Export into that repository">
+          <p>
+            The export targets the project repository: add the files at its root, allow <strong>Read and write permissions</strong> for workflows and run <strong>readme</strong> once.
+            Images go to an orphan <code>{DEFAULT_OUTPUT.branch}</code> branch of the same repository, and the README on the default branch is only rewritten when the layout changes.
+          </p>
+        </Step>
+      </Steps>
+
+      <Heading id="text">Mixing in real documentation</Heading>
+      <p>
+        Project READMEs usually need prose too: usage, API notes, contributing guidelines. Use <strong>Markdown text</strong> blocks for that; they are written into the README as
+        real Markdown, so headings, links and code blocks stay searchable and copyable. The <strong>Table of contents</strong> widget writes a linked contents list for those headings.
+      </p>
+
+      <Heading id="data">Where the numbers come from</Heading>
+      <Table
+        caption="Project data sources"
+        className="t-ref"
+        head={["Data", "Source", "Notes"]}
+        rows={[
+          ["Stars, forks, watchers, licence, topics", <code>GET /repos/:repo</code>, "Always available."],
+          ["Open and closed issues, open and merged PRs", "Search API", "Four small queries per run."],
+          ["Contributors and avatars", <code>/contributors</code>, "Avatars are embedded as data URIs, because SVGs served as images cannot load external pictures. Bots are skipped."],
+          ["Weekly commits", <code>/stats/commit_activity</code>, "GitHub computes this lazily; the first run after a long pause may show it a day late."],
+          ["Star history", <code>/stargazers</code>, "Sampled from evenly spaced pages, like star-history.com. GitHub lists at most 40,000 stargazers."],
+          ["Releases and notes", <code>/releases</code>, "Drafts are skipped; notes are shortened to a line or two."],
+          ["CI status", <code>/actions/runs</code>, "Latest run on the default branch."],
+          ["Milestones", <code>/milestones</code>, "Open milestones first, then closed ones."],
+          ["Downloads and version", "npm, PyPI, crates.io", "Public registry APIs; no keys needed."],
+        ]}
+      />
+      <Note label="Private repositories">Project READMEs only read public repositories. A private repository stops the run with a clear error instead of leaking names.</Note>
+    </>
+  );
+}
+
 // ================================================================ sections
 
 const SECTIONS: SectionDef[] = [
@@ -1427,6 +1508,19 @@ const SECTIONS: SectionDef[] = [
       { id: "updates", label: "How often it updates" },
     ],
     Body: GettingStarted,
+  },
+  {
+    id: "projects",
+    group: "Guide",
+    nav: "Project READMEs",
+    title: "Project READMEs",
+    lede: "Stars, contributors, releases and install steps for a repository's own README, kept current by the same action.",
+    toc: [
+      { id: "start", label: "Start a project design" },
+      { id: "text", label: "Mixing in documentation" },
+      { id: "data", label: "Where the numbers come from" },
+    ],
+    Body: ProjectReadmes,
   },
   {
     id: "action",
@@ -1458,6 +1552,7 @@ const SECTIONS: SectionDef[] = [
     toc: [
       { id: "example", label: "Full example" },
       { id: "normalisation", label: "Validation and repair" },
+      { id: "kind", label: "kind and project" },
       { id: "profile", label: "profile" },
       { id: "theme", label: "theme" },
       { id: "layout", label: "layout" },

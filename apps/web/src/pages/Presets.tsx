@@ -1,19 +1,30 @@
-import { layoutPresets, palettePresets, widgetList, type Mode } from "@readme-studio/core";
+import { layoutPresets, palettePresets, widgetList, type DesignKind, type Mode } from "@readme-studio/core";
 import { ArrowRight, Moon, Sun } from "lucide-react";
 import { useState } from "react";
 import { PresetThumb } from "../components/PresetThumb";
 import { SitePage } from "../components/Site";
-import { href } from "../lib/router";
+import { href, navigate, useRoute } from "../lib/router";
 
 export default function Presets() {
   const [mode, setMode] = useState<Mode | undefined>(undefined);
+  const route = useRoute();
+  const kind: DesignKind = route.params.get("kind") === "project" ? "project" : "profile";
+  const list = layoutPresets.filter((p) => (p.kind ?? "profile") === kind);
   return (
     <SitePage current="presets">
       <div className="wrap page-head page-head--split">
         <div>
           <span className="eyebrow">Presets</span>
           <h1>Finished designs, ready to make yours.</h1>
-          <p>Each preset is a complete theme and layout. Open one in the studio, swap in your details and change anything you like.</p>
+          <p>Each preset is a complete theme and layout, for your GitHub profile or for a project's README. Open one in the studio, swap in your details and change anything you like.</p>
+          <div className="kind-tabs" role="tablist" aria-label="Preset type">
+            {(["profile", "project"] as DesignKind[]).map((k) => (
+              <button key={k} type="button" role="tab" aria-selected={kind === k} onClick={() => navigate(`/presets${k === "project" ? "?kind=project" : ""}`, true)}>
+                {k === "profile" ? "Profile READMEs" : "Project READMEs"}
+                <span>{layoutPresets.filter((p) => (p.kind ?? "profile") === k).length}</span>
+              </button>
+            ))}
+          </div>
         </div>
         <div className="hp-mode" role="group" aria-label="Preview colour scheme">
           <button type="button" aria-pressed={mode === "dark"} onClick={() => setMode("dark")} aria-label="Dark">
@@ -26,7 +37,7 @@ export default function Presets() {
       </div>
       <div className="wrap">
         <div className="presets-page">
-          {layoutPresets.map((p, i) => {
+          {list.map((p, i) => {
             const blocks = p.rows.flatMap((r) => (Array.isArray(r) ? r : r.blocks));
             const types = [...new Set(blocks.map((b) => b.type))];
             const palette = palettePresets.find((x) => x.id === p.theme.preset);

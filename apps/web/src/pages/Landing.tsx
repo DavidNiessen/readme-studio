@@ -8,10 +8,11 @@ import {
   widgetList,
   workflowYaml,
   presetConfig,
+  type DesignKind,
   type Mode,
   type WidgetCategory,
 } from "@readme-studio/core";
-import { ArrowRight, BookOpen, Check, Moon, Sun } from "lucide-react";
+import { ArrowRight, BookOpen, Check, FolderGit2, Moon, Sun, User } from "lucide-react";
 import { useMemo, useState } from "react";
 import { PresetThumb } from "../components/PresetThumb";
 import { REPO_URL, SitePage } from "../components/Site";
@@ -23,20 +24,26 @@ import { href } from "../lib/router";
 const DATE = new Date();
 
 /** A faux GitHub profile README rendering a few widgets live with the chosen palette. */
+const PROFILE_ROWS = [{ blocks: [{ type: "hero" }] }, { blocks: [{ type: "socials" }] }, { blocks: [{ type: "stats" }] }, { blocks: [{ type: "contrib", options: { weekly: false } }] }];
+const PROJECT_ROWS = [{ blocks: [{ type: "project-hero" }] }, { blocks: [{ type: "shields" }] }, { blocks: [{ type: "repo-stats" }] }, { blocks: [{ type: "star-history" }] }];
+
 function HeroPreview() {
   const [palette, setPalette] = useState("crimson");
   const [mode, setMode] = useState<Mode>("dark");
+  const [kind, setKind] = useState<DesignKind>("profile");
   const config = useMemo(
     () =>
       normalizeConfig({
+        kind,
         profile: { ...presetConfig("command-center").profile, name: "Mona Octocat", login: "octocat" },
-        theme: { preset: palette, font: "jetbrains-mono", headingFont: "jetbrains-mono" },
-        layout: [{ blocks: [{ type: "hero" }] }, { blocks: [{ type: "socials" }] }, { blocks: [{ type: "stats" }] }, { blocks: [{ type: "contrib", options: { weekly: false } }] }],
+        project: { repo: "octocat/aurora", tagline: "A tiny, fast design-token compiler for multi-brand UI kits.", packages: { npm: "aurora" } },
+        theme: { preset: palette, font: "jetbrains-mono", headingFont: kind === "project" ? "space-grotesk" : "jetbrains-mono" },
+        layout: kind === "project" ? PROJECT_ROWS : PROFILE_ROWS,
       }).config,
-    [palette],
+    [palette, kind],
   );
-  const data = useMemo(() => mockData(DATE, "octocat", "Mona Octocat", config.profile.location.timezone), [config.profile.location.timezone]);
-  const ready = useFontsReady([config.theme.font]);
+  const data = useMemo(() => mockData(DATE, "octocat", "Mona Octocat", config.profile.location.timezone, "octocat/aurora"), [config.profile.location.timezone]);
+  const ready = useFontsReady([config.theme.font, config.theme.headingFont]);
   const rows = useMemo(() => (ready ? renderLayout(config, data, mode, DATE) : []), [ready, config, data, mode]);
   const shown = ["crimson", "github", "ocean", "amber", "nord", "sakura", "mono"];
   return (
@@ -48,11 +55,11 @@ function HeroPreview() {
             <i />
             <i />
           </span>
-          <span className="hp-url mono">github.com/octocat</span>
+          <span className="hp-url mono">{kind === "project" ? "github.com/octocat/aurora" : "github.com/octocat"}</span>
         </div>
         <div className="hp-body">
           <div className="hp-file">
-            <BookOpen /> octocat / README.md
+            <BookOpen /> {kind === "project" ? "aurora / README.md" : "octocat / README.md"}
           </div>
           <div className="hp-content">
             {rows.map((r) => (
@@ -67,6 +74,14 @@ function HeroPreview() {
         </div>
       </div>
       <div className="hp-controls">
+        <div className="hp-mode hp-kind" role="group" aria-label="README type">
+          <button type="button" aria-pressed={kind === "profile"} onClick={() => setKind("profile")}>
+            Profile
+          </button>
+          <button type="button" aria-pressed={kind === "project"} onClick={() => setKind("project")}>
+            Project
+          </button>
+        </div>
         <div className="hp-swatches" role="group" aria-label="Try a palette">
           {shown.map((id) => {
             const p = palettePresets.find((x) => x.id === id)!;
@@ -97,18 +112,93 @@ function HeroPreview() {
   );
 }
 
+function ProjectShowcase() {
+  const config = useMemo(
+    () =>
+      normalizeConfig({
+        kind: "project",
+        project: { repo: "octocat/aurora", tagline: "A tiny, fast design-token compiler for multi-brand UI kits.", packages: { npm: "aurora" } },
+        theme: { preset: "github", font: "geist-sans", headingFont: "geist-sans", texture: "none", radius: 10 },
+        layout: [{ blocks: [{ type: "install" }] }, { blocks: [{ type: "contributors" }] }, { blocks: [{ type: "changelog" }] }],
+      }).config,
+    [],
+  );
+  const data = useMemo(() => mockData(DATE, "octocat", "Mona Octocat", "UTC", "octocat/aurora"), []);
+  const ready = useFontsReady([config.theme.font]);
+  const rows = useMemo(() => (ready ? renderLayout(config, data, "dark", DATE) : []), [ready, config, data]);
+  const projectWidgets = widgetList.filter((w) => w.scope === "project");
+  const firstPreset = layoutPresets.find((p) => p.kind === "project");
+  return (
+    <div className="showcase">
+      <div className="showcase__copy">
+        <span className="eyebrow">New · project READMEs</span>
+        <h2 className="serif">
+          For your projects, <em>too.</em>
+        </h2>
+        <p>
+          Point a design at any public repository and its README stays current on its own: stars over time, the people who built it, the latest releases, CI status,
+          download counts and a typed-out install command.
+        </p>
+        <ul className="showcase__list">
+          {projectWidgets.slice(0, 10).map((w) => (
+            <li key={w.type}>
+              <Check /> {w.title}
+            </li>
+          ))}
+        </ul>
+        <div className="hero__cta">
+          <a className="btn btn--primary btn--lg" href={href(`/studio${firstPreset ? `?preset=${firstPreset.id}` : ""}`)}>
+            Start a project README <ArrowRight />
+          </a>
+          <a className="btn btn--lg" href={href("/presets?kind=project")}>
+            Project presets
+          </a>
+        </div>
+      </div>
+      <div className="showcase__preview">
+        <div className="hp-window">
+          <div className="hp-bar">
+            <span className="hp-dots">
+              <i />
+              <i />
+              <i />
+            </span>
+            <span className="hp-url mono">github.com/octocat/aurora</span>
+          </div>
+          <div className="hp-body">
+            <div className="hp-content" style={{ minHeight: 360 }}>
+              {rows.map((r) => (
+                <div key={r.rowId} className="hp-row">
+                  {r.parts.map((p) => (
+                    <WidgetImage key={p.meta.name} part={p} />
+                  ))}
+                </div>
+              ))}
+              {!rows.length && <div className="hp-skeleton" />}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function Gallery() {
-  const [cat, setCat] = useState<WidgetCategory>("Stats");
+  const [cat, setCat] = useState<WidgetCategory | "Project">("Stats");
   const [mode, setMode] = useState<Mode>("dark");
   const config = useMemo(
     () =>
       normalizeConfig({
         theme: { preset: "crimson" },
-        layout: widgetList.filter((w) => w.category === cat && w.kind !== "markdown").map((w) => ({ blocks: [{ type: w.type, id: w.type }] })),
+        kind: cat === "Project" ? "project" : "profile",
+        project: { repo: "octocat/aurora", tagline: "A tiny, fast design-token compiler for multi-brand UI kits.", packages: { npm: "aurora" } },
+        layout: widgetList
+          .filter((w) => (cat === "Project" ? w.scope === "project" : w.category === cat && w.scope !== "project") && w.kind !== "markdown")
+          .map((w) => ({ blocks: [{ type: w.type, id: w.type }] })),
       }).config,
     [cat],
   );
-  const data = useMemo(() => mockData(DATE, "octocat"), []);
+  const data = useMemo(() => mockData(DATE, "octocat", "Mona Octocat", "UTC", "octocat/aurora"), []);
   const ready = useFontsReady([config.theme.font]);
   const rows = useMemo(() => (ready ? renderLayout(config, data, mode, DATE) : []), [ready, config, data, mode]);
   const items = rows.flatMap((r) => r.parts.slice(0, 1));
@@ -119,9 +209,13 @@ function Gallery() {
           {CATEGORIES.map((c) => (
             <button key={c.id} type="button" role="tab" aria-selected={cat === c.id} onClick={() => setCat(c.id)}>
               {c.id}
-              <span>{widgetList.filter((w) => w.category === c.id).length}</span>
+              <span>{widgetList.filter((w) => w.category === c.id && w.scope !== "project").length}</span>
             </button>
           ))}
+          <button type="button" role="tab" aria-selected={cat === "Project"} onClick={() => setCat("Project")}>
+            Project
+            <span>{widgetList.filter((w) => w.scope === "project").length}</span>
+          </button>
         </div>
         <div className="hp-mode" role="group" aria-label="Colour scheme">
           <button type="button" aria-pressed={mode === "dark"} onClick={() => setMode("dark")} aria-label="Dark">
@@ -167,10 +261,10 @@ export function Landing() {
           <div className="hero__copy">
             <span className="eyebrow">Open source · No server · Rebuilt nightly</span>
             <h1 className="hero__title">
-              Your GitHub profile, <em>alive.</em>
+              READMEs that stay <em>alive.</em>
             </h1>
             <p className="hero__lede">
-              Design an animated README in the browser, from {widgetList.length} widgets and {palettePresets.length} palettes. A GitHub Action re-renders every image each night, so your streaks, graphs and releases are never stale.
+              Design an animated README for your GitHub profile or your project in the browser, from {widgetList.length} widgets and {palettePresets.length} palettes. A GitHub Action re-renders every image on a schedule, so streaks, stars, contributors and releases are never stale.
             </p>
             <div className="hero__cta">
               <a className="btn btn--accent btn--lg" href={href("/studio")}>
@@ -256,6 +350,12 @@ export function Landing() {
 
       <section className="section">
         <div className="wrap">
+          <ProjectShowcase />
+        </div>
+      </section>
+
+      <section className="section">
+        <div className="wrap">
           <div className="section__head">
             <h2>Widgets that know what you did today.</h2>
             <p>Every widget is a hand-drawn, animated SVG fed by your real GitHub data: contribution calendars, streaks, releases, languages, even the weather where you live.</p>
@@ -273,10 +373,10 @@ export function Landing() {
         <div className="wrap">
           <div className="section__head">
             <h2>Start from something finished.</h2>
-            <p>Twelve complete designs, from a maximal command center to a single quiet card. Apply one, keep your details, change anything.</p>
+            <p>{layoutPresets.length} complete designs for profiles and projects, from a maximal command center to a single quiet card. Apply one, keep your details, change anything.</p>
           </div>
           <div className="preset-row">
-            {layoutPresets.slice(0, 4).map((p) => (
+            {[...layoutPresets.filter((p) => (p.kind ?? "profile") === "profile").slice(0, 2), ...layoutPresets.filter((p) => p.kind === "project").slice(0, 2)].map((p) => (
               <a key={p.id} className="preset-card" href={href(`/studio?preset=${p.id}`)}>
                 <PresetThumb id={p.id} height={260} />
                 <div className="preset-meta">

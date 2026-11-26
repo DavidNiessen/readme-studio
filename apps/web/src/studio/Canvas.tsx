@@ -1,4 +1,4 @@
-import { getWidget } from "@readme-studio/core";
+import { assetRepository, getWidget } from "@readme-studio/core";
 import { ArrowDown, ArrowUp, BookOpen, Copy, LayoutTemplate, Plus, Trash2 } from "lucide-react";
 import { marked } from "marked";
 import { useMemo } from "react";
@@ -56,7 +56,7 @@ export function Canvas() {
       <div className="canvas__inner">
         <div className="canvas__meta">
           <span className="mono">
-            {config.profile.login}/{config.profile.login} · README.md
+            {assetRepository(config)} · README.md
           </span>
           <span className="mono hide-sm">
             {parts} images · ~{Math.round(bytes / 1024)} KB per theme · {data.source === "mock" ? "sample data" : `live: ${data.source}`}
@@ -66,7 +66,7 @@ export function Canvas() {
           <div className="gh__head">
             <BookOpen />
             <span>README</span>
-            <span className="gh__login">· {config.profile.login}</span>
+            <span className="gh__login">· {config.kind === "project" ? config.project.repo : config.profile.login}</span>
           </div>
           <div className="gh__body">
             {empty ? (

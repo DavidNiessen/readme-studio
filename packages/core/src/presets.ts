@@ -1,4 +1,4 @@
-import { DEFAULT_OUTPUT, DEFAULT_PROFILE, normalizeConfig, type Align, type Profile, type StudioConfig } from "./config";
+import { DEFAULT_OUTPUT, DEFAULT_PROFILE, DEFAULT_PROJECT, normalizeConfig, type Align, type DesignKind, type Profile, type ProjectInfo, type StudioConfig } from "./config";
 import { DEFAULT_THEME, type ThemeSettings } from "./theme";
 
 type B = { type: string; id?: string; options?: Record<string, unknown>; link?: string };
@@ -6,6 +6,8 @@ type R = B[] | { align: Align; blocks: B[] };
 
 export interface LayoutPreset {
   id: string;
+  /** what the preset is for (default: profile) */
+  kind?: DesignKind;
   name: string;
   description: string;
   tags: string[];
@@ -235,11 +237,13 @@ export function getLayoutPreset(id: string): LayoutPreset {
   return layoutPresets.find((p) => p.id === id) ?? layoutPresets[0];
 }
 
-/** A complete, normalised config for a preset, with the given profile fields merged in. */
-export function presetConfig(id: string, profile: Partial<Profile> = {}): StudioConfig {
+/** A complete, normalised config for a preset, with the given profile (and project) fields merged in. */
+export function presetConfig(id: string, profile: Partial<Profile> = {}, project: Partial<ProjectInfo> = {}): StudioConfig {
   const p = getLayoutPreset(id);
   const raw = {
+    kind: p.kind ?? "profile",
     profile: { ...DEFAULT_PROFILE, ...profile },
+    project: { ...DEFAULT_PROJECT, ...project },
     theme: { ...DEFAULT_THEME, ...p.theme },
     layout: p.rows.map((r) => (Array.isArray(r) ? { align: "center", blocks: r } : r)),
     output: DEFAULT_OUTPUT,
