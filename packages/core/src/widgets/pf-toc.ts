@@ -79,7 +79,7 @@ export const pfToc = defineWidget({
       const link = e.anchor ? `[${mdLabel(e.title)}](#${encodeURI(e.anchor)})` : mdLabel(e.title);
       if (e.sub && seenTop) {
         m++;
-        lines.push(numbered ? `   ${m}. ${link}` : `  - ${link}`);
+        lines.push(numbered ? `${" ".repeat(`${n}. `.length)}${m}. ${link}` : `  - ${link}`);
       } else {
         n++;
         m = 0;

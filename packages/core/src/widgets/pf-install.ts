@@ -190,13 +190,13 @@ export const pfInstall = defineWidget({
     const N = shown.length;
 
     // ---------------------------------------------------------- body rows
-    const promptW = textWidth(t, "$ ", FS, { bold: true });
+    const promptW = Math.max(20, textWidth(t, "$ ", FS, { bold: true }));
     const copyS = 30;
     const cmdMax = W - X0 - promptW - copyS - 40;
     const y1 = BAR + 36;
     const y2 = y1 + 27;
     const y3 = y2 + 34;
-    const lastY = quick ? y3 : y2;
+    const lastY = quick && shown.some((tab) => quickOverride || tab.then) ? y3 : y2;
     const H = lastY + 28 + (statusBar ? STATUS : 0);
 
     // timing per tab (seconds from the start of its slot)
@@ -272,7 +272,7 @@ export const pfInstall = defineWidget({
       let curAt = p.t1 + p.d1;
       if (p.then) {
         const tw = textWidth(t, p.then, FS);
-        const comment = `<text x="${n1(cx + tw + 16)}" y="${y3}" font-size="12.5" class="s">${esc("# quick start")}</text>`;
+        const comment = `<text x="${n1(cx + tw + 26)}" y="${y3}" font-size="12.5" class="s">${esc("# quick start")}</text>`;
         row3 = `${appear(i, p.t2 - 0.25, prompt(y3))}${typed(i, "q", p.then, cx, y3, p.t2, "t")}${appear(i, p.t2 + p.d2 + 0.1, comment)}`;
         curX = cx + tw + 3;
         curY = y3;

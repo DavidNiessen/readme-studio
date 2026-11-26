@@ -34,12 +34,17 @@ interface Entry {
   notes: string;
 }
 
+/** ISO timestamp if it parses, else "". */
+function validIso(s: string | undefined): string {
+  return s && /^\d{4}-\d{2}-\d{2}/.test(s) && !Number.isNaN(Date.parse(s)) ? s : "";
+}
+
 function entries(ctx: Pick<Ctx, "data">, o: Record<string, unknown>): Entry[] {
   const pd = projectData(ctx);
   const all = [...(pd?.releases ?? [])].filter((r) => r && r.tag).sort((a, b) => (b.publishedAt || "").localeCompare(a.publishedAt || ""));
   const notes = pd?.releaseNotes ?? {};
   const only = optPick(o.only, ["all", "minor", "major"], "all");
-  const list = all.map((r, i) => ({ r, bump: bump(r.tag, all[i + 1]?.tag), notes: (notes[r.tag] || "").replace(/\s+/g, " ").trim() }));
+  const list = all.map((r, i) => ({ r, bump: bump(r.tag, all[i + 1]?.tag), notes: String(notes[r.tag] || "").replace(/\s+/g, " ").trim() }));
   const keep = list.filter((e) => only === "all" || (only === "major" ? e.bump === "major" : e.bump === "major" || e.bump === "minor"));
   return keep.slice(0, optNum(o.count, 4, 1, 8));
 }
@@ -94,7 +99,7 @@ export const pfChangelog = defineWidget({
     const kinds = o.kinds !== false;
     const top = lbl ? 56 : 26;
     const total = pd?.releases?.length ?? 0;
-    const right = total ? `${total} release${total === 1 ? "" : "s"}${pd?.releases?.[0]?.publishedAt ? `  ·  last ${ago(pd.releases[0].publishedAt, ctx.date)}` : ""}` : "";
+    const right = total ? `${total} release${total === 1 ? "" : "s"}${validIso(list[0]?.r.publishedAt) ? `  ·  last ${ago(list[0].r.publishedAt, ctx.date)}` : ""}` : "";
 
     if (!list.length) {
       const H = top + 132;
@@ -106,8 +111,10 @@ ${emptyState(t, 24, top, W - 48, 104, "tag", "No releases yet", sub)}`;
     }
 
     const dateX = 24;
-    const railX = 176;
-    const cx = railX + 30;
+    const dateOf = (e: Entry) => (validIso(e.r.publishedAt) ? longDate(e.r.publishedAt.slice(0, 10)) : "");
+    const dateW = Math.max(60, ...list.map((e) => Math.max(textWidth(t, dateOf(e), 12.5, { bold: true }), validIso(e.r.publishedAt) ? textWidth(t, ago(e.r.publishedAt, ctx.date), 11.5) : 0)));
+    const railX = Math.round(dateX + Math.min(dateW, 150) + 28);
+    const cx = railX + 26;
     const textW = W - cx - 28;
     const noteFs = 13;
     const noteLh = 19;
@@ -119,7 +126,7 @@ ${emptyState(t, 24, top, W - 48, 104, "tag", "No releases yet", sub)}`;
       const d = 0.2 + i * 0.12;
       const head = y + 14;
       nodes.push(head - 4);
-      const iso = e.r.publishedAt || "";
+      const iso = validIso(e.r.publishedAt);
       const date = iso ? longDate(iso.slice(0, 10)) : "";
       const rel = iso ? ago(iso, ctx.date) : "";
       // version pill
@@ -158,7 +165,7 @@ ${emptyState(t, 24, top, W - 48, 104, "tag", "No releases yet", sub)}`;
         ? `<circle cx="${railX}" cy="${head - 4}" r="11" fill="${t.accent}" opacity=".25" class="fx ping2 loop loop-only"/><circle cx="${railX}" cy="${head - 4}" r="6.5" fill="${t.accent}"/><circle cx="${railX}" cy="${head - 4}" r="2.5" fill="${onAccent(t)}"/>`
         : `<circle cx="${railX}" cy="${head - 4}" r="5" fill="${t.card}" stroke="${e.bump === "major" ? t.accent : t.subtle}" stroke-width="2"/>`;
       rows.push(`<g class="in" style="${dl(d)}">
-${date ? `<text x="${dateX}" y="${head}" font-size="12.5" class="t b">${esc(date)}</text>` : ""}
+${date ? `<text x="${dateX}" y="${head}" font-size="12.5" class="t b">${esc(fitText(t, date, 12.5, 150, { bold: true }))}</text>` : ""}
 ${rel ? `<text x="${dateX}" y="${head + 18}" font-size="11.5" class="m">${esc(rel)}</text>` : ""}
 ${node}${pill}${chips}
 ${titleTxt ? `<text x="${n1(x)}" y="${head}" font-size="14" class="t b">${esc(titleTxt)}</text>` : ""}

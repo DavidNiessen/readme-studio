@@ -36,7 +36,7 @@ export const repoHealth = defineWidget({
     const top = lbl ? 48 : 22;
     if (!pd) {
       const H = top + 150;
-      const body = `${card(t, { width: W, height: H })}${lbl ? header(t, W, lbl) : ""}${noRepo(t, 24, top, W - 48, 126, "Build and issue health")}`;
+      const body = `${card(t, { width: W, height: H })}${lbl ? header(t, W, lbl) : ""}${noRepo(t, 24, top, W - 48, 126, "Vitals")}`;
       return svg({ width: W, height: H, theme: t, title: "repository vitals", body });
     }
     const status = ciStatus(pd);

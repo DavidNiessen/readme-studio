@@ -2,7 +2,7 @@ import { projectName } from "../config";
 import { esc, groupDigits } from "../lib/escape";
 import { hasIcon, icon } from "../lib/icons";
 import { odometer, odometerWidth } from "../lib/odometer";
-import { cardStroke, fitSize, surfaceFill, svg, textWidth, wrapText } from "../lib/svg";
+import { cardStroke, fitSize, fitText, surfaceFill, svg, textWidth, wrapText } from "../lib/svg";
 import { TNUM, compact, dl, optBool, optPick, optStr } from "./kit-d";
 import { homeUrl, latestTag, mono, pdata, repoSlug, xglyph, type XGlyph } from "./kit-e";
 import { accentDeep, glyph, onAccent, type GlyphName } from "./parts";
@@ -145,7 +145,8 @@ export const projectHero = defineWidget({
     const pillW = tag ? textWidth(t, tag, pillSize, { bold: true }) + 22 : 0;
     const nameMax = colW - (tag ? pillW + 16 : 0);
     const nameSize = fitSize(t, name, 64, nameMax, 28, { bold: true, heading: true, letterSpacing: -1.5 });
-    const nameW = textWidth(t, name, nameSize, { bold: true, heading: true, letterSpacing: -1.5 });
+    const shownName = fitText(t, name, nameSize, nameMax, { bold: true, heading: true, letterSpacing: -1.5 });
+    const nameW = textWidth(t, shownName, nameSize, { bold: true, heading: true, letterSpacing: -1.5 });
     const nameY = y + 20 + Math.round(nameSize * 0.74);
     y = nameY;
     const tagSize = 17;
@@ -155,7 +156,7 @@ export const projectHero = defineWidget({
     const cmdSize = 13;
     const cmdH = 36;
     const cmdTextW = cmd ? mo.measure(cmd, cmdSize) : 0;
-    const cmdW = cmd ? Math.min(colW, cmdTextW + 82) : 0;
+    const cmdW = cmd ? Math.min(colW, cmdTextW + 100) : 0;
     const cmdY = y + (lines.length ? 24 : 26);
     if (cmd) y = cmdY + cmdH;
     const statY = y + (cmd ? 36 : 40);
@@ -195,7 +196,7 @@ export const projectHero = defineWidget({
     let install = "";
     if (cmd) {
       const cx0 = center ? W / 2 - cmdW / 2 : x0;
-      const shown = cmdTextW + 82 > colW ? cmd.slice(0, Math.max(4, Math.floor(((colW - 82) / cmdTextW) * cmd.length) - 1)) + "…" : cmd;
+      const shown = cmdTextW + 100 > colW ? cmd.slice(0, Math.max(4, Math.floor(((colW - 100) / cmdTextW) * cmd.length) - 1)) + "…" : cmd;
       const r = Math.min(10, t.radius);
       install = `<g class="in" style="${dl(1.6)}">
 <rect x="${cx0.toFixed(1)}" y="${cmdY}" width="${cmdW.toFixed(1)}" height="${cmdH}" rx="${r}" fill="${t.raised}" stroke="${t.border}"/>
@@ -254,7 +255,7 @@ ${xglyph("copy", cx0 + cmdW - 28, cmdY + 10, 16, t.muted)}
 <text x="0" y="${(fs * 0.36).toFixed(1)}" font-size="${fs.toFixed(1)}" text-anchor="middle" fill="${onAccent(t)}" class="b h" letter-spacing="-.5">${esc(m)}</text>`;
       }
       const ringMarkup = rings
-        ? `<circle class="ring loop" cx="0" cy="0" r="${ks * 0.78}" stroke="${t.subtle}" stroke-dasharray="2 10" stroke-width="2"/>
+        ? `${ks >= 100 ? `<circle class="ring loop" cx="0" cy="0" r="${ks * 0.78}" stroke="${t.subtle}" stroke-dasharray="2 10" stroke-width="2"/>` : ""}
 <circle class="ring2 loop" cx="0" cy="0" r="${ks * 0.62}" stroke="${t.accent}" stroke-opacity=".5" stroke-dasharray="40 160 10 60" stroke-width="1.5"/>
 <g class="orbit loop"><circle cx="0" cy="0" r="${ks * 0.62}"/><circle cx="${ks * 0.62}" cy="0" r="3.5" fill="${t.glow}" filter="url(#glow)"/></g>`
         : "";
@@ -301,7 +302,7 @@ ${inner}
 </g>
 ${cardStroke(t, W, H, t.radius + 4)}
 ${eyebrow}
-<text x="${nameX.toFixed(1)}" y="${nameY}" font-size="${nameSize}" class="name b h" letter-spacing="-1.5">${esc(name)}</text>
+<text x="${nameX.toFixed(1)}" y="${nameY}" font-size="${nameSize}" class="name b h" letter-spacing="-1.5">${esc(shownName)}</text>
 ${version}
 ${tagMarkup}
 ${install}

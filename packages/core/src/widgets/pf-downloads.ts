@@ -177,7 +177,8 @@ ${mark(t, reg.icon, W - 24 - regW + 9, 21, 14, "brand", t.raised)}<text x="${n1(
       }
       const last = pts[pts.length - 1];
       const area = `${d}L${n1(sx1)} ${sy1}L${sx0} ${sy1}Z`;
-      const peak = weekly.indexOf(max);
+      const top = Math.max(...weekly);
+      const peak = top > 0 ? weekly.indexOf(top) : pts.length - 1;
       const pk = pts[peak];
       spark = `<path d="M${sx0} ${sy1 + 0.5}H${sx1}" stroke="${t.border}"/>
 <path d="${area}" fill="url(#dlA)" class="fade" style="${dl(0.9)}"/>
@@ -185,7 +186,7 @@ ${mark(t, reg.icon, W - 24 - regW + 9, 21, 14, "brand", t.raised)}<text x="${n1(
 ${peak !== pts.length - 1 ? `<g class="fade" style="${dl(1.8)}"><circle cx="${n1(pk[0])}" cy="${n1(pk[1])}" r="2.5" fill="${t.card}" stroke="${t.accent}" stroke-width="1.4"/></g>` : ""}
 <g class="fade" style="${dl(1.9)}"><circle cx="${n1(last[0])}" cy="${n1(last[1])}" r="7" fill="${t.accent}" opacity=".25" class="fx pulse2 loop loop-only"/><circle cx="${n1(last[0])}" cy="${n1(last[1])}" r="3.5" fill="${t.accent}" stroke="${t.card}" stroke-width="1.5"/></g>
 <text x="${sx0}" y="${HH - 14}" font-size="10.5" class="m fade" style="${dl(1)}">${weekly.length} weeks ago</text>
-<text x="${sx1}" y="${HH - 14}" font-size="10.5" text-anchor="end" class="m fade" style="${dl(1)}">${esc(`peak ${groupDigits(max)} / wk`)}</text>`;
+<text x="${sx1}" y="${HH - 14}" font-size="10.5" text-anchor="end" class="m fade" style="${dl(1)}">${esc(top > 0 ? `peak ${groupDigits(top)} / wk` : "no downloads yet")}</text>`;
     } else {
       spark = `<text x="${W / 2}" y="${n1((sy0 + sy1) / 2 + 4)}" font-size="11.5" text-anchor="middle" class="m fade" style="${dl(0.6)}">Weekly history appears after a few weeks of data.</text>`;
     }

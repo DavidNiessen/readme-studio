@@ -165,7 +165,7 @@ export const pfSupport = defineWidget({
 
     const x = 32;
     const sx = W - 138;
-    const contentW = emblem ? sx - 120 - x : W - x * 2;
+    const contentW = emblem ? sx - 136 - x : W - x * 2;
     const top = lbl ? 62 : 34;
 
     // headline (≤2 lines)
@@ -225,13 +225,15 @@ ${lab ? `<text x="${n1(bx + 18 + (hasIc ? 25 : 0))}" y="${n1(by + 24.5)}" font-s
       bottom = ly + 6;
     }
     const H = Math.round(Math.max(emblem ? 270 : 0, bottom + 34));
+    // centre short content against the emblem's minimum height
+    const dy = Math.max(0, (H - (bottom + 34)) / 2);
 
     // heart emblem with an ECG trace
     let emb = "";
     if (emblem) {
       const cy = H / 2 + (lbl ? 8 : 0);
       const R = 38;
-      const ex0 = sx - 126;
+      const ex0 = sx - 132;
       const ex1 = W - 1;
       const spike = (c: number) => `H${c - 22}l5 -5 5 5H${c - 6}l4 10 6 -34 6 30 4 -6H${c + 22}l5 -6 6 6`;
       const ecg = `M${ex0} ${cy}${spike(sx - 78)}H${sx + 60}${spike(sx + 90)}H${ex1}`;
@@ -245,8 +247,8 @@ ${lab ? `<text x="${n1(bx + 18 + (hasIc ? 25 : 0))}" y="${n1(by + 24.5)}" font-s
         .map(([dx, dy, s, d]) => `<g class="float loop-only loop" style="animation-delay:${d}s"><svg x="${n1(sx + dx - s / 2)}" y="${n1(cy + dy - s / 2)}" width="${s}" height="${s}" viewBox="0 0 24 24"><path d="${HEART}" fill="${t.glow}"/></svg></g>`)
         .join("");
       emb = `<g clip-path="url(#spClip)"><g class="fade" style="animation-delay:.3s">${rings}
-<path d="${ecg}" stroke="${t.subtle}" stroke-width="1.4" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
-<path d="${ecg}" stroke="${t.accent}" stroke-width="2" fill="none" stroke-linejoin="round" stroke-linecap="round" pathLength="100" stroke-dasharray="16 100" class="ecg loop loop-only" filter="url(#glow)"/>
+<g mask="url(#ecgM)"><path d="${ecg}" stroke="${t.subtle}" stroke-width="1.4" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="${ecg}" stroke="${t.accent}" stroke-width="2" fill="none" stroke-linejoin="round" stroke-linecap="round" pathLength="100" stroke-dasharray="16 100" class="ecg loop loop-only" filter="url(#glow)"/></g>
 ${waves}${floaters}</g></g>
 <g class="fx" style="animation:pop .7s ease .35s both"><g class="fx beat loop">
 <circle cx="${sx}" cy="${n1(cy)}" r="${R}" fill="url(#spG)"/>
@@ -267,14 +269,16 @@ ${waves}${floaters}</g></g>
 .float{opacity:0;animation:float 4.8s ease-out infinite}
 @keyframes float{0%{opacity:0;transform:translateY(8px)}20%{opacity:.9}100%{opacity:0;transform:translateY(-34px)}}`;
     const defs = `<linearGradient id="spG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${t.glow}"/><stop offset="1" stop-color="${accentDeep(t)}"/></linearGradient>
+<linearGradient id="ecgF" gradientUnits="userSpaceOnUse" x1="${sx - 132}" y1="0" x2="${sx - 62}" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#fff"/></linearGradient>
+<mask id="ecgM" maskUnits="userSpaceOnUse" x="0" y="0" width="${W}" height="${H}"><rect x="0" y="0" width="${W}" height="${H}" fill="url(#ecgF)"/></mask>
 <clipPath id="spClip"><rect x=".5" y=".5" width="${W - 1}" height="${H - 1}" rx="${t.radius}"/></clipPath>`;
     const body = `${card(t, { width: W, height: H })}
 ${lbl ? label(t, x, 34, lbl) : ""}
 ${emb}
-${head}
+<g transform="translate(0 ${n1(dy)})">${head}
 ${textMarkup}
 ${out.join("\n")}
-${backersMarkup}`;
+${backersMarkup}</g>`;
     return svg({ width: W, height: H, theme: t, title: this.alt(ctx, o), css, defs, body });
   },
 });
