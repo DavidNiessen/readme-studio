@@ -1,0 +1,92 @@
+/* The extension's own pieces, drawn with the studio's tokens (tokens.css). */
+.ext-save {
+  display: grid;
+  gap: 14px;
+}
+.ext-note {
+  margin: 0;
+  font-size: var(--t-xs);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.ext-row {
+  display: flex;
+  gap: 8px;
+}
+.ext-row > :first-child {
+  flex: 1;
+  min-width: 0;
+}
+.ext-auth {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--paper-2, transparent);
+}
+.ext-auth > .btn {
+  justify-self: start;
+}
+.ext-auth--in {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.ext-device {
+  display: grid;
+  gap: 10px;
+}
+.ext-device p {
+  margin: 0;
+}
+.ext-device__code {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.ext-device__code code {
+  font: 600 22px/1 var(--font-mono);
+  letter-spacing: 0.12em;
+  padding: 8px 12px;
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+}
+.ext-done {
+  margin: 0;
+  line-height: 1.55;
+}
+
+/* options page */
+.ext-options {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 48px 24px 80px;
+  display: grid;
+  gap: 18px;
+}
+.ext-options header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.ext-options h1 {
+  margin: 0;
+  font: 500 28px/1.1 var(--font-serif);
+}
+.ext-options h2 {
+  margin: 0 0 10px;
+  font-size: var(--t-md, 15px);
+}
+.ext-options section {
+  display: grid;
+  gap: 12px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+}
+.ext-options p {
+  margin: 0;
+}

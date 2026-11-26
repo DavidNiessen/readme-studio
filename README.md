@@ -13,12 +13,13 @@ A GitHub Action re-renders every image on a schedule, so streaks, stars, contrib
 
 ## What it is
 
-Readme Studio has three parts:
+Readme Studio has four parts:
 
 | Part | Where | What it does |
 |---|---|---|
 | **Studio** | [`apps/web`](apps/web) | A web designer (hosted on GitHub Pages). Design a **profile** README or a **project** README: pick one of 18 presets or start blank, arrange 54 widgets, tune 17 palettes, 12 typefaces, radius, texture and motion, and preview in GitHub's dark and light themes at desktop or phone width. Exports a ready-to-commit project. |
 | **Action** | [`action.yml`](action.yml), [`packages/engine`](packages/engine) | Runs in your profile or project repository on a cron. Fetches your GitHub data (account or repository), renders every widget as an animated SVG (or GIF), force-pushes the images to an asset branch and updates `README.md` when the layout changed. |
+| **Browser extension** | [`apps/extension`](apps/extension) | Chrome and Firefox. On GitHub, **Edit README** opens the same studio over the repository page with its committed design, and **Save to GitHub** writes it back: as a commit, a pull request, or through GitHub's own editor. |
 | **Core** | [`packages/core`](packages/core) | The isomorphic renderer shared by both: themes, fonts with real text metrics, widgets, the config schema and the README composer. The studio preview and the action produce byte-identical SVGs. |
 
 Everything is static: no server, no database, no third-party image host. Your design lives in your browser and in your repository.
@@ -88,6 +89,17 @@ Outputs: `assets-dir`, `readme-changed`, `data-source`.
 
 **Data sources.** With a token the action uses GitHub GraphQL (calendar, totals, pinned repos, languages, releases). Without one it falls back to the REST API plus the public contributions calendar. Weather comes from Open-Meteo, blog posts from any RSS/Atom feed. Only public repositories are ever named.
 
+## Browser extension
+
+The extension puts the studio inside GitHub. On a repository with a `readme.config.json` (and on your profile repository) an **Edit README** button opens the studio over the page with that design loaded; the toolbar button does the same from anywhere on the repository. It is the same studio as the website, not a copy: [`apps/extension`](apps/extension) mounts `apps/web`'s studio and adds the GitHub side.
+
+**Save to GitHub** writes `readme.config.json` (and the workflow, if the repository has none), and the readme workflow renders the rest:
+
+- **Commit** straight to the branch, or **Pull request** from a new branch. Both need a GitHub account: **Sign in with GitHub** (OAuth device flow; the build or the options page supplies an OAuth App client ID with *Enable Device Flow* ticked) or a personal access token (fine-grained: Contents and Workflows read & write; classic: `public_repo` and `workflow`).
+- **GitHub editor** needs no sign-in: GitHub's editor opens with the new file filled in, and you review the diff and commit there.
+
+Install it from the latest [release](https://github.com/DavidNiessen/readme-studio/releases/latest): unzip `readme-studio-chrome-*.zip` and load it unpacked (`chrome://extensions`, Developer mode), or open `readme-studio-firefox-*.zip` from `about:debugging`. Store listings follow once they are published.
+
 ## Project READMEs
 
 Switch a design to **Project**, enter `owner/name` and, if you publish one, the npm, PyPI or crates.io package. Project widgets then read that repository: a project hero, live shields (one clickable image per badge), an install terminal, a code snippet, a features grid, repository stats, star history, a contributor wall with embedded avatars, weekly commit activity, repository vitals with CI status, package downloads, a changelog from your releases, a roadmap from your milestones, a sponsor card and a table of contents. Prose stays real Markdown, so docs remain searchable. The action runs in the project repository and publishes the images to an orphan branch there.
@@ -122,6 +134,7 @@ npm test             # core + engine tests
 npm run typecheck
 npm run example      # render examples/ with sample data → examples/dist/preview.html
 npm run bundle       # rebuild packages/engine/dist (commit the result)
+npm run extension    # browser extension → apps/extension/dist/{chrome,firefox} and their zips
 ```
 
 CLI:
@@ -139,6 +152,7 @@ npx tsx packages/engine/src/cli.ts link        # open the config in the studio
 
 ```
 apps/web            Vite + React studio, landing page, presets and docs (GitHub Pages)
+apps/extension      Chrome + Firefox extension: mounts apps/web's studio over GitHub and saves back to the repository
 packages/core       renderer: themes, fonts + metrics, widgets, config schema, README composer
 packages/engine     Node runtime: live data, scraping fallback, resvg GIF raster, CLI, publisher, action entry
 examples            the project the studio exports, rendered by CI
@@ -156,6 +170,8 @@ scripts             asset generation (fonts, icons), JSON schema, widget contact
 
 - **Pre-releases are automatic.** Every push to `main` runs the checks and publishes a GitHub pre-release such as `v1.0.1-42` (next patch plus the run number). Pin one with `uses: DavidNiessen/readme-studio@v1.0.1-42` to try the newest work. Only the newest three are kept, and they never move the `v1` tag.
 - **Full releases are manual.** Run **Actions → Release → Run workflow** on `main` and choose a `patch`/`minor`/`major` bump or type an exact version. The workflow runs the checks, commits the version onto a `vX.Y.Z` tag, publishes the release with generated notes, brings `main` up to the new version and moves the floating major tag (`v1`) that profile repositories use.
+
+Pre-releases and releases carry the browser extension for Chrome and Firefox as zips. A full release also publishes it to the stores when their keys are set up: the secrets `CHROME_EXTENSION_ID`, `CHROME_CLIENT_ID`, `CHROME_CLIENT_SECRET` and `CHROME_REFRESH_TOKEN` for the Chrome Web Store, and `AMO_JWT_ISSUER` and `AMO_JWT_SECRET` for Firefox Add-ons (submit the first Firefox version by hand). Without them that step is skipped. The repository variable `OAUTH_CLIENT_ID` builds the OAuth App client ID for "Sign in with GitHub" into the extension.
 
 Commit the action bundle (`npm run bundle`) before merging; CI fails when it is stale.
 

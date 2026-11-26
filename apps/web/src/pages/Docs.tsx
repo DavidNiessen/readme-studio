@@ -1555,6 +1555,55 @@ function AgentsGuide() {
   );
 }
 
+function ExtensionGuide() {
+  return (
+    <>
+      <p>
+        The Readme Studio extension for Chrome and Firefox puts this studio inside GitHub. Open a repository that has a <code>readme.config.json</code>, or your profile
+        repository, and an <b>Edit README</b> button appears in the corner. It opens the studio over the page with the committed design loaded; the extension's toolbar
+        button does the same from anywhere in the repository.
+      </p>
+
+      <Heading id="install">Install</Heading>
+      <ol>
+        <li>
+          Download <code>readme-studio-chrome-*.zip</code> or <code>readme-studio-firefox-*.zip</code> from the latest{" "}
+          <Ext to="https://github.com/DavidNiessen/readme-studio/releases/latest">release</Ext>.
+        </li>
+        <li>
+          Chrome, Edge, Brave and Arc: unzip it, open <code>chrome://extensions</code>, turn on Developer mode and choose <b>Load unpacked</b>.
+        </li>
+        <li>
+          Firefox: open <code>about:debugging#/runtime/this-firefox</code> and choose <b>Load Temporary Add-on</b> with the zip. Firefox asks once for access to GitHub; the
+          options page has the button.
+        </li>
+      </ol>
+
+      <Heading id="saving">Saving back to GitHub</Heading>
+      <p>
+        <b>Save to GitHub</b> writes <code>readme.config.json</code>, and the workflow file when the repository has none. The readme workflow then renders the images and
+        updates the README, exactly as after a commit from your machine.
+      </p>
+      <Table
+        caption="Save modes"
+        className="t-ref"
+        head={["Mode", "What happens", "Needs"]}
+        rows={[
+          ["Commit", "Commits straight to the branch the design was opened from.", "A GitHub account"],
+          ["Pull request", "Commits to a new branch and opens a pull request against it.", "A GitHub account"],
+          ["GitHub editor", "Opens GitHub's editor with the new file filled in; you review the diff and commit there.", "Nothing"],
+        ]}
+      />
+      <p>
+        <b>Sign in with GitHub</b> uses GitHub's device flow: the extension shows a short code, you enter it on github.com, and no password or secret passes through the
+        extension. It needs the client ID of a GitHub OAuth App with <i>Enable Device Flow</i> ticked, built in or entered on the options page. A personal access token
+        works too: fine-grained with Contents and Workflows read &amp; write on the repository, or classic with <code>public_repo</code> and <code>workflow</code>.
+      </p>
+      <Note label="Privacy">The extension talks only to GitHub. Tokens stay in the browser's extension storage, and nothing is sent anywhere else.</Note>
+    </>
+  );
+}
+
 // ================================================================ sections
 
 const SECTIONS: SectionDef[] = [
@@ -1598,6 +1647,18 @@ const SECTIONS: SectionDef[] = [
       { id: "handoff", label: "Handing a design over" },
     ],
     Body: AgentsGuide,
+  },
+  {
+    id: "extension",
+    group: "Guide",
+    nav: "Browser extension",
+    title: "Edit on GitHub with the browser extension",
+    lede: "The same studio, opened over a repository on GitHub, saving the design straight back.",
+    toc: [
+      { id: "install", label: "Install" },
+      { id: "saving", label: "Saving back to GitHub" },
+    ],
+    Body: ExtensionGuide,
   },
   {
     id: "action",

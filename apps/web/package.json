@@ -29,5 +29,13 @@
     "@types/react-dom": "19.3.0",
     "@vitejs/plugin-react": "5.2.0",
     "vite": "7.3.8"
+  },
+  "exports": {
+    "./studio": "./src/studio/Studio.tsx",
+    "./studio/host": "./src/studio/host.ts",
+    "./studio/styles": "./src/studio/styles.ts",
+    "./state": "./src/state/store.ts",
+    "./ui": "./src/components/ui/index.tsx",
+    "./logo": "./src/components/Logo.tsx"
   }
 }

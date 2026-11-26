@@ -3,6 +3,10 @@
 # brings main up to the new version and moves the floating major tag (v1, v2, …) that profile
 # repositories reference with `uses: DavidNiessen/readme-studio@v1`.
 #
+# The browser extension is built from the release tag and attached to the release. It is also
+# published to the Chrome Web Store and Firefox Add-ons when their keys are set up (see the
+# "extension" job); without them that step says so and is skipped.
+#
 # If the version cannot be brought onto main (main changed package.json meanwhile), fix main and
 # use "Re-run failed jobs": the tag and release are kept.
 name: Release
@@ -101,3 +105,68 @@ jobs:
           major="v${VERSION%%.*}"
           git tag -fa "$major" -m "$major → v$VERSION" "v$VERSION^{commit}"
           git push origin "refs/tags/$major" --force
+
+  extension:
+    name: Build and publish the browser extension
+    needs: release
+    runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ needs.release.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: v${{ needs.release.outputs.version }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Build
+        env:
+          RS_VERSION: ${{ needs.release.outputs.version }}
+          VITE_GITHUB_CLIENT_ID: ${{ vars.OAUTH_CLIENT_ID }}
+        run: |
+          npm ci
+          npm run build -w apps/extension
+
+      - name: Attach to the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload "v$VERSION" apps/extension/dist/*.zip
+
+      # Needs the secrets CHROME_EXTENSION_ID, CHROME_CLIENT_ID, CHROME_CLIENT_SECRET and
+      # CHROME_REFRESH_TOKEN (a Google OAuth client with the Chrome Web Store API enabled).
+      - name: Publish to the Chrome Web Store
+        env:
+          EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
+          CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
+          REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
+        run: |
+          if [ -z "$EXTENSION_ID" ] || [ -z "$CLIENT_ID" ] || [ -z "$CLIENT_SECRET" ] || [ -z "$REFRESH_TOKEN" ]; then
+            echo "::notice::Chrome Web Store keys are not set up; the Chrome package is only attached to the release."
+            exit 0
+          fi
+          token=$(curl -fsS https://oauth2.googleapis.com/token \
+            -d client_id="$CLIENT_ID" -d client_secret="$CLIENT_SECRET" \
+            -d refresh_token="$REFRESH_TOKEN" -d grant_type=refresh_token | jq -r .access_token)
+          curl -fsS -X PUT -H "Authorization: Bearer $token" -H "x-goog-api-version: 2" \
+            -T "apps/extension/dist/readme-studio-chrome-$VERSION.zip" \
+            "https://www.googleapis.com/upload/chromewebstore/v1.1/items/$EXTENSION_ID" | tee upload.json
+          jq -e '.uploadState == "SUCCESS"' upload.json > /dev/null
+          curl -fsS -X POST -H "Authorization: Bearer $token" -H "x-goog-api-version: 2" -H "Content-Length: 0" \
+            "https://www.googleapis.com/chromewebstore/v1.1/items/$EXTENSION_ID/publish"
+
+      # Needs the secrets AMO_JWT_ISSUER and AMO_JWT_SECRET (addons.mozilla.org → Tools → Manage API
+      # keys). The first version of the add-on is submitted by hand; later ones follow from here.
+      - name: Publish to Firefox Add-ons
+        env:
+          WEB_EXT_API_KEY: ${{ secrets.AMO_JWT_ISSUER }}
+          WEB_EXT_API_SECRET: ${{ secrets.AMO_JWT_SECRET }}
+        run: |
+          if [ -z "$WEB_EXT_API_KEY" ] || [ -z "$WEB_EXT_API_SECRET" ]; then
+            echo "::notice::Firefox Add-ons keys are not set up; the Firefox package is only attached to the release."
+            exit 0
+          fi
+          npx --yes web-ext@8 sign --source-dir apps/extension/dist/firefox --channel listed --approval-timeout 0

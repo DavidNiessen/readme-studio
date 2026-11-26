@@ -2,7 +2,7 @@
 # (version: the next patch with the run number, e.g. 1.0.1-42). Pre-releases are for trying the
 # newest work: pin one with `uses: DavidNiessen/readme-studio@v1.0.1-42`. They never move the
 # floating `v1` tag that profile repositories use; only a full release (release.yml) does that.
-# Only the newest few pre-releases are kept.
+# Only the newest few pre-releases are kept. Each carries the browser extension for Chrome and Firefox.
 name: Pre-release
 
 on:
@@ -49,7 +49,26 @@ jobs:
             --prerelease \
             --title "Readme Studio $VERSION (pre-release)" \
             --generate-notes \
-            --notes "A build of \`$GITHUB_SHA\` on main, for trying the newest work. Pin it with \`uses: ${{ github.repository }}@v$VERSION\`. The floating \`v1\` tag does not move to pre-releases."
+            --notes "A build of \`$GITHUB_SHA\` on main, for trying the newest work. Pin it with \`uses: ${{ github.repository }}@v$VERSION\`. The floating \`v1\` tag does not move to pre-releases. The browser extension for Chrome and Firefox is attached; load it unpacked to try it."
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Build the browser extension
+        env:
+          RS_VERSION: ${{ steps.v.outputs.version }}
+          VITE_GITHUB_CLIENT_ID: ${{ vars.OAUTH_CLIENT_ID }}
+        run: |
+          npm ci
+          npm run build -w apps/extension
+
+      - name: Attach the extension to the pre-release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.v.outputs.version }}
+        run: gh release upload "v$VERSION" apps/extension/dist/*.zip
 
   tidy:
     name: Keep the newest pre-releases
