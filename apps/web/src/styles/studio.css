@@ -1637,3 +1637,53 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* saving through GitHub's editor from the website: one row per file */
+.gh-steps {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+  counter-reset: step;
+}
+.gh-steps li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-3);
+  counter-increment: step;
+}
+.gh-steps li::before {
+  content: counter(step);
+  flex: none;
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--sunken);
+  font-size: var(--t-xs);
+  color: var(--muted);
+}
+.gh-steps__file {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+.gh-steps__file .muted {
+  font-size: var(--t-xs);
+}
+.gh-steps__actions {
+  display: flex;
+  gap: 6px;
+  flex: none;
+}
+@media (max-width: 560px) {
+  .gh-steps li {
+    flex-wrap: wrap;
+  }
+}

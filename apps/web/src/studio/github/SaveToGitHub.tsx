@@ -1,14 +1,15 @@
-import { Download, ExternalLink, GitBranch, GitCommitHorizontal, GitPullRequest, Pencil, RotateCcw, UploadCloud } from "lucide-react";
+import { Check, Copy, Download, ExternalLink, GitBranch, GitCommitHorizontal, GitPullRequest, Pencil, RotateCcw, UploadCloud } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import type { StudioConfig } from "@readme-studio/core";
-import { Button, Dialog, Field, Segmented, TextInput, ToggleRow, useConfirm, useToast } from "../../components/ui";
+import { Button, Dialog, Field, Segmented, TextInput, ToggleRow, copyText, useConfirm, useToast } from "../../components/ui";
 import { GitHub } from "../../github/api";
 import { CONFIG_PATH, defaultPrBranch, filesFor, inspectRepo, RepoUnavailable, saveDesign, TokenRejected, WORKFLOW_PATH, type SaveResult, type SaveTarget } from "../../github/design";
 import type { GitHubPlatform, SaveMode } from "../../github/platform";
 import { parseRepo } from "../../github/repo";
 import { sameConfig, useStudio } from "../../state/store";
 import { AuthPanel } from "./AuthPanel";
-import { setSession, useSession } from "./session";
+import { getSession, setSession, useSession } from "./session";
+import { editorUrl } from "../../github/editor";
 
 /** Top-bar action: opens the save dialog. */
 export function SaveButton() {
@@ -209,9 +210,11 @@ export function SaveDialog({ platform }: { platform: GitHubPlatform }) {
             </Button>
             <Button onClick={close}>Cancel</Button>
             {mode === "editor" ? (
-              <Button variant="accent" disabled={!target} onClick={viaEditor}>
-                <Pencil /> Open GitHub's editor
-              </Button>
+              platform.fillsEditor ? (
+                <Button variant="accent" disabled={!target} onClick={viaEditor}>
+                  <Pencil /> Open GitHub's editor
+                </Button>
+              ) : null
             ) : (
               <Button variant="accent" disabled={!auth || !target || busy} onClick={viaApi}>
                 {mode === "pull-request" ? <GitPullRequest /> : <GitCommitHorizontal />} {busy ? "Saving…" : mode === "pull-request" ? "Open pull request" : "Commit"}
@@ -240,6 +243,7 @@ export function SaveDialog({ platform }: { platform: GitHubPlatform }) {
             {mode === "pull-request" && <>Commits to a new branch and opens a pull request against {branch}.</>}
             {mode === "editor" && platform.editorNote}
           </p>
+          {mode === "editor" && !platform.fillsEditor && target && <EditorSteps target={target} files={files} />}
           {usesApi && <AuthPanel platform={platform} auth={auth} onChange={(a) => setSession({ auth: a })} />}
           {usesApi && auth && (
             <>
@@ -288,4 +292,56 @@ function RepoStatus({ check, login }: { check: Check; login?: string }) {
   if (e instanceof RepoUnavailable && !e.signedIn) return <span className="gh-error">Not found. If it is private, sign in with an account or token that can see it.</span>;
   if (e instanceof RepoUnavailable) return <span className="gh-error">Not found, or {login ?? "your account"} cannot see it.</span>;
   return <span className="gh-error">{(e as Error)?.message ?? String(e)}</span>;
+}
+
+/**
+ * Saving through GitHub's editor from a web page, one file at a time. A web page cannot type
+ * into github.com, and a long file does not fit in the link that would fill it in, so each file
+ * gets a Copy and an Open button: both run on the user's own click, which is what browsers
+ * require for the clipboard and for a new tab.
+ */
+function EditorSteps({ target, files }: { target: SaveTarget; files: { path: string; text: string }[] }) {
+  const [branch, setBranch] = useState(target.branch);
+  const [copied, setCopied] = useState<string | null>(null);
+  // a repository read without the API only knows HEAD; GitHub's editor needs the branch's name
+  useEffect(() => {
+    if (target.branch !== "HEAD") return setBranch(target.branch);
+    new GitHub(getSession().auth?.token ?? null)
+      .repo(target.repo.full)
+      .then((r) => setBranch(r.defaultBranch))
+      .catch(() => setBranch("main"));
+  }, [target]);
+  return (
+    <ol className="gh-steps">
+      {files.map((f) => {
+        const exists = f.path === CONFIG_PATH ? target.configExists : f.path === WORKFLOW_PATH ? target.workflowExists : false;
+        const link = editorUrl({ repo: target.repo.full, branch, path: f.path, text: f.text }, exists);
+        return (
+          <li key={f.path}>
+            <div className="gh-steps__file">
+              <code>{f.path}</code>
+              <span className="muted">
+                {link.prefilled ? "opens filled in" : exists ? "replace its text with the copied one" : "too long for the link: copy it, then paste it in"}
+              </span>
+            </div>
+            <div className="gh-steps__actions">
+              {!link.prefilled && (
+                <Button
+                  size="sm"
+                  onClick={async () => {
+                    if (await copyText(f.text)) setCopied(f.path);
+                  }}
+                >
+                  {copied === f.path ? <Check /> : <Copy />} {copied === f.path ? "Copied" : "Copy"}
+                </Button>
+              )}
+              <a className="btn btn--sm btn--accent" href={link.url} target="_blank" rel="noopener">
+                <ExternalLink /> Open in GitHub
+              </a>
+            </div>
+          </li>
+        );
+      })}
+    </ol>
+  );
 }

@@ -34,6 +34,10 @@
   height: 15px;
   flex: none;
 }
+/* links styled as buttons (Open in GitHub, View commit) */
+a.btn {
+  text-decoration: none;
+}
 .btn--sm {
   --h: 28px;
   padding: 0 10px;

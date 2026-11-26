@@ -52,6 +52,11 @@ export interface GitHubPlatform {
   tokenNote: string;
   loadSaveMode(): Promise<SaveMode>;
   saveSaveMode(mode: SaveMode): Promise<void>;
+  /**
+   * Whether this surface puts the text into GitHub's editor itself (the extension's content
+   * script). Without it the dialog walks through copying and opening each file.
+   */
+  fillsEditor: boolean;
   /** how the "GitHub editor" save mode works here, said in the dialog */
   editorNote: string;
   /** Opens GitHub's editor with the files; returns what to tell the user. */

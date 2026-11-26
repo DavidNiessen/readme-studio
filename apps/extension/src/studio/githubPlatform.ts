@@ -24,6 +24,7 @@ export const extensionPlatform: GitHubPlatform = {
   saveSaveMode: async (saveMode) => {
     await saveSettings({ saveMode });
   },
+  fillsEditor: true,
   editorNote: "No sign-in: GitHub's editor opens with the new file filled in, and you review the diff and commit there.",
   async openEditor(repo, branch, files) {
     // the content script on the editor page fills in the pending text; one tab per file

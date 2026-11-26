@@ -23,7 +23,8 @@ export const webPlatform: GitHubPlatform = {
   async saveSaveMode(mode) {
     setPref("save-mode", mode);
   },
-  editorNote: "No sign-in: GitHub's editor opens in a new tab. A new file arrives filled in; for a file that exists, the design is copied and you paste it over the old text. You review the change and commit on GitHub.",
+  fillsEditor: false,
+  editorNote: "No sign-in: open each file in GitHub's editor, paste the text where it is not filled in already, and commit there.",
   async openEditor(repo, branch, files) {
     let copied: string | null = null;
     for (const f of files) {
