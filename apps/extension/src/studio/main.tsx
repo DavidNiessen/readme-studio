@@ -11,6 +11,7 @@ import { GitHub } from "../github/api";
 import { openDesign } from "../github/design";
 import { repoRef } from "../repo";
 import { loadAuth } from "../settings";
+import { OpenFailed } from "./OpenFailed";
 import { DraftNotice, SaveButton, SaveDialog } from "./SaveToGitHub";
 import { setSession, tellPage } from "./session";
 
@@ -51,9 +52,11 @@ if (repo) {
     </>
   );
   host.overlays = <SaveDialog />;
+  host.failed = (error, retry) => <OpenFailed error={error} retry={retry} />;
   host.open = async () => {
     const auth = await loadAuth();
     setSession({ auth });
+    setSession({ opened: null });
     const opened = await openDesign(new GitHub(auth?.token ?? null), repo, params.get("ref") ?? undefined);
     setSession({ opened });
     // one draft per repository: closing the studio keeps unsaved changes for next time
