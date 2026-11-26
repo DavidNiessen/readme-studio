@@ -1,0 +1,37 @@
+# One-off: deletes every release, pre-release and tag, then starts the Release workflow for
+# 1.0.0, which recreates v1.0.0 and the floating v1 tag. Removed again once it has run.
+name: Reset releases
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  reset:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Delete every release and pre-release
+        run: |
+          gh release list --limit 1000 --json tagName --jq '.[].tagName' | while read -r tag; do
+            echo "deleting release $tag"
+            gh release delete "$tag" --yes
+          done
+
+      - name: Delete every tag
+        run: |
+          tags=$(git ls-remote --tags --refs origin | awk '{print $2}')
+          if [ -n "$tags" ]; then echo "$tags"; git push origin --delete $tags; fi
+
+      # straight away, so the v1 tag that users' workflows pin is gone for as short a time as possible
+      - name: Start the 1.0.0 release
+        run: gh workflow run release.yml --ref main -f version=1.0.0
