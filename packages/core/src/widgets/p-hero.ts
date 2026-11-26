@@ -256,7 +256,7 @@ ${xglyph("copy", cx0 + cmdW - 28, cmdY + 10, 16, t.muted)}
       const ringMarkup = rings
         ? `<circle class="ring loop" cx="0" cy="0" r="${ks * 0.78}" stroke="${t.subtle}" stroke-dasharray="2 10" stroke-width="2"/>
 <circle class="ring2 loop" cx="0" cy="0" r="${ks * 0.62}" stroke="${t.accent}" stroke-opacity=".5" stroke-dasharray="40 160 10 60" stroke-width="1.5"/>
-<g class="ring loop"><circle cx="${ks * 0.78}" cy="0" r="3.5" fill="${t.glow}" filter="url(#glow)"/></g>`
+<g class="orbit loop"><circle cx="0" cy="0" r="${ks * 0.62}"/><circle cx="${ks * 0.62}" cy="0" r="3.5" fill="${t.glow}" filter="url(#glow)"/></g>`
         : "";
       return `<g transform="translate(${cx} ${cy})"><g class="in" style="${dl(0.4)}">
 ${ringMarkup}
@@ -280,8 +280,9 @@ ${inner}
 @keyframes scan{from{transform:translateY(-20px)}to{transform:translateY(${H + 20}px)}}
 .bob{animation:bob 5s ease-in-out infinite}
 @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
-.ring{transform-box:view-box;transform-origin:0 0;animation:spin 18s linear infinite}
-.ring2{transform-box:view-box;transform-origin:0 0;animation:spinR 26s linear infinite}
+.ring{transform-box:fill-box;transform-origin:center;animation:spin 18s linear infinite}
+.ring2{transform-box:fill-box;transform-origin:center;animation:spinR 26s linear infinite}
+.orbit{transform-box:fill-box;transform-origin:center;animation:spin 9s linear infinite}
 .kpulse{transform-box:fill-box;transform-origin:center;animation:kp 3s ease-in-out infinite}
 @keyframes kp{0%,100%{opacity:.25;transform:scale(.9)}50%{opacity:.6;transform:scale(1.1)}}
 .psh{animation:pshine 5s ease-in-out 3s infinite}
