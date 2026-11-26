@@ -3,6 +3,7 @@ import {
   FONTS,
   getWidget,
   isHex,
+  widgetFits,
   MODES,
   PALETTE_KEYS,
   palettePresets,
@@ -41,7 +42,7 @@ import {
 import { useMemo, useState } from "react";
 import { ColorSwatchButton } from "../components/ColorPicker";
 import { arrayMove, SortableItem, SortableList, SortHandle } from "../components/Sortable";
-import { Button, ColorInput, Field, IconButton, Segmented, Select, Slider, Tabs, TextInput, ToggleRow, useToast } from "../components/ui";
+import { Button, ColorInput, Field, IconButton, Segmented, Select, Slider, Tabs, TextInput, ToggleRow, MOD, useConfirm, useToast } from "../components/ui";
 import { canJoin, findBlock, setJoin, setRowAlign, updateBlock } from "../lib/layout";
 import { parseRepo } from "../github/repo";
 import { fetchLive } from "../lib/live";
@@ -170,14 +171,52 @@ function BlockPanel() {
 // ---------------------------------------------------------------- kind + project
 
 function KindSwitch() {
-  const { config, commit } = useStudio();
+  const { config, commit, selected, select } = useStudio();
+  const confirm = useConfirm();
+  const toast = useToast();
+  const switchTo = async (kind: DesignKind) => {
+    if (kind === config.kind) return;
+    // widgets made for the other kind would publish empty (a project README fetches no account data,
+    // a profile README no repository), so they go, after the user has seen which
+    const misfits = config.layout.flatMap((r) => r.blocks).filter((b) => {
+      const def = getWidget(b.type);
+      return def && !widgetFits(def, kind);
+    });
+    if (misfits.length) {
+      const answer = await confirm({
+        title: `Switch to a ${kind} README?`,
+        body: (
+          <>
+            <p>
+              {misfits.length === 1 ? "This widget only works" : `These ${misfits.length} widgets only work`} in a {config.kind} README and will be removed:
+            </p>
+            <ul className="confirm-list">
+              {misfits.map((b) => (
+                <li key={b.id}>
+                  {getWidget(b.type)?.title ?? b.type} <span className="mono muted">{b.id}</span>
+                </li>
+              ))}
+            </ul>
+            <p>You can undo the switch with {MOD} Z.</p>
+          </>
+        ),
+        confirmLabel: misfits.length === 1 ? "Remove it and switch" : `Remove ${misfits.length} widgets and switch`,
+        danger: true,
+      });
+      if (answer !== "confirm") return;
+    }
+    const gone = new Set(misfits.map((b) => b.id));
+    commit((c) => ({ ...c, kind, layout: c.layout.map((r) => ({ ...r, blocks: r.blocks.filter((b) => !gone.has(b.id)) })).filter((r) => r.blocks.length) }));
+    if (selected && gone.has(selected)) select(null);
+    if (misfits.length) toast(`Switched to a ${kind} README and removed ${misfits.length} widget${misfits.length === 1 ? "" : "s"}`);
+  };
   return (
     <div className="panel__section">
       <Field label="README for" help={config.kind === "project" ? "A repository's README: stars, contributors, releases, install steps." : "Your GitHub profile: the README of your username repository."}>
         <Segmented<DesignKind>
           label="README type"
           value={config.kind}
-          onChange={(k) => commit((c) => ({ ...c, kind: k }))}
+          onChange={(k) => void switchTo(k)}
           options={[
             { value: "profile", label: "Profile", icon: <User /> },
             { value: "project", label: "Project", icon: <FolderGit2 /> },

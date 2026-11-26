@@ -1043,3 +1043,21 @@ a.btn {
   line-height: 1.55;
   color: var(--ink-2);
 }
+.confirm-body p + p,
+.confirm-list + p {
+  margin-top: 10px;
+}
+.confirm-list {
+  margin: 10px 0 0;
+  padding: 8px 12px 8px 30px;
+  max-height: 220px;
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper-2);
+  line-height: 1.7;
+}
+.confirm-list .mono {
+  margin-left: 6px;
+  font-size: var(--t-xs);
+}
