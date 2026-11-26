@@ -30,7 +30,7 @@ import {
   X,
   RefreshCw,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { layoutPresets, parseConfig, resolvePalette, type StudioConfig } from "@readme-studio/core";
 import { ThemeSwatchesContext } from "../components/ColorPicker";
 import { Logo, LogoMark } from "../components/Logo";
@@ -45,7 +45,7 @@ import { Canvas } from "./Canvas";
 import { Dialogs } from "./Dialogs";
 import { Inspector } from "./Inspector";
 import { Rail } from "./Rail";
-import { DraftNotice, SaveButton, SaveDialog } from "./github/SaveToGitHub";
+import { DraftNotice, SaveButton, SaveDialog, useDraftChanges, useResetDraft } from "./github/SaveToGitHub";
 import { openedMessage, openFailure, openRepository } from "./github/openRepo";
 import { getSession, setSession, useSession } from "./github/session";
 import { parseRepo } from "../github/repo";
@@ -53,7 +53,7 @@ import { OpenFailed } from "./github/OpenFailed";
 import { webPlatform } from "./github/webPlatform";
 import { StudioHostContext, useStudioHost, type StudioHost } from "./host";
 import { Welcome } from "./Welcome";
-import { DataRefreshButton } from "./DataStatus";
+import { DataRefreshButton, useDataSummary } from "./DataStatus";
 import { useLiveData } from "../lib/liveData";
 
 export function useUiTheme(): ["light" | "dark" | "system", (t: "light" | "dark" | "system") => void] {
@@ -73,14 +73,63 @@ export function useUiTheme(): ["light" | "dark" | "system", (t: "light" | "dark"
   return [t, setT];
 }
 
+/** What a crowded top bar gives up, in order. All of it stays reachable from the ⋯ menu. */
+const GIVE_WAY = [".data-refresh", ".presets-label", ".draft-notice__label", ".draft-notice"];
+
+/**
+ * How crowded the top bar is. Its centre sits in the middle of the window, so a full right-hand
+ * side would slide under it: first the data refresh button gives way, then the Presets label, then
+ * the unsaved changes notice shrinks to its dot and Reset button, and only then does it go. A hidden item comes back only once there is room for it, so the bar
+ * does not flicker at the threshold.
+ */
+function useTopbarFit(ref: React.RefObject<HTMLElement | null>): number {
+  const [level, setLevel] = useState(0);
+  const current = useRef(0);
+  current.current = level;
+  const widths = useRef<number[]>(GIVE_WAY.map(() => 0));
+  useLayoutEffect(() => {
+    const bar = ref.current;
+    const center = bar?.querySelector<HTMLElement>(".topbar__center");
+    const right = bar?.querySelector<HTMLElement>(".topbar__right");
+    if (!bar || !center || !right) return;
+    const MIN_GAP = 12;
+    const measure = () => {
+      // on narrow screens the centre is in the flow and cannot overlap
+      if (getComputedStyle(center).position !== "absolute") {
+        if (current.current) setLevel(0);
+        return;
+      }
+      GIVE_WAY.forEach((sel, i) => {
+        const w = bar.querySelector<HTMLElement>(sel)?.offsetWidth;
+        if (w) widths.current[i] = w;
+      });
+      const gap = right.getBoundingClientRect().left - center.getBoundingClientRect().right;
+      const lvl = current.current;
+      if (gap < MIN_GAP && lvl < GIVE_WAY.length) setLevel(lvl + 1);
+      else if (lvl > 0 && gap - widths.current[lvl - 1] - 8 >= MIN_GAP) setLevel(lvl - 1);
+    };
+    const ro = new ResizeObserver(measure);
+    ro.observe(bar);
+    ro.observe(right);
+    measure();
+    return () => ro.disconnect();
+  }, [ref]);
+  return level;
+}
+
 function TopBar() {
   const s = useStudio();
+  const bar = useRef<HTMLElement>(null);
+  const tight = useTopbarFit(bar);
+  const draft = useDraftChanges();
+  const resetDraft = useResetDraft();
+  const data = useDataSummary();
   const toast = useToast();
   const host = useStudioHost();
   const [ui, setUi] = useUiTheme();
   const docs = () => (host?.siteUrl ? window.open(`${host.siteUrl}#/docs`, "_blank", "noopener") : navigate("/docs"));
   return (
-    <header className="topbar">
+    <header className="topbar" ref={bar} data-tight={tight || undefined}>
       {host ? (
         <a className="logo" href={host.siteUrl ?? "#"} target="_blank" rel="noopener" aria-label="Readme Studio website">
           <LogoMark />
@@ -162,8 +211,8 @@ function TopBar() {
       </div>
       <div className="topbar__right">
         <DataRefreshButton />
-        <Button variant="ghost" className="hide-md" onClick={() => s.openDialog("presets")}>
-          <LayoutTemplate /> Presets
+        <Button variant="ghost" className="hide-md" title="Presets" aria-label="Presets" onClick={() => s.openDialog("presets")}>
+          <LayoutTemplate /> <span className="presets-label">Presets</span>
         </Button>
         <IconButton label="Command palette" shortcut={`${MOD} K`} className="hide-sm" onClick={() => s.openDialog("palette")}>
           <Command />
@@ -192,7 +241,8 @@ function TopBar() {
             { label: s.mode === "dark" ? "Preview light" : "Preview dark", icon: s.mode === "dark" ? <Sun /> : <Moon />, shortcut: "T", onSelect: () => s.setMode(s.mode === "dark" ? "light" : "dark") },
             { label: s.device === "desktop" ? "Mobile width" : "Desktop width", icon: s.device === "desktop" ? <Smartphone /> : <Monitor />, onSelect: () => s.setDevice(s.device === "desktop" ? "mobile" : "desktop") },
             { label: "Replay animations", icon: <Play />, shortcut: "R", onSelect: s.replay },
-            { label: "Refresh GitHub data", icon: <RefreshCw />, onSelect: s.refreshData },
+            { label: "Refresh GitHub data", icon: <RefreshCw />, hint: data.text, onSelect: s.refreshData },
+            ...(draft ? [{ label: "Reset unsaved changes", icon: <RotateCcw />, hint: draft.repo, onSelect: () => void resetDraft() }] : []),
             { label: `App theme: ${ui}`, icon: <SunMoon />, onSelect: () => setUi(ui === "system" ? "dark" : ui === "dark" ? "light" : "system") },
             "sep",
             { label: "Keyboard shortcuts", icon: <Keyboard />, shortcut: "?", onSelect: () => s.openDialog("shortcuts") },

@@ -1929,3 +1929,11 @@
     margin-left: 0;
   }
 }
+
+/* a crowded top bar gives way, in order (see useTopbarFit in Studio.tsx) */
+.topbar[data-tight] .data-refresh,
+.topbar:is([data-tight="2"], [data-tight="3"], [data-tight="4"]) .presets-label,
+.topbar:is([data-tight="3"], [data-tight="4"]) .draft-notice__label,
+.topbar[data-tight="4"] .draft-notice {
+  display: none;
+}
