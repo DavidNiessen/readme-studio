@@ -74,9 +74,11 @@ async function script(name: "content" | "background", entry: string) {
 async function icons() {
   await initWasm(readFileSync(require.resolve("@resvg/resvg-wasm/index_bg.wasm")));
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="7" fill="#1b1a17"/><rect x="7" y="8" width="18" height="3" rx="1.5" fill="#fbfaf7"/><rect x="7" y="14.5" width="11" height="3" rx="1.5" fill="#fbfaf7" opacity=".55"/><rect x="7" y="21" width="7" height="3" rx="1.5" fill="#e5532d"/></svg>`;
+  // Chrome wants the 128px icon (also the store icon) as 96px artwork with 16px of clear space around it
+  const padded = svg.replace('viewBox="0 0 32 32"', 'viewBox="-4 -4 40 40"');
   mkdirSync(join(common, "icons"), { recursive: true });
   for (const size of [16, 32, 48, 128]) {
-    const png = new Resvg(svg, { fitTo: { mode: "width", value: size } }).render().asPng();
+    const png = new Resvg(size === 128 ? padded : svg, { fitTo: { mode: "width", value: size } }).render().asPng();
     writeFileSync(join(common, "icons", `${size}.png`), png);
   }
 }
