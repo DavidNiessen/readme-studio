@@ -13,6 +13,7 @@ import {
   renderFrames,
   renderPart,
   renderReadme,
+  workflowPath,
   type ProfileData,
   type StudioConfig,
 } from "@readme-studio/core";
@@ -82,6 +83,7 @@ export async function loadData(o: Pick<BuildOptions, "config" | "mock" | "now" |
       feeds: needs.feeds,
       now,
       log: o.log,
+      skipWorkflow: workflowPath(process.env.GITHUB_WORKFLOW_REF),
     });
   }
   return fetchProfileData({
