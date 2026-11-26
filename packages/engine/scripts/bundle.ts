@@ -37,5 +37,8 @@ for (const entry of ["action", "cli"]) {
 
 copyFileSync(join(dirname(require.resolve("@resvg/resvg-wasm")), "index_bg.wasm"), join(dist, "index_bg.wasm"));
 const fonts = join(root, "../core/assets/fonts");
-for (const f of readdirSync(fonts)) if (f.endsWith(".woff") || f.endsWith(".txt")) copyFileSync(join(fonts, f), join(dist, "fonts", f));
+for (const f of readdirSync(fonts)) if (f.endsWith(".woff")) copyFileSync(join(fonts, f), join(dist, "fonts", f));
+mkdirSync(join(dist, "fonts/licenses"), { recursive: true });
+for (const f of readdirSync(join(fonts, "licenses"))) copyFileSync(join(fonts, "licenses", f), join(dist, "fonts/licenses", f));
+copyFileSync(join(root, "../core/assets/LICENSES.md"), join(dist, "LICENSES.md"));
 console.log("bundled → packages/engine/dist");
