@@ -1,0 +1,566 @@
+{
+  "presets": [
+    {
+      "id": "command-center",
+      "kind": "profile",
+      "name": "Command Center",
+      "description": "Everything, animated: hero, live stats, a 3D skyline, departure board and project cards. The full show.",
+      "tags": [
+        "dark-first",
+        "data",
+        "maximal"
+      ],
+      "palette": "crimson",
+      "widgets": [
+        "hero",
+        "socials",
+        "divider",
+        "terminal",
+        "stats",
+        "contrib",
+        "pulse",
+        "skyline",
+        "divider",
+        "now",
+        "stack",
+        "languages",
+        "rhythm",
+        "journey",
+        "board",
+        "project",
+        "project",
+        "project",
+        "project",
+        "trophies",
+        "today",
+        "divider",
+        "footer"
+      ]
+    },
+    {
+      "id": "minimal-paper",
+      "kind": "profile",
+      "name": "Minimal Paper",
+      "description": "Editorial serif headlines on warm paper. Quiet motion, generous whitespace, all signal.",
+      "tags": [
+        "light-first",
+        "editorial",
+        "calm"
+      ],
+      "palette": "paper",
+      "widgets": [
+        "banner",
+        "about",
+        "heading",
+        "contrib",
+        "donut",
+        "weekdays",
+        "heading",
+        "repos",
+        "posts",
+        "divider",
+        "footer"
+      ]
+    },
+    {
+      "id": "terminal",
+      "kind": "profile",
+      "name": "Terminal",
+      "description": "Amber phosphor and a shell that types itself. For people who live in tmux.",
+      "tags": [
+        "retro",
+        "monospace",
+        "compact"
+      ],
+      "palette": "amber",
+      "widgets": [
+        "terminal",
+        "contrib",
+        "board",
+        "footer"
+      ]
+    },
+    {
+      "id": "data-nerd",
+      "kind": "profile",
+      "name": "Data Nerd",
+      "description": "Every number GitHub knows about you, charted: trends, year in review, rhythms and a harvest loop.",
+      "tags": [
+        "dark-first",
+        "charts",
+        "stats"
+      ],
+      "palette": "ocean",
+      "widgets": [
+        "heading",
+        "stats",
+        "area",
+        "year",
+        "languages",
+        "rhythm",
+        "harvest",
+        "weekdays",
+        "followers",
+        "streak",
+        "journey",
+        "footer"
+      ]
+    },
+    {
+      "id": "portfolio",
+      "kind": "profile",
+      "name": "Designer Portfolio",
+      "description": "A soft, rounded showcase: statement banner, selected work, skills and a contact card.",
+      "tags": [
+        "portfolio",
+        "rounded",
+        "warm"
+      ],
+      "palette": "rose",
+      "widgets": [
+        "banner",
+        "socials",
+        "about",
+        "heading",
+        "project",
+        "project",
+        "project",
+        "project",
+        "skills",
+        "contact"
+      ]
+    },
+    {
+      "id": "maintainer",
+      "kind": "profile",
+      "name": "Open Source Maintainer",
+      "description": "Native GitHub colours. Leads with your repositories, releases and the green graph.",
+      "tags": [
+        "github-native",
+        "projects",
+        "releases"
+      ],
+      "palette": "github",
+      "widgets": [
+        "hero",
+        "badges",
+        "stats",
+        "repos",
+        "releases",
+        "donut",
+        "contrib",
+        "board",
+        "footer"
+      ]
+    },
+    {
+      "id": "student",
+      "kind": "profile",
+      "name": "Student",
+      "description": "Fresh and friendly: about, quick facts, an education timeline, skills you're building and today's quote.",
+      "tags": [
+        "friendly",
+        "timeline",
+        "learning"
+      ],
+      "palette": "forest",
+      "widgets": [
+        "banner",
+        "socials",
+        "facts",
+        "timeline",
+        "skills",
+        "today",
+        "clock",
+        "contrib",
+        "quote"
+      ]
+    },
+    {
+      "id": "retro-arcade",
+      "kind": "profile",
+      "name": "Retro Arcade",
+      "description": "Warm gruvbox colours, a glitching title and a spinning skyline in chunky mono.",
+      "tags": [
+        "retro",
+        "playful",
+        "gif"
+      ],
+      "palette": "gruvbox",
+      "widgets": [
+        "hero",
+        "socials",
+        "skyline",
+        "pulse",
+        "trophies",
+        "languages",
+        "harvest",
+        "footer"
+      ]
+    },
+    {
+      "id": "nordic",
+      "kind": "profile",
+      "name": "Nordic Calm",
+      "description": "Arctic blues, serif headlines and slow, deliberate motion. Clocks, weather and long-form writing.",
+      "tags": [
+        "calm",
+        "serif",
+        "writing"
+      ],
+      "palette": "nord",
+      "widgets": [
+        "heading",
+        "about",
+        "clock",
+        "today",
+        "area",
+        "donut",
+        "weekdays",
+        "posts",
+        "divider",
+        "footer"
+      ]
+    },
+    {
+      "id": "one-card",
+      "kind": "profile",
+      "name": "One Card",
+      "description": "Monochrome and minimal: a headline, your links and one streak card. Nothing else.",
+      "tags": [
+        "minimal",
+        "monochrome",
+        "short"
+      ],
+      "palette": "mono",
+      "widgets": [
+        "hero",
+        "socials",
+        "streak"
+      ]
+    },
+    {
+      "id": "live-wire",
+      "kind": "profile",
+      "name": "Live Wire",
+      "description": "Electric violet on ink. A marquee banner, the harvester, a trend line and rotating quotes.",
+      "tags": [
+        "bold",
+        "animated",
+        "dark-first"
+      ],
+      "palette": "ultraviolet",
+      "widgets": [
+        "banner",
+        "socials",
+        "harvest",
+        "stats",
+        "now",
+        "area",
+        "quote",
+        "footer"
+      ]
+    },
+    {
+      "id": "writer",
+      "kind": "profile",
+      "name": "Writer",
+      "description": "For developers who blog: an intro in real markdown, your latest posts and a quote to end on.",
+      "tags": [
+        "writing",
+        "markdown",
+        "light-first"
+      ],
+      "palette": "paper",
+      "widgets": [
+        "banner",
+        "markdown",
+        "posts",
+        "socials",
+        "quote"
+      ]
+    },
+    {
+      "id": "oss-library",
+      "kind": "project",
+      "name": "Open-Source Library",
+      "description": "The full treatment for a published package: hero, live shields, install terminal, usage, stars and the people who built it.",
+      "tags": [
+        "package",
+        "npm",
+        "complete"
+      ],
+      "palette": "github",
+      "widgets": [
+        "project-hero",
+        "shields",
+        "install",
+        "toc",
+        "features",
+        "code",
+        "repo-stats",
+        "star-history",
+        "contributors",
+        "changelog",
+        "footer"
+      ]
+    },
+    {
+      "id": "cli-tool",
+      "kind": "project",
+      "name": "CLI Tool",
+      "description": "Terminal-first: amber phosphor, a typed install, a usage snippet and the commit pulse of the project.",
+      "tags": [
+        "cli",
+        "monospace",
+        "retro"
+      ],
+      "palette": "amber",
+      "widgets": [
+        "project-hero",
+        "shields",
+        "install",
+        "code",
+        "commit-activity",
+        "repo-health",
+        "downloads",
+        "footer"
+      ]
+    },
+    {
+      "id": "product-launch",
+      "kind": "project",
+      "name": "Product Launch",
+      "description": "Bold and visual for apps and frameworks: statement banner, feature grid, roadmap progress and a sponsor card.",
+      "tags": [
+        "app",
+        "bold",
+        "roadmap"
+      ],
+      "palette": "ultraviolet",
+      "widgets": [
+        "project-hero",
+        "shields",
+        "features",
+        "star-history",
+        "roadmap",
+        "contributors",
+        "support",
+        "footer"
+      ]
+    },
+    {
+      "id": "python-package",
+      "kind": "project",
+      "name": "Python Package",
+      "description": "Calm Nord palette for a PyPI package: pip install, a code sample, releases and repository vitals.",
+      "tags": [
+        "pypi",
+        "calm",
+        "docs"
+      ],
+      "palette": "nord",
+      "widgets": [
+        "project-hero",
+        "shields",
+        "install",
+        "code",
+        "changelog",
+        "repo-health",
+        "donut",
+        "contributors"
+      ]
+    },
+    {
+      "id": "minimal-oss",
+      "kind": "project",
+      "name": "Minimal OSS",
+      "description": "Monochrome and quiet: a title, a row of shields, real markdown docs and nothing that shouts.",
+      "tags": [
+        "minimal",
+        "monochrome",
+        "markdown"
+      ],
+      "palette": "mono",
+      "widgets": [
+        "project-hero",
+        "shields",
+        "markdown",
+        "commit-activity",
+        "contributors"
+      ]
+    },
+    {
+      "id": "maintainers-dashboard",
+      "kind": "project",
+      "name": "Maintainer's Dashboard",
+      "description": "Everything a maintainer watches, at a glance: stats, health, downloads, star growth, commit rhythm and milestones.",
+      "tags": [
+        "data",
+        "health",
+        "dashboard"
+      ],
+      "palette": "ocean",
+      "widgets": [
+        "project-hero",
+        "repo-stats",
+        "repo-health",
+        "downloads",
+        "star-history",
+        "commit-activity",
+        "roadmap",
+        "changelog",
+        "contributors"
+      ]
+    }
+  ],
+  "palettes": [
+    {
+      "id": "crimson",
+      "name": "Crimson",
+      "description": "Signal red on graphite. The original command-center look."
+    },
+    {
+      "id": "github",
+      "name": "GitHub",
+      "description": "Native GitHub surfaces with the familiar green graph."
+    },
+    {
+      "id": "paper",
+      "name": "Paper",
+      "description": "Warm off-white stock and ink-blue accents. Editorial and calm."
+    },
+    {
+      "id": "mono",
+      "name": "Monochrome",
+      "description": "Pure greyscale. Lets typography and motion do the talking."
+    },
+    {
+      "id": "ember",
+      "name": "Ember",
+      "description": "Glowing orange on charcoal, like a forge at night."
+    },
+    {
+      "id": "amber",
+      "name": "Amber CRT",
+      "description": "Phosphor amber, scanlines optional. Retro terminal energy."
+    },
+    {
+      "id": "forest",
+      "name": "Forest",
+      "description": "Moss and canopy greens with soft, earthy neutrals."
+    },
+    {
+      "id": "ocean",
+      "name": "Ocean",
+      "description": "Deep navy with a sharp cyan current."
+    },
+    {
+      "id": "nord",
+      "name": "Nord",
+      "description": "Arctic, north-bluish calm from the Nord palette."
+    },
+    {
+      "id": "gruvbox",
+      "name": "Gruvbox",
+      "description": "Retro groove: warm, high-legibility contrast."
+    },
+    {
+      "id": "solarized",
+      "name": "Solarized",
+      "description": "Precision colours for machines and people."
+    },
+    {
+      "id": "tokyo",
+      "name": "Tokyo Night",
+      "description": "Neon-lit city blues after the last train."
+    },
+    {
+      "id": "dracula",
+      "name": "Dracula",
+      "description": "The classic dark theme with candy accents."
+    },
+    {
+      "id": "mocha",
+      "name": "Catppuccin",
+      "description": "Soothing pastels: Mocha by night, Latte by day."
+    },
+    {
+      "id": "rose",
+      "name": "Rosé",
+      "description": "Soho vibes: muted roses, pine and gold."
+    },
+    {
+      "id": "ultraviolet",
+      "name": "Ultraviolet",
+      "description": "Electric violet and lime for the loud ones."
+    },
+    {
+      "id": "sakura",
+      "name": "Sakura",
+      "description": "Cherry-blossom pink on soft plum."
+    }
+  ],
+  "fonts": [
+    {
+      "id": "jetbrains-mono",
+      "name": "JetBrains Mono",
+      "category": "mono"
+    },
+    {
+      "id": "ibm-plex-mono",
+      "name": "IBM Plex Mono",
+      "category": "mono"
+    },
+    {
+      "id": "fira-code",
+      "name": "Fira Code",
+      "category": "mono"
+    },
+    {
+      "id": "geist-mono",
+      "name": "Geist Mono",
+      "category": "mono"
+    },
+    {
+      "id": "space-mono",
+      "name": "Space Mono",
+      "category": "mono"
+    },
+    {
+      "id": "source-code-pro",
+      "name": "Source Code Pro",
+      "category": "mono"
+    },
+    {
+      "id": "inter",
+      "name": "Inter",
+      "category": "sans"
+    },
+    {
+      "id": "geist-sans",
+      "name": "Geist",
+      "category": "sans"
+    },
+    {
+      "id": "space-grotesk",
+      "name": "Space Grotesk",
+      "category": "sans"
+    },
+    {
+      "id": "manrope",
+      "name": "Manrope",
+      "category": "sans"
+    },
+    {
+      "id": "fraunces",
+      "name": "Fraunces",
+      "category": "serif"
+    },
+    {
+      "id": "ibm-plex-serif",
+      "name": "IBM Plex Serif",
+      "category": "serif"
+    }
+  ]
+}

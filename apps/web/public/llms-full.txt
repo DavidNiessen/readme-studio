@@ -1,0 +1,775 @@
+# Readme Studio
+
+> Design animated, self-updating GitHub READMEs (profile READMEs and project/repository READMEs) as a JSON config. A GitHub Action (`DavidNiessen/readme-studio@v1`) renders every widget to dark/light SVG (or GIF), pushes the images to an asset branch and rewrites README.md on a schedule.
+
+Everything is driven by one file, `readme.config.json` (schema: https://readme.niessen.dev/schema.json). An agent can create it, validate it, render it offline and hand the user a link to fine-tune it visually.
+
+## Workflow for agents
+
+1. Get the CLI (self-contained bundle, no install):
+   `git clone --depth 1 https://github.com/DavidNiessen/readme-studio ~/.cache/readme-studio`
+   then `node ~/.cache/readme-studio/packages/engine/dist/cli.mjs <command>`.
+2. Discover: `widgets --json [--kind profile|project]`, `presets --json`, `themes --json`, `schema`.
+3. Start: `init --login <user> [--kind project --repo owner/name --npm <pkg>] [--preset <id>] --workflow`
+   writes readme.config.json and .github/workflows/readme.yml in the current directory.
+4. Edit readme.config.json (layout rows → blocks with `type`, `id`, `options`; theme; profile/project).
+5. Check: `validate --json` (repairs are reported as warnings), then `build --mock --out /tmp/rs` renders every asset and README.md offline (open preview.html to look at it).
+6. Hand off: `link` prints a https://readme.niessen.dev/ URL that opens the design in the visual studio.
+   A committed config can also be opened with https://readme.niessen.dev/#/studio?repo=owner/name.
+7. Commit readme.config.json, README.md (from the build) and the workflow; the user enables
+   Settings → Actions → General → Workflow permissions → Read and write, and runs the "readme" workflow once.
+
+## Config essentials
+
+- `kind`: "profile" (the <login>/<login> repository) or "project" (any public repository; set `project.repo`).
+- `layout`: array of rows `{ align, blocks: [{ id, type, options, hidden?, link? }] }`. Blocks in one row sit side by side (use half-width widgets in pairs). `id` becomes the image file name.
+- `theme`: `preset` (palette), `font`, `headingFont`, `radius`, `border`, `texture` (dots|grid|lines|none), `motion` (full|subtle|off), `surface`, optional `accent` to generate a palette.
+- `output`: `branch` (asset branch, default "output"), `modes` (["dark","light"]), `schedule` (cron), `repository`.
+- Free text accepts placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions} {project} {repo} {tagline} {version} {license} {forks} {contributors} {npm} {pypi} {crate} {owner}.
+- Unknown widgets are skipped and invalid values repaired; `validate` lists every repair.
+
+## Palettes
+
+- `crimson`: Crimson. Signal red on graphite. The original command-center look.
+- `github`: GitHub. Native GitHub surfaces with the familiar green graph.
+- `paper`: Paper. Warm off-white stock and ink-blue accents. Editorial and calm.
+- `mono`: Monochrome. Pure greyscale. Lets typography and motion do the talking.
+- `ember`: Ember. Glowing orange on charcoal, like a forge at night.
+- `amber`: Amber CRT. Phosphor amber, scanlines optional. Retro terminal energy.
+- `forest`: Forest. Moss and canopy greens with soft, earthy neutrals.
+- `ocean`: Ocean. Deep navy with a sharp cyan current.
+- `nord`: Nord. Arctic, north-bluish calm from the Nord palette.
+- `gruvbox`: Gruvbox. Retro groove: warm, high-legibility contrast.
+- `solarized`: Solarized. Precision colours for machines and people.
+- `tokyo`: Tokyo Night. Neon-lit city blues after the last train.
+- `dracula`: Dracula. The classic dark theme with candy accents.
+- `mocha`: Catppuccin. Soothing pastels: Mocha by night, Latte by day.
+- `rose`: Rosé. Soho vibes: muted roses, pine and gold.
+- `ultraviolet`: Ultraviolet. Electric violet and lime for the loud ones.
+- `sakura`: Sakura. Cherry-blossom pink on soft plum.
+
+## Fonts
+
+`jetbrains-mono`, `ibm-plex-mono`, `fira-code`, `geist-mono`, `space-mono`, `source-code-pro`, `inter`, `geist-sans`, `space-grotesk`, `manrope`, `fraunces`, `ibm-plex-serif`
+
+## Presets
+
+- `command-center` (profile): Command Center. Everything, animated: hero, live stats, a 3D skyline, departure board and project cards. The full show.
+- `minimal-paper` (profile): Minimal Paper. Editorial serif headlines on warm paper. Quiet motion, generous whitespace, all signal.
+- `terminal` (profile): Terminal. Amber phosphor and a shell that types itself. For people who live in tmux.
+- `data-nerd` (profile): Data Nerd. Every number GitHub knows about you, charted: trends, year in review, rhythms and a harvest loop.
+- `portfolio` (profile): Designer Portfolio. A soft, rounded showcase: statement banner, selected work, skills and a contact card.
+- `maintainer` (profile): Open Source Maintainer. Native GitHub colours. Leads with your repositories, releases and the green graph.
+- `student` (profile): Student. Fresh and friendly: about, quick facts, an education timeline, skills you're building and today's quote.
+- `retro-arcade` (profile): Retro Arcade. Warm gruvbox colours, a glitching title and a spinning skyline in chunky mono.
+- `nordic` (profile): Nordic Calm. Arctic blues, serif headlines and slow, deliberate motion. Clocks, weather and long-form writing.
+- `one-card` (profile): One Card. Monochrome and minimal: a headline, your links and one streak card. Nothing else.
+- `live-wire` (profile): Live Wire. Electric violet on ink. A marquee banner, the harvester, a trend line and rotating quotes.
+- `writer` (profile): Writer. For developers who blog: an intro in real markdown, your latest posts and a quote to end on.
+- `oss-library` (project): Open-Source Library. The full treatment for a published package: hero, live shields, install terminal, usage, stars and the people who built it.
+- `cli-tool` (project): CLI Tool. Terminal-first: amber phosphor, a typed install, a usage snippet and the commit pulse of the project.
+- `product-launch` (project): Product Launch. Bold and visual for apps and frameworks: statement banner, feature grid, roadmap progress and a sponsor card.
+- `python-package` (project): Python Package. Calm Nord palette for a PyPI package: pip install, a code sample, releases and repository vitals.
+- `minimal-oss` (project): Minimal OSS. Monochrome and quiet: a title, a row of shields, real markdown docs and nothing that shouts.
+- `maintainers-dashboard` (project): Maintainer's Dashboard. Everything a maintainer watches, at a glance: stats, health, downloads, star growth, commit rhythm and milestones.
+
+## Widgets (54)
+
+- `hero` (profile, full): Hero banner. Your name drawn on stroke by stroke, a typewriter cycling through your roles and an orbiting emblem.
+- `banner` (profile + project, full): Statement banner. A big typographic statement with a subline, brought to life by a gradient sweep, an outline draw-on, a letter-by-letter rise or a marquee.
+- `project-hero` (project, full): Project hero. Your project's name drawn on, its tagline, version, install command and headline numbers over an ambient glow.
+- `socials` (profile + project, full): Social pills. One animated, clickable pill per profile link. Each is its own image so every link works.
+- `terminal` (profile, full): Terminal. A shell session that types out commands about you, with live placeholders, syntax colours and a tmux-style status bar.
+- `stack` (profile + project, full): Tech stack orbit. Your tools as a little solar system: up to three rings of brand icons orbiting a centre emblem.
+- `about` (profile, full): About card. A typographic introduction: monogram, name and pronouns, your roles, a short bio and chips for where you work and live.
+- `facts` (profile + project, full): Quick facts. A tidy key-value list of things worth knowing about you, revealed row by row, in one or two columns.
+- `badges` (profile + project, full): Badges. A row of shields-style badges drawn right in the image, no third-party service, wrapping neatly across lines.
+- `skills` (profile, full): Skill meters. Your strongest tools as filling bars, segmented blocks or radial gauges, each with its icon and level.
+- `timeline` (profile, full): Timeline. Experience and education on a vertical rail whose nodes light up one after another, with a live pulse on what you do now.
+- `contact` (profile + project, full): Contact card. A “let's work together” card with your availability, a short pitch and up to three call-to-action buttons.
+- `clock` (profile + project, half): Local time. A live clock for your time zone that keeps ticking after the build, with your city, UTC offset and today's daylight band.
+- `shields` (project, full): Shields. Shield-style badges for version, licence, build status, stars, downloads and more, each its own image linking to the right page.
+- `contributors` (project, full): Contributor wall. Everyone who has committed to the project as a wall of avatars that pop in one by one, top contributors first.
+- `support` (profile + project, full): Support & sponsor. A warm call to action for sponsors: headline, a short pitch, up to three drawn buttons (GitHub Sponsors, Ko-fi, Open Collective, …) and a beating heart.
+- `stats` (profile, full): Stats board. Rolling odometer counters for your key numbers, with an optional year-progress ring.
+- `languages` (profile + project, half): Top languages. Your most used languages by bytes of code, as an animated donut, bar list or stacked bar.
+- `trophies` (profile, half): Achievements. Hexagonal trophies that unlock in three tiers as your streaks, stars and years on GitHub grow.
+- `streak` (profile, full): Streak card. Current streak in a burning ring, flanked by your longest run and total contributions, each with its date range.
+- `donut` (profile + project, half): Language donut. Your languages as a donut that draws itself in, with the top language in the centre and a percentage legend.
+- `year` (profile, full): Year in review. Your year, wrapped: total contributions, busiest month, best day, favourite weekday and more, over a monthly bar chart.
+- `followers` (profile, half): Follower milestone. Your follower count on a rolling counter with a progress bar towards the next milestone.
+- `repo-stats` (project, full): Repository stats. Rolling counters for stars, forks, issues, pull requests and contributors, each with a tiny trend, plus an issue-health ring.
+- `repo-health` (project, half): Repository vitals. A compact health check: build status with a live pulse, last commit, latest release, issue and pull request balance, and the licence.
+- `downloads` (project, half): Package downloads. Weekly, monthly or all-time downloads from npm, PyPI or crates.io on a rolling counter, with a year-long sparkline and the month-on-month trend.
+- `contrib` (profile, full): Contribution graph. Your last 12 months as an animated heatmap with a scanning beam, best-day callout and weekly totals.
+- `pulse` (profile, full): Heartbeat. Your recent contributions drawn as an ECG trace, one heartbeat per day, with a glowing pulse running along it.
+- `skyline` (profile, full): 3D skyline. Your last 12 months as an isometric city of contribution towers, slowly turning in an animated GIF.
+- `rhythm` (profile, half): Coding rhythm. A 24-hour radial clock of when you commit, with your chronotype and busiest weekday.
+- `journey` (profile, full): Journey timeline. Your years on GitHub as a timeline: contributions per year above the axis, repositories you started below.
+- `board` (profile, full): Departure board. Your latest public GitHub activity on a split-flap departure board that clatters into place.
+- `area` (profile, full): Contribution trend. Weekly contributions as a smooth area chart that draws itself on, with your average and peak week marked.
+- `weekdays` (profile, half): Weekday rhythm. Contributions per day of the week as rising bars, with your busiest day lit up.
+- `harvest` (profile, full): Contribution harvester. A scanner drone glides over your contribution graph, harvesting every lit cell into a running tally before the grid regrows.
+- `star-history` (project, full): Star history. Cumulative stars over time as a chart that draws itself on, with milestone flags and the stars gained this month.
+- `commit-activity` (project, full): Commit activity. A year of weekly commits as growing bars, a heat strip or a line, with the busiest week called out and the latest commit underneath.
+- `now` (profile, full): Now building. Spotlights the project you are pushing to right now, with an animated git graph and the last 30 days of activity.
+- `project` (profile, half): Project card. One repository as a polished card with its description, language and stars, framed by a running accent light.
+- `repos` (profile, full): Top repositories. Your best or most recently pushed repositories with descriptions, languages and rolling star counters.
+- `releases` (profile + project, half): Latest releases. A timeline of the versions you shipped most recently, with tag pills, repositories and how long ago each landed.
+- `posts` (profile + project, full): Latest posts. The newest articles from your blog's RSS or Atom feed, with dates and short summaries, refreshed on every build.
+- `changelog` (project, full): Changelog. Your latest releases on a timeline: version pills, dates, a line or two of release notes and a pulsing marker on the newest one.
+- `roadmap` (project, full): Roadmap. Milestones as progress rows with status chips, issue counts and due dates, from GitHub milestones or a list you write.
+- `today` (profile + project, half): Today. Today at a glance: the date, the moon phase, local weather, the year so far and a quote of the day.
+- `quote` (profile + project, full): Quote. A large typographic quote with attribution; add several and it cross-fades through them on a loop.
+- `markdown` (profile + project, full): Markdown text. Free-form Markdown or HTML written straight into your README, with live placeholders like {name} and {followers}.
+- `install` (project, full): Install command. A terminal that types your install command, cycling through package-manager tabs, with a copy button and an optional quick-start line.
+- `code` (project, full): Code snippet. A syntax-highlighted code card with a file tab, line numbers, highlighted lines and a line-by-line reveal: perfect for a usage example.
+- `features` (project, full): Feature grid. Your project's highlights as a two- or three-column grid of icon tiles, titles and short descriptions, revealed one by one.
+- `toc` (profile + project, full): Table of contents. A markdown table of contents with links to your README's sections, numbered or bulleted, with optional sub-entries.
+- `divider` (profile + project, full): Divider. A thin animated separator between sections: comet, pulse, wave, dashes or a fading line.
+- `footer` (profile + project, full): Footer. Rolling waves, a date barcode and a build stamp that proves the profile is alive.
+- `heading` (profile + project, full): Section heading. A slim section title with an eyebrow label and an animated hairline, for giving your README a clear structure.
+
+Full option reference: https://readme.niessen.dev/llms-full.txt · JSON: https://readme.niessen.dev/widgets.json, https://readme.niessen.dev/presets.json
+
+## Widget options
+
+### hero
+
+Hero banner: Your name drawn on stroke by stroke, a typewriter cycling through your roles and an orbiting emblem.
+Category Header · output svg · width full · for profile READMEs
+
+- `title` (text) · default ""
+- `typewriter` (toggle) · default true · Cycles through the roles from your profile.
+- `greeting` (toggle) · default true · Time-of-day greeting, date and moon phase.
+- `emblem` (icon) · default "github"
+- `emblemStyle` (segmented: orbit | plain | none) · default "orbit"
+- `glitch` (toggle) · default true
+- `scanline` (toggle) · default true
+- `glow` (toggle) · default true
+
+### banner
+
+Statement banner: A big typographic statement with a subline, brought to life by a gradient sweep, an outline draw-on, a letter-by-letter rise or a marquee.
+Category Header · output svg · width full · for profile and project READMEs
+
+- `headline` (text) · default "Crafting calm, fast software." · Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions} {project} {repo} {tagline} {version} {license} {forks} {contributors} {npm} {pypi} {crate} {owner}
+- `subline` (text) · default "Developer tools, typed APIs and small interfaces that feel good to use."
+- `effect` (select: gradient | outline | rise | marquee | none) · default "gradient"
+- `align` (segmented: left | center) · default "left"
+- `height` (segmented: compact | regular | tall) · default "regular"
+- `glow` (toggle) · default true
+- `corners` (toggle) · default true · Small registration ticks in the corners.
+
+### project-hero
+
+Project hero: Your project's name drawn on, its tagline, version, install command and headline numbers over an ambient glow.
+Category Header · output svg · width full · for project READMEs
+
+- `title` (text) · default ""
+- `align` (segmented: left | center) · default "left"
+- `version` (toggle) · default true · Latest release tag next to the name.
+- `install` (text) · default "npm i {npm}" · Shown in a code pill under the tagline. Leave empty to hide. Placeholders: {npm} {repo} {project} {version}
+- `stats` (toggle) · default true
+- `third` (segmented: license | downloads | contributors) · default "license"
+- `emblem` (icon) · default "" · Defaults to the project logo; without one a monogram tile is drawn.
+- `emblemStyle` (segmented: orbit | plain | none) · default "orbit"
+- `scanline` (toggle) · default true
+- `glow` (toggle) · default true
+
+### socials
+
+Social pills: One animated, clickable pill per profile link. Each is its own image so every link works.
+Category Identity · output svg · width full · for profile and project READMEs · one image per item
+
+- `style` (segmented: pill | compact | icon) · default "pill"
+- `iconColor` (segmented: accent | brand | text) · default "accent"
+- `runner` (toggle) · default true
+
+### terminal
+
+Terminal: A shell session that types out commands about you, with live placeholders, syntax colours and a tmux-style status bar.
+Category Identity · output svg · width full · for profile READMEs
+
+- `title` (text) · default ""
+- `prompt` (segmented: arrow | chevron | dollar | percent | gt) · default "arrow"
+- `cwd` (text) · default "~"
+- `commands` (list) · default [{"cmd":"whoami","output":"{b}{name|lower}{/}{?{m} — {role|lower}?}{?{m} @ {a}{b}{company}?}"},{"cmd":"cat profile.json","output":"{m}{ {a}\"login\"{m}: {s}\"{login}\"{m}{?, {a}\"based\"{m}: {s}\"{city}\"?}{?{m}, {a}\"pronouns\"{m}: {s}\"{pronouns}\"?}{?{m}, {a}\"age\"{m}: {n}{age}?}{m},\n{m}  {a}\"repos\"{m}: {n}{repos}{m}, {a}\"followers\"{m}: {n}{followers}{m}, {a}\"streak\"{m}: {n}{streak}{m}, {a}\"coffee\"{m}: {n}Infinity{m} }"},{"cmd":"uptime","output":"{?{m}up {n}{b}{uptime_days}{/}{m} days  ·  ?}{?{t}{uptime_note}{m}  ·  ?}{m}{year} is {t}{year_pct}%{m} done"},{"cmd":"ls ~/stack","output":"{stack}"}]
+  - `cmd` (text) · default "echo hello"
+  - `output` (text) · default "hello, {name}!" · One line per row. Colours: {a}accent {m}muted {s}string {n}number {b}bold {/}reset. Placeholders: {name} {login} {city} {company} {role} {year} {age} {days_alive} {account_age} {followers} {stars} {repos} {streak} {year_pct} {stack}. Wrap text in {? … ?} to hide it when a placeholder is empty.
+- `stack` (tags) · default ["typescript","react","node","python","go","docker","k8s","postgres","aws"]
+- `chrome` (toggle) · default true
+- `statusBar` (toggle) · default true
+- `tab` (text) · default "[{login}] 0:zsh*"
+- `status` (text) · default "git:main  ·  {followers} followers  ·  {clock}" · Supports the same placeholders, plus {clock}, {time}, {date} and {tz}.
+
+### stack
+
+Tech stack orbit: Your tools as a little solar system: up to three rings of brand icons orbiting a centre emblem.
+Category Identity · output svg · width full · for profile and project READMEs
+
+- `label` (text) · default "tech stack · orbit"
+- `emblem` (icon) · default "github"
+- `legend` (toggle) · default true · Lists each ring's tools beside the orbit.
+- `rings` (list) · default [{"label":"Languages","icons":["typescript","python","go"]},{"label":"Frameworks","icons":["react","nextjs","nodejs","tailwindcss"]},{"label":"Infra & data","icons":["docker","kubernetes","aws","postgresql","githubactions"]}]
+  - `label` (text) · default "Tools"
+  - `icons` (tags) · default ["git","linux"] · Icon ids such as typescript, react, docker. Inner rings hold fewer icons than outer ones.
+
+### about
+
+About card: A typographic introduction: monogram, name and pronouns, your roles, a short bio and chips for where you work and live.
+Category Identity · output svg · width full · for profile READMEs
+
+- `label` (text) · default "about me"
+- `name` (text) · default ""
+- `pronouns` (text) · default ""
+- `roles` (tags) · default []
+- `bio` (text) · default "" · Up to five lines; a blank line starts a new paragraph. Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions} {project} {repo} {tagline} {version} {license} {forks} {contributors} {npm} {pypi} {crate} {owner}
+- `layout` (segmented: left | center) · default "left"
+- `monogram` (toggle) · default true · Your initials in an accent disc.
+- `chips` (toggle) · default true
+- `extraChips` (tags) · default ["Open to collaborations"]
+
+### facts
+
+Quick facts: A tidy key-value list of things worth knowing about you, revealed row by row, in one or two columns.
+Category Identity · output svg · width full · for profile and project READMEs
+
+- `label` (text) · default "quick facts"
+- `columns` (segmented: 1 | 2) · default "2"
+- `leaders` (toggle) · default true · A dotted line between each key and its value.
+- `iconColor` (segmented: accent | brand | muted) · default "accent"
+- `items` (list) · default [{"icon":"pin","key":"Based in","value":"{city}"},{"icon":"briefcase","key":"Working on","value":"Developer tooling"},{"icon":"code","key":"Daily drivers","value":"TypeScript, Rust, Go"},{"icon":"book","key":"Learning","value":"Distributed systems"},{"icon":"coffee","key":"Fuelled by","value":"Flat whites"},{"icon":"sparkle","key":"Ask me about","value":"Design systems, CLIs"}]
+  - `icon` (icon) · default "sparkle" · A brand icon, or a line glyph such as pin, briefcase, code, book, heart, rocket, globe.
+  - `key` (text) · default "Fun fact"
+  - `value` (text) · default "" · Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions} {project} {repo} {tagline} {version} {license} {forks} {contributors} {npm} {pypi} {crate} {owner}
+
+### badges
+
+Badges: A row of shields-style badges drawn right in the image, no third-party service, wrapping neatly across lines.
+Category Identity · output svg · width full · for profile and project READMEs
+
+- `style` (segmented: flat | pill | outline) · default "flat"
+- `colors` (segmented: accent | brand) · default "accent" · Brand uses each icon's own colour; a per-badge colour always wins.
+- `caps` (toggle) · default true
+- `align` (segmented: left | center) · default "center"
+- `shine` (toggle) · default true
+- `items` (list) · default [{"icon":"typescript","label":"TypeScript","value":"daily","color":""},{"icon":"rust","label":"Rust","value":"learning","color":""},{"icon":"react","label":"React","value":"since 2017","color":""},{"icon":"docker","label":"Docker","value":"shipping","color":""},{"icon":"users","label":"Followers","value":"{followers}","color":""},{"icon":"star","label":"Stars","value":"{stars}","color":""},{"icon":"flame","label":"Streak","value":"{streak} days","color":""}]
+  - `icon` (icon) · default "code" · Brand icon or line glyph; leave empty for none.
+  - `label` (text) · default "Label"
+  - `value` (text) · default "value" · Optional. Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions} {project} {repo} {tagline} {version} {license} {forks} {contributors} {npm} {pypi} {crate} {owner}
+  - `color` (color) · default "" · Empty uses the accent.
+
+### skills
+
+Skill meters: Your strongest tools as filling bars, segmented blocks or radial gauges, each with its icon and level.
+Category Identity · output svg · width full · for profile READMEs
+
+- `label` (text) · default "toolbox"
+- `style` (segmented: bars | blocks | gauges) · default "bars"
+- `columns` (segmented: 1 | 2 | 3) · default "2"
+- `gauges` (segmented: 3 | 4 | 5 | 6) · default "6"
+- `values` (toggle) · default true
+- `iconColor` (segmented: brand | accent | text) · default "brand"
+- `items` (list) · default [{"name":"TypeScript","icon":"typescript","level":92},{"name":"React","icon":"react","level":86},{"name":"Rust","icon":"rust","level":68},{"name":"Go","icon":"go","level":74},{"name":"PostgreSQL","icon":"postgresql","level":80},{"name":"Docker","icon":"docker","level":77}]
+  - `name` (text) · default "New skill"
+  - `icon` (icon) · default "code"
+  - `level` (number, 0–100) · default 60
+
+### timeline
+
+Timeline: Experience and education on a vertical rail whose nodes light up one after another, with a live pulse on what you do now.
+Category Identity · output svg · width full · for profile READMEs
+
+- `label` (text) · default "experience"
+- `now` (toggle) · default true · Marks the top entry as what you are doing now.
+- `descriptions` (toggle) · default true
+- `items` (list) · default [{"period":"2023 — now","title":"Senior Software Engineer","place":"Northwind Labs","description":"Leading the developer platform team: build tooling, CI pipelines and a design system used by forty engineers."},{"period":"2020 — 2023","title":"Full-stack Developer","place":"Lumen & Co.","description":"Shipped a realtime collaborative editor and halved page load times across the product."},{"period":"2016 — 2020","title":"BSc Computer Science","place":"State University","description":"Distributed systems, compilers and far too many hackathons."}]
+  - `period` (text) · default "2024"
+  - `title` (text) · default "Role or degree"
+  - `place` (text) · default ""
+  - `description` (text) · default ""
+
+### contact
+
+Contact card: A “let's work together” card with your availability, a short pitch and up to three call-to-action buttons.
+Category Identity · output svg · width full · for profile and project READMEs
+
+- `status` (segmented: open | busy | away) · default "open"
+- `statusText` (text) · default ""
+- `headline` (text) · default "Let's build something together" · Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions} {project} {repo} {tagline} {version} {license} {forks} {contributors} {npm} {pypi} {crate} {owner}
+- `text` (text) · default "I'm taking on a few freelance and open-source collaborations this season. Drop me a line and I'll usually reply within a day."
+- `ctas` (list) · default [{"label":"Email me","icon":"mail"},{"label":"Book a call","icon":"calendar"},{"label":"LinkedIn","icon":"linkedin"}] · Buttons are drawn into the image; the whole card links to the URL below.
+  - `label` (text) · default "Say hello"
+  - `icon` (icon) · default "mail"
+- `url` (text) · default "" · mailto:, a booking page or any URL.
+- `emblem` (icon) · default "mail" · Shown inside the signal on the right.
+- `signal` (toggle) · default true
+
+### clock
+
+Local time: A live clock for your time zone that keeps ticking after the build, with your city, UTC offset and today's daylight band.
+Category Identity · output svg · width half · for profile and project READMEs
+
+- `label` (text) · default "local time"
+- `style` (segmented: analogue | digital) · default "analogue"
+- `seconds` (toggle) · default true
+- `hour12` (toggle) · default false
+- `daylight` (toggle) · default true · Approximate sunrise and sunset from your profile location.
+
+### shields
+
+Shields: Shield-style badges for version, licence, build status, stars, downloads and more, each its own image linking to the right page.
+Category Identity · output svg · width full · for project READMEs · one image per item
+
+- `badges` (checklist: version | license | ci | stars | forks | downloads | contributors | issues | prs | commit | release | topics) · default ["version","license","ci","stars","downloads","contributors"]
+- `style` (segmented: flat | rounded | outline | plastic) · default "rounded"
+- `color` (segmented: accent | neutral) · default "accent" · Build status always uses green, amber or red.
+- `icons` (toggle) · default true
+- `custom` (list) · default []
+  - `label` (text) · default "chat" · Placeholders like {version} work here.
+  - `value` (text) · default "discord"
+  - `color` (color) · default ""
+  - `icon` (icon) · default ""
+  - `link` (text) · default ""
+
+### contributors
+
+Contributor wall: Everyone who has committed to the project as a wall of avatars that pop in one by one, top contributors first.
+Category Identity · output svg · width full · for project READMEs
+
+- `label` (text) · default "contributors"
+- `max` (number, 12–60) · default 30
+- `size` (segmented: sm | md | lg) · default "md"
+- `names` (toggle) · default true · Login under each avatar.
+- `shape` (segmented: circle | rounded) · default "circle"
+- `sort` (segmented: contributions | alpha) · default "contributions"
+
+### support
+
+Support & sponsor: A warm call to action for sponsors: headline, a short pitch, up to three drawn buttons (GitHub Sponsors, Ko-fi, Open Collective, …) and a beating heart.
+Category Identity · output svg · width full · for profile and project READMEs
+
+- `label` (text) · default "support"
+- `headline` (text) · default "" · Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions} {project} {repo} {tagline} {version} {license} {forks} {contributors} {npm} {pypi} {crate} {owner}
+- `text` (text) · default ""
+- `buttons` (list) · default [{"kind":"sponsors","label":"Sponsor","url":""},{"kind":"opencollective","label":"Open Collective","url":""},{"kind":"kofi","label":"Buy a coffee","url":""}] · Drawn into the image; the card links to the first button's URL. URLs default to your account on each platform ({owner} is the repository owner).
+  - `kind` (select: sponsors | kofi | bmc | opencollective | patreon | paypal | custom) · default "custom"
+  - `label` (text) · default "Support"
+  - `url` (text) · default ""
+  - `icon` (icon) · default "heart"
+- `backers` (text) · default "Thank you to everyone who already chips in." · A short line under the buttons, e.g. how many people back the work.
+- `emblem` (toggle) · default true
+
+### stats
+
+Stats board: Rolling odometer counters for your key numbers, with an optional year-progress ring.
+Category Stats · output svg · width full · for profile READMEs
+
+- `label` (text) · default "stats · live from github"
+- `tiles` (checklist: year | allTime | lastYear | current | longest | prs | stars | reviews | issues | commits | followers | repos | active | best) · default ["year","allTime","current","longest","stars","followers"] · Up to 6 with the ring, 8 without.
+- `ring` (toggle) · default true
+
+### languages
+
+Top languages: Your most used languages by bytes of code, as an animated donut, bar list or stacked bar.
+Category Stats · output svg · width half · for profile and project READMEs
+
+- `label` (text) · default "languages"
+- `style` (segmented: donut | bars | stacked) · default "donut"
+- `max` (number, 3–10) · default 5 · The rest are grouped as Other.
+- `hide` (tags) · default []
+
+### trophies
+
+Achievements: Hexagonal trophies that unlock in three tiers as your streaks, stars and years on GitHub grow.
+Category Stats · output svg · width half · for profile READMEs
+
+- `label` (text) · default "achievements"
+- `trophies` (checklist: streak | month | polyglot | veteran | shipper | stars | chronotype | consistent | reviewer | collaborator | popular | bughunter) · default ["streak","month","polyglot","veteran","shipper","stars","chronotype","consistent"]
+- `columns` (segmented: 3 | 4) · default "4"
+
+### streak
+
+Streak card: Current streak in a burning ring, flanked by your longest run and total contributions, each with its date range.
+Category Stats · output svg · width full · for profile READMEs
+
+- `label` (text) · default "streak · last 12 months"
+- `total` (segmented: lastYear | year | allTime) · default "lastYear"
+- `ranges` (toggle) · default true · Show when each streak started and ended.
+- `ring` (toggle) · default true · The ring fills as your current streak approaches your longest.
+- `embers` (toggle) · default true
+
+### donut
+
+Language donut: Your languages as a donut that draws itself in, with the top language in the centre and a percentage legend.
+Category Stats · output svg · width half · for profile and project READMEs
+
+- `label` (text) · default "languages"
+- `slices` (number, 3–8) · default 6 · Smaller languages are grouped as Other.
+- `percentages` (toggle) · default true
+- `centre` (segmented: top | count | none) · default "top"
+- `hide` (tags) · default []
+
+### year
+
+Year in review: Your year, wrapped: total contributions, busiest month, best day, favourite weekday and more, over a monthly bar chart.
+Category Stats · output svg · width full · for profile READMEs
+
+- `label` (text) · default "year in review"
+- `period` (segmented: year | rolling) · default "year"
+- `facts` (checklist: month | day | weekday | language | repos | active | streak | stars) · default ["month","day","weekday","language","repos","active"] · Up to six, shown in a 3 × 2 grid.
+- `chart` (toggle) · default true
+- `pace` (toggle) · default true · Projected total and change against last year.
+
+### followers
+
+Follower milestone: Your follower count on a rolling counter with a progress bar towards the next milestone.
+Category Stats · output svg · width half · for profile READMEs
+
+- `label` (text) · default "followers"
+- `target` (segmented: auto | manual) · default "auto"
+- `goal` (number, 1–1000000) · default 1000
+- `following` (toggle) · default true
+- `ladder` (toggle) · default true · Small markers for the milestones around you.
+
+### repo-stats
+
+Repository stats: Rolling counters for stars, forks, issues, pull requests and contributors, each with a tiny trend, plus an issue-health ring.
+Category Stats · output svg · width full · for project READMEs
+
+- `label` (text) · default "repository · live from github"
+- `tiles` (checklist: stars | forks | watchers | issues | prs | contributors | commits | downloads) · default ["stars","forks","contributors","commits","prs","issues"] · Up to 6 with the ring, 8 without.
+- `ring` (toggle) · default true · Share of issues closed, with pull requests merged as an inner ring.
+
+### repo-health
+
+Repository vitals: A compact health check: build status with a live pulse, last commit, latest release, issue and pull request balance, and the licence.
+Category Stats · output svg · width half · for project READMEs
+
+- `label` (text) · default "repo vitals"
+- `license` (toggle) · default true
+
+### downloads
+
+Package downloads: Weekly, monthly or all-time downloads from npm, PyPI or crates.io on a rolling counter, with a year-long sparkline and the month-on-month trend.
+Category Stats · output svg · width half · for project READMEs
+
+- `label` (text) · default "downloads"
+- `period` (segmented: week | month | total) · default "week"
+- `registry` (segmented: auto | npm | pypi | crates) · default "auto" · Package names come from the project settings.
+
+### contrib
+
+Contribution graph: Your last 12 months as an animated heatmap with a scanning beam, best-day callout and weekly totals.
+Category Activity · output svg · width full · for profile READMEs
+
+- `label` (text) · default "contributions · last 12 months"
+- `shape` (segmented: rounded | square | circle) · default "rounded"
+- `weekly` (toggle) · default true
+- `callout` (toggle) · default true
+- `beam` (toggle) · default true
+- `legend` (toggle) · default true
+
+### pulse
+
+Heartbeat: Your recent contributions drawn as an ECG trace, one heartbeat per day, with a glowing pulse running along it.
+Category Activity · output svg · width full · for profile READMEs
+
+- `days` (segmented: 30 | 60 | 90 | 180) · default "90"
+- `label` (text) · default "heartbeat · last {days} days" · {days} is replaced with the window length.
+- `bpm` (toggle) · default true · Average contributions per week, shown as a heart rate.
+
+### skyline
+
+3D skyline: Your last 12 months as an isometric city of contribution towers, slowly turning in an animated GIF.
+Category Activity · output gif · width full · for profile READMEs
+
+- `label` (text) · default "3d skyline · last 12 months"
+- `rotation` (segmented: spin | sway) · default "spin"
+- `color` (segmented: heat | accent) · default "heat"
+
+### rhythm
+
+Coding rhythm: A 24-hour radial clock of when you commit, with your chronotype and busiest weekday.
+Category Activity · output svg · width half · for profile READMEs
+
+- `label` (text) · default "coding rhythm"
+- `weekdays` (toggle) · default true · Contributions per weekday next to the clock.
+- `summary` (toggle) · default true · Chronotype, peak hour and daily average.
+
+### journey
+
+Journey timeline: Your years on GitHub as a timeline: contributions per year above the axis, repositories you started below.
+Category Activity · output svg · width full · for profile READMEs
+
+- `label` (text) · default "journey" · “since <first year>” is appended automatically.
+- `mode` (segmented: both | contributions | repos) · default "both"
+- `years` (number, 2–15) · default 8 · Most recent years to show; older ones are left out.
+
+### board
+
+Departure board: Your latest public GitHub activity on a split-flap departure board that clatters into place.
+Category Activity · output svg · width full · for profile READMEs
+
+- `title` (text) · default "departures · latest activity"
+- `rows` (number, 3–8) · default 6 · Empty slots stay blank when there is less activity.
+- `clock` (toggle) · default true · Build time and your GitHub handle in the corner.
+- `flaps` (toggle) · default true · Letters scramble and flip into place.
+
+### area
+
+Contribution trend: Weekly contributions as a smooth area chart that draws itself on, with your average and peak week marked.
+Category Activity · output svg · width full · for profile READMEs
+
+- `label` (text) · default "contribution trend"
+- `weeks` (segmented: 12 | 26 | 52) · default "26"
+- `smooth` (toggle) · default true
+- `average` (toggle) · default true
+- `peak` (toggle) · default true
+- `points` (toggle) · default true · Dots on each week (12 and 26 week ranges).
+
+### weekdays
+
+Weekday rhythm: Contributions per day of the week as rising bars, with your busiest day lit up.
+Category Activity · output svg · width half · for profile READMEs
+
+- `label` (text) · default "weekday rhythm"
+- `metric` (segmented: total | average) · default "total"
+- `start` (segmented: mon | sun) · default "mon"
+- `colour` (segmented: highlight | heat) · default "highlight"
+
+### harvest
+
+Contribution harvester: A scanner drone glides over your contribution graph, harvesting every lit cell into a running tally before the grid regrows.
+Category Activity · output svg · width full · for profile READMEs
+
+- `label` (text) · default "contribution harvest"
+- `speed` (segmented: calm | brisk) · default "calm"
+- `beam` (toggle) · default true
+- `legend` (toggle) · default true
+
+### star-history
+
+Star history: Cumulative stars over time as a chart that draws itself on, with milestone flags and the stars gained this month.
+Category Activity · output svg · width full · for project READMEs
+
+- `label` (text) · default "star history"
+- `scale` (segmented: linear | log) · default "linear"
+- `milestones` (toggle) · default true · Marks when the project crossed 100, 500, 1k, 5k … stars.
+- `fill` (toggle) · default true
+
+### commit-activity
+
+Commit activity: A year of weekly commits as growing bars, a heat strip or a line, with the busiest week called out and the latest commit underneath.
+Category Activity · output svg · width full · for project READMEs
+
+- `label` (text) · default "commit activity"
+- `style` (segmented: bars | heat | line) · default "bars"
+- `last` (toggle) · default true · Message, short hash and time of the newest commit.
+
+### now
+
+Now building: Spotlights the project you are pushing to right now, with an animated git graph and the last 30 days of activity.
+Category Projects · output svg · width full · for profile READMEs
+
+- `repo` (text) · default "" · Leave empty to always show the repository you pushed to most recently.
+- `label` (text) · default "now building"
+- `sparkline` (toggle) · default true · Your contributions over the last 30 days.
+- `progress` (toggle) · default true · How long the repository has existed, from first commit to now.
+
+### project
+
+Project card: One repository as a polished card with its description, language and stars, framed by a running accent light.
+Category Projects · output svg · width half · for profile READMEs
+
+- `source` (segmented: pinned | starred | named) · default "pinned"
+- `index` (number, 1–6) · default 1 · Which pinned repository, or rank by stars.
+- `repo` (text) · default ""
+- `stats` (toggle) · default true
+- `accent` (segmented: runner | bar | none) · default "runner"
+- `number` (toggle) · default true · Watermark with the slot number.
+
+### repos
+
+Top repositories: Your best or most recently pushed repositories with descriptions, languages and rolling star counters.
+Category Projects · output svg · width full · for profile READMEs
+
+- `label` (text) · default "top repositories"
+- `source` (segmented: repos | pinned) · default "repos"
+- `sort` (segmented: stars | pushed) · default "stars"
+- `count` (number, 1–8) · default 5
+- `layout` (segmented: list | grid) · default "list"
+- `descriptions` (toggle) · default true
+- `exclude` (tags) · default []
+- `hideProfile` (toggle) · default true · Skips the repository named after your username.
+
+### releases
+
+Latest releases: A timeline of the versions you shipped most recently, with tag pills, repositories and how long ago each landed.
+Category Projects · output svg · width half · for profile and project READMEs
+
+- `label` (text) · default "latest releases"
+- `count` (number, 1–8) · default 4
+- `names` (toggle) · default true · Show the release title under the repository when it differs from the tag.
+- `time` (segmented: relative | absolute) · default "relative"
+- `repos` (tags) · default [] · Leave empty to include every repository.
+
+### posts
+
+Latest posts: The newest articles from your blog's RSS or Atom feed, with dates and short summaries, refreshed on every build.
+Category Projects · output svg · width full · for profile and project READMEs
+
+- `label` (text) · default "latest writing"
+- `feed` (text) · default "" · RSS or Atom; fetched by the GitHub Action on every build.
+- `link` (text) · default "" · Images can only link as a whole, so the card opens this page.
+- `count` (number, 1–8) · default 4
+- `dates` (segmented: badge | relative | off) · default "badge"
+- `summaries` (toggle) · default true
+
+### changelog
+
+Changelog: Your latest releases on a timeline: version pills, dates, a line or two of release notes and a pulsing marker on the newest one.
+Category Projects · output svg · width full · for project READMEs
+
+- `label` (text) · default "changelog"
+- `count` (number, 1–8) · default 4
+- `lines` (segmented: 0 | 1 | 2) · default "2"
+- `only` (segmented: all | minor | major) · default "all"
+- `kinds` (toggle) · default true · Marks each version as major, minor or patch.
+
+### roadmap
+
+Roadmap: Milestones as progress rows with status chips, issue counts and due dates, from GitHub milestones or a list you write.
+Category Projects · output svg · width full · for project READMEs
+
+- `label` (text) · default "roadmap"
+- `source` (segmented: auto | github | manual) · default "auto" · Automatic uses the repository's open milestones when there are any, otherwise your list.
+- `hideDone` (toggle) · default false
+- `items` (list) · default [{"title":"v1.0: stable API","progress":100,"status":"done","note":"Frozen public API, migration guide and codemods."},{"title":"Plugin system","progress":65,"status":"progress","note":"Lifecycle hooks, typed options and a plugin registry."},{"title":"Windows & ARM builds","progress":30,"status":"progress","note":"Native binaries for every platform in CI."},{"title":"Web playground","progress":0,"status":"planned","note":"Try it in the browser, share snippets by URL."}]
+  - `title` (text) · default "Next big thing" · Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions} {project} {repo} {tagline} {version} {license} {forks} {contributors} {npm} {pypi} {crate} {owner}
+  - `progress` (number, 0–100) · default 0
+  - `status` (segmented: done | progress | planned) · default "planned"
+  - `note` (text) · default ""
+  - `due` (text) · default undefined
+
+### today
+
+Today: Today at a glance: the date, the moon phase, local weather, the year so far and a quote of the day.
+Category Content · output svg · width half · for profile and project READMEs
+
+- `label` (text) · default "today" · Your city from the profile is appended.
+- `weather` (toggle) · default true · Current conditions for the location in your profile.
+- `unit` (segmented: c | f) · default "c"
+- `moon` (toggle) · default true
+- `quote` (toggle) · default true · A different quote from the list each day.
+- `quotes` (list) · default [{"text":"Simplicity is prerequisite for reliability.","author":"Edsger W. Dijkstra"},{"text":"Make it work, make it right, make it fast.","author":"Kent Beck"},{"text":"Talk is cheap. Show me the code.","author":"Linus Torvalds"},{"text":"First, solve the problem. Then, write the code.","author":"John Johnson"},{"text":"Premature optimization is the root of all evil.","author":"Donald Knuth"},{"text":"Any fool can write code that a computer can understand. Good programmers write code that humans can understand.","author":"Martin Fowler"},{"text":"Programs must be written for people to read, and only incidentally for machines to execute.","author":"Harold Abelson"},{"text":"The best error message is the one that never shows up.","author":"Thomas Fuchs"},{"text":"Deleted code is debugged code.","author":"Jeff Sickel"},{"text":"Code never lies, comments sometimes do.","author":"Ron Jeffries"},{"text":"Simple things should be simple, complex things should be possible.","author":"Alan Kay"},{"text":"The most disastrous thing that you can ever learn is your first programming language.","author":"Alan Kay"}]
+  - `text` (text) · default ""
+  - `author` (text) · default ""
+
+### quote
+
+Quote: A large typographic quote with attribution; add several and it cross-fades through them on a loop.
+Category Content · output svg · width full · for profile and project READMEs
+
+- `label` (text) · default "words to build by"
+- `marks` (segmented: serif | bar | none) · default "serif"
+- `rotate` (toggle) · default true · Cross-fades through every quote in the list; off shows only the first.
+- `seconds` (number, 3–20) · default 7
+- `progress` (toggle) · default true
+- `quotes` (list) · default [{"text":"Simplicity is prerequisite for reliability.","author":"Edsger W. Dijkstra","source":""},{"text":"Programs must be written for people to read, and only incidentally for machines to execute.","author":"Harold Abelson","source":"SICP"},{"text":"Make it work, make it right, make it fast.","author":"Kent Beck","source":""}]
+  - `text` (text) · default "" · Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions} {project} {repo} {tagline} {version} {license} {forks} {contributors} {npm} {pypi} {crate} {owner}
+  - `author` (text) · default ""
+  - `source` (text) · default ""
+
+### markdown
+
+Markdown text: Free-form Markdown or HTML written straight into your README, with live placeholders like {name} and {followers}.
+Category Content · output markdown · width full · for profile and project READMEs
+
+- `text` (text) · default "Hi, I'm **{name}**. I build calm, fast software and the tools around it.\nCurrently exploring local-first apps and typed APIs. Say hello any time!" · Emitted verbatim into the README; the row's alignment applies. Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions} {project} {repo} {tagline} {version} {license} {forks} {contributors} {npm} {pypi} {crate} {owner}
+
+### install
+
+Install command: A terminal that types your install command, cycling through package-manager tabs, with a copy button and an optional quick-start line.
+Category Content · output svg · width full · for project READMEs
+
+- `managers` (checklist: npm | pnpm | yarn | bun | pip | uv | cargo | brew | go | docker | custom) · default ["npm","pnpm","yarn","bun"] · One tab each, typed in turn. Package names come from the project settings and fall back to the repository name.
+- `quickStart` (toggle) · default true · A follow-up command such as `npx {npm} init`.
+- `quickStartCmd` (text) · default "" · Same command on every tab. Placeholders: {npm} {pypi} {crate} {bin} {repo}.
+- `custom` (list) · default [] · Shown as extra tabs when Custom is ticked. An entry labelled like a ticked manager (npm, pip, …) replaces that tab's command.
+  - `label` (text) · default "curl"
+  - `cmd` (text) · default "curl -fsSL https://example.com/install.sh | sh"
+  - `then` (text) · default ""
+- `statusBar` (toggle) · default true
+
+### code
+
+Code snippet: A syntax-highlighted code card with a file tab, line numbers, highlighted lines and a line-by-line reveal: perfect for a usage example.
+Category Content · output svg · width full · for project READMEs
+
+- `code` (text) · default "import { createClient } from \"{npm}\";\n\nconst client = createClient({\n  apiKey: process.env.API_KEY,\n  retries: 3, // back off politely on 429s\n});\n\nconst result = await client.run(\"hello, world\");\nconsole.log(result.output);" · Placeholders: {npm} {pypi} {crate} {bin} {repo} {project} {version}. Up to 36 rows are shown.
+- `language` (select: auto | ts | python | rust | go | shell | json | yaml | plain) · default "auto"
+- `filename` (text) · default "example.ts"
+- `lineNumbers` (toggle) · default true
+- `highlight` (text) · default "8" · Line numbers or ranges to emphasise.
+- `reveal` (toggle) · default true
+- `overflow` (segmented: wrap | clip) · default "wrap"
+
+### features
+
+Feature grid: Your project's highlights as a two- or three-column grid of icon tiles, titles and short descriptions, revealed one by one.
+Category Content · output svg · width full · for project READMEs
+
+- `label` (text) · default "why {project}" · Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions} {project} {repo} {tagline} {version} {license} {forks} {contributors} {npm} {pypi} {crate} {owner}
+- `columns` (segmented: 2 | 3) · default "3"
+- `style` (segmented: cards | plain) · default "cards"
+- `numbered` (toggle) · default false · Adds 01, 02, … to each feature.
+- `items` (list) · default [{"icon":"bolt","title":"Blazing fast","text":"Incremental builds finish in milliseconds, even in monorepos with thousands of files."},{"icon":"sparkle","title":"Zero config","text":"Sensible defaults out of the box. Reach for a config file only when you need one."},{"icon":"code","title":"Fully typed","text":"First-class TypeScript types and autocompletion for every option and plugin hook."},{"icon":"terminal","title":"Friendly CLI","text":"Readable errors, coloured diffs and a watch mode that stays out of your way."},{"icon":"globe","title":"Runs anywhere","text":"Node, Deno, Bun and the browser, with no native dependencies or install scripts."},{"icon":"users","title":"Plugin ecosystem","text":"A growing set of community plugins for frameworks, design tools and CI."}]
+  - `icon` (icon) · default "sparkle" · A line glyph (bolt, sparkle, code, globe, …) or a brand icon.
+  - `title` (text) · default "New feature"
+  - `text` (text) · default ""
+
+### toc
+
+Table of contents: A markdown table of contents with links to your README's sections, numbered or bulleted, with optional sub-entries.
+Category Content · output markdown · width full · for profile and project READMEs
+
+- `title` (text) · default "## Contents" · Markdown, e.g. `## Contents` or `**On this page**`. Leave empty for just the list.
+- `numbered` (toggle) · default false
+- `entries` (list) · default [{"title":"Installation","anchor":"","level":"1"},{"title":"Usage","anchor":"","level":"1"},{"title":"Features","anchor":"","level":"1"},{"title":"Roadmap","anchor":"","level":"1"},{"title":"Contributing","anchor":"","level":"1"},{"title":"License","anchor":"","level":"1"}] · Anchors default to GitHub's heading slug, so `## Getting started` becomes #getting-started.
+  - `title` (text) · default "New section" · Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions} {project} {repo} {tagline} {version} {license} {forks} {contributors} {npm} {pypi} {crate} {owner}
+  - `anchor` (text) · default ""
+  - `level` (segmented: 1 | 2) · default "1"
+
+### divider
+
+Divider: A thin animated separator between sections: comet, pulse, wave, dashes or a fading line.
+Category Decoration · output svg · width full · for profile and project READMEs
+
+- `style` (select: comet | pulse | wave | dashes | line) · default "comet"
+- `ornament` (toggle) · default true
+
+### footer
+
+Footer: Rolling waves, a date barcode and a build stamp that proves the profile is alive.
+Category Decoration · output svg · width full · for profile and project READMEs
+
+- `message` (text) · default "rebuilt every night by readme studio"
+- `stamp` (toggle) · default true · Date, time, run number and data source.
+- `barcode` (toggle) · default true
+- `waves` (toggle) · default true
+
+### heading
+
+Section heading: A slim section title with an eyebrow label and an animated hairline, for giving your README a clear structure.
+Category Decoration · output svg · width full · for profile and project READMEs
+
+- `eyebrow` (text) · default "01 · selected work"
+- `title` (text) · default "Featured projects" · Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions} {project} {repo} {tagline} {version} {license} {forks} {contributors} {npm} {pypi} {crate} {owner}
+- `icon` (icon) · default "" · Optional; a brand icon or a line glyph (rocket, code, book, star…).
+- `align` (segmented: left | center) · default "left"
+- `line` (toggle) · default true
+- `card` (toggle) · default false · Off blends the heading into the page.
+
+Config version 1.

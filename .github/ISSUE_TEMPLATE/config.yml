@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation and FAQ
+    url: https://readme.niessen.dev/#/docs/faq
+    about: Broken images, permission errors and stopped schedules are covered here.
+  - name: Report a security problem
+    url: https://github.com/DavidNiessen/readme-studio/security/advisories/new
+    about: Please report vulnerabilities privately, not as an issue.

@@ -1491,6 +1491,69 @@ function ProjectReadmes() {
   );
 }
 
+const AGENT_SETUP = `git clone --depth 1 https://github.com/DavidNiessen/readme-studio ~/.cache/readme-studio
+alias rs="node ~/.cache/readme-studio/packages/engine/dist/cli.mjs"`;
+
+const AGENT_FLOW = `rs presets --json --kind project          # pick a starting design
+rs widgets --json --kind project          # every widget, option, default and allowed value
+rs init --repo mona/aurora --npm aurora --preset oss-library --workflow
+# … edit readme.config.json …
+rs validate --json                        # lists every repair; exit code 2 when something was fixed
+rs build --mock --out /tmp/rs --readme README.md
+rs link                                   # studio URL for the user to fine-tune visually`;
+
+function AgentsGuide() {
+  return (
+    <>
+      <p>
+        Readme Studio is designed to be driven by AI coding agents as well as by people. Everything the studio does is available from a self-contained command line, the
+        whole product is described in machine-readable files, and an agent can hand its result to you as a link that opens in the visual editor.
+      </p>
+
+      <Heading id="files">Machine-readable files</Heading>
+      <Table
+        caption="Files for agents"
+        className="t-ref"
+        head={["URL", "What it contains"]}
+        rows={[
+          [<a href="./llms.txt">/llms.txt</a>, "A compact guide: the workflow, config essentials, palettes, fonts, presets and every widget in one line each."],
+          [<a href="./llms-full.txt">/llms-full.txt</a>, "The same plus every widget option with its type, default, allowed values and help text."],
+          [<a href="./widgets.json">/widgets.json</a>, "The widget catalog as JSON: options, choices, list item fields, scope (profile/project), width and data needs."],
+          [<a href="./presets.json">/presets.json</a>, "Presets with their kind, palette and widgets, plus palette and font ids."],
+          [<a href="./schema.json">/schema.json</a>, "JSON Schema for readme.config.json, with per-widget option validation."],
+        ]}
+      />
+
+      <Heading id="cli">The command line</Heading>
+      <p>
+        The bundled CLI needs no install: fonts, the GIF rasteriser and all widgets are inside <code>packages/engine/dist</code>.
+      </p>
+      <CodeBlock code={AGENT_SETUP} />
+      <CodeBlock code={AGENT_FLOW} />
+      <p>
+        <code>build --mock</code> renders every asset with deterministic sample data and writes <code>preview.html</code>, so the layout can be checked without network access.
+        Without <code>--mock</code> it fetches the real numbers (set <code>GITHUB_TOKEN</code> for GraphQL).
+      </p>
+
+      <Heading id="handoff">Handing a design to a person</Heading>
+      <ul>
+        <li>
+          <code>rs link</code> prints a studio URL with the whole config inside it. Opening it loads the design as a new design in the browser.
+        </li>
+        <li>
+          Once <code>readme.config.json</code> is committed, <code>#/studio?repo=owner/name</code> opens it straight from the repository, and{" "}
+          <code>#/studio?config=https://…</code> opens any public config file.
+        </li>
+        <li>Every generated README starts with a comment linking to both, so the next agent finds them too.</li>
+      </ul>
+      <Note label="Skill">
+        The <code>readme-studio</code> skill in <Ext to="https://github.com/DavidNiessen/skills">DavidNiessen/skills</Ext> teaches agents this whole workflow:{" "}
+        <code>npx skills add DavidNiessen/skills --skill readme-studio</code>.
+      </Note>
+    </>
+  );
+}
+
 // ================================================================ sections
 
 const SECTIONS: SectionDef[] = [
@@ -1521,6 +1584,19 @@ const SECTIONS: SectionDef[] = [
       { id: "data", label: "Where the numbers come from" },
     ],
     Body: ProjectReadmes,
+  },
+  {
+    id: "agents",
+    group: "Guide",
+    nav: "AI agents",
+    title: "Using Readme Studio with AI agents",
+    lede: "A self-contained CLI, machine-readable catalogs and shareable studio links, so an agent can design, check and hand over a README.",
+    toc: [
+      { id: "files", label: "Machine-readable files" },
+      { id: "cli", label: "The command line" },
+      { id: "handoff", label: "Handing a design over" },
+    ],
+    Body: AgentsGuide,
   },
   {
     id: "action",

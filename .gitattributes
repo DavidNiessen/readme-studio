@@ -1,0 +1,16 @@
+* text=auto eol=lf
+
+# Generated files: collapsed in diffs and left out of the language statistics.
+packages/engine/dist/** linguist-generated=true
+packages/core/src/fonts/data/** linguist-generated=true
+packages/core/src/fonts/metrics.ts linguist-generated=true
+packages/core/src/icons/data.ts linguist-generated=true
+apps/web/public/schema.json linguist-generated=true
+apps/web/public/widgets.json linguist-generated=true
+apps/web/public/presets.json linguist-generated=true
+apps/web/public/llms*.txt linguist-generated=true
+
+# Binary assets
+*.woff binary
+*.woff2 binary
+*.wasm binary

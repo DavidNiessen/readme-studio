@@ -38,6 +38,15 @@ Everything is static: no server, no database, no third-party image host. Your de
 
 From then on the README rebuilds itself on the schedule you picked.
 
+## Using it with AI agents
+
+Agents can design, check and hand over a README without the web UI:
+
+- **[`llms.txt`](https://readme.niessen.dev/llms.txt)** and **[`llms-full.txt`](https://readme.niessen.dev/llms-full.txt)** describe the workflow, the config and every widget option; **[`widgets.json`](https://readme.niessen.dev/widgets.json)**, **[`presets.json`](https://readme.niessen.dev/presets.json)** and **[`schema.json`](https://readme.niessen.dev/schema.json)** are the same as data.
+- The bundled CLI runs without installing anything: `node packages/engine/dist/cli.mjs init|validate|build|link|widgets|presets|themes|schema` (`--json` for machine-readable output).
+- `link` prints a studio URL that opens the agent's design in the visual editor; `#/studio?repo=owner/name` opens a committed config.
+- The [`readme-studio` skill](https://github.com/DavidNiessen/skills) teaches agents the whole workflow: `npx skills add DavidNiessen/skills --skill readme-studio`.
+
 ## The action
 
 ```yaml
@@ -121,7 +130,9 @@ CLI:
 npx tsx packages/engine/src/cli.ts build --config readme.config.json --out dist [--mock] [--only=hero,stats] [--now=2026-12-31T23:00:00Z]
 npx tsx packages/engine/src/cli.ts validate --config readme.config.json
 npx tsx packages/engine/src/cli.ts init --login you --preset minimal-paper   # or --preset oss-library
-npx tsx packages/engine/src/cli.ts presets
+npx tsx packages/engine/src/cli.ts presets [--kind project] [--json]
+npx tsx packages/engine/src/cli.ts widgets [--kind project] [--type shields] [--json]
+npx tsx packages/engine/src/cli.ts link        # open the config in the studio
 ```
 
 ### Layout
@@ -151,6 +162,10 @@ Commit the action bundle (`npm run bundle`) before merging; CI fails when it is 
 ### GitHub Pages
 
 The `pages` workflow builds `apps/web` on every push to `main`. Enable it once in **Settings → Pages → Source: GitHub Actions**.
+
+## Contributing
+
+Bug reports, widget ideas, presets and pull requests are welcome. [CONTRIBUTING.md](CONTRIBUTING.md) explains the setup, how the code fits together and how to add a widget. Please follow the [code of conduct](CODE_OF_CONDUCT.md); report security problems privately as described in [SECURITY.md](SECURITY.md); questions go to [SUPPORT.md](SUPPORT.md).
 
 ## License
 

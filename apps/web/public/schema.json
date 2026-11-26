@@ -11,6 +11,49 @@
     "version": {
       "const": 1
     },
+    "kind": {
+      "enum": [
+        "profile",
+        "project"
+      ],
+      "description": "profile: the <login>/<login> README; project: a repository README"
+    },
+    "project": {
+      "type": "object",
+      "properties": {
+        "repo": {
+          "type": "string",
+          "description": "owner/name of the public repository"
+        },
+        "name": {
+          "type": "string"
+        },
+        "tagline": {
+          "type": "string"
+        },
+        "logo": {
+          "type": "string",
+          "description": "icon id, or empty for a monogram"
+        },
+        "homepage": {
+          "type": "string"
+        },
+        "packages": {
+          "type": "object",
+          "properties": {
+            "npm": {
+              "type": "string"
+            },
+            "pypi": {
+              "type": "string"
+            },
+            "crates": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
     "profile": {
       "type": "object",
       "properties": {

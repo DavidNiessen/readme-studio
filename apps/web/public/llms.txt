@@ -1,0 +1,133 @@
+# Readme Studio
+
+> Design animated, self-updating GitHub READMEs (profile READMEs and project/repository READMEs) as a JSON config. A GitHub Action (`DavidNiessen/readme-studio@v1`) renders every widget to dark/light SVG (or GIF), pushes the images to an asset branch and rewrites README.md on a schedule.
+
+Everything is driven by one file, `readme.config.json` (schema: https://readme.niessen.dev/schema.json). An agent can create it, validate it, render it offline and hand the user a link to fine-tune it visually.
+
+## Workflow for agents
+
+1. Get the CLI (self-contained bundle, no install):
+   `git clone --depth 1 https://github.com/DavidNiessen/readme-studio ~/.cache/readme-studio`
+   then `node ~/.cache/readme-studio/packages/engine/dist/cli.mjs <command>`.
+2. Discover: `widgets --json [--kind profile|project]`, `presets --json`, `themes --json`, `schema`.
+3. Start: `init --login <user> [--kind project --repo owner/name --npm <pkg>] [--preset <id>] --workflow`
+   writes readme.config.json and .github/workflows/readme.yml in the current directory.
+4. Edit readme.config.json (layout rows → blocks with `type`, `id`, `options`; theme; profile/project).
+5. Check: `validate --json` (repairs are reported as warnings), then `build --mock --out /tmp/rs` renders every asset and README.md offline (open preview.html to look at it).
+6. Hand off: `link` prints a https://readme.niessen.dev/ URL that opens the design in the visual studio.
+   A committed config can also be opened with https://readme.niessen.dev/#/studio?repo=owner/name.
+7. Commit readme.config.json, README.md (from the build) and the workflow; the user enables
+   Settings → Actions → General → Workflow permissions → Read and write, and runs the "readme" workflow once.
+
+## Config essentials
+
+- `kind`: "profile" (the <login>/<login> repository) or "project" (any public repository; set `project.repo`).
+- `layout`: array of rows `{ align, blocks: [{ id, type, options, hidden?, link? }] }`. Blocks in one row sit side by side (use half-width widgets in pairs). `id` becomes the image file name.
+- `theme`: `preset` (palette), `font`, `headingFont`, `radius`, `border`, `texture` (dots|grid|lines|none), `motion` (full|subtle|off), `surface`, optional `accent` to generate a palette.
+- `output`: `branch` (asset branch, default "output"), `modes` (["dark","light"]), `schedule` (cron), `repository`.
+- Free text accepts placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions} {project} {repo} {tagline} {version} {license} {forks} {contributors} {npm} {pypi} {crate} {owner}.
+- Unknown widgets are skipped and invalid values repaired; `validate` lists every repair.
+
+## Palettes
+
+- `crimson`: Crimson. Signal red on graphite. The original command-center look.
+- `github`: GitHub. Native GitHub surfaces with the familiar green graph.
+- `paper`: Paper. Warm off-white stock and ink-blue accents. Editorial and calm.
+- `mono`: Monochrome. Pure greyscale. Lets typography and motion do the talking.
+- `ember`: Ember. Glowing orange on charcoal, like a forge at night.
+- `amber`: Amber CRT. Phosphor amber, scanlines optional. Retro terminal energy.
+- `forest`: Forest. Moss and canopy greens with soft, earthy neutrals.
+- `ocean`: Ocean. Deep navy with a sharp cyan current.
+- `nord`: Nord. Arctic, north-bluish calm from the Nord palette.
+- `gruvbox`: Gruvbox. Retro groove: warm, high-legibility contrast.
+- `solarized`: Solarized. Precision colours for machines and people.
+- `tokyo`: Tokyo Night. Neon-lit city blues after the last train.
+- `dracula`: Dracula. The classic dark theme with candy accents.
+- `mocha`: Catppuccin. Soothing pastels: Mocha by night, Latte by day.
+- `rose`: Rosé. Soho vibes: muted roses, pine and gold.
+- `ultraviolet`: Ultraviolet. Electric violet and lime for the loud ones.
+- `sakura`: Sakura. Cherry-blossom pink on soft plum.
+
+## Fonts
+
+`jetbrains-mono`, `ibm-plex-mono`, `fira-code`, `geist-mono`, `space-mono`, `source-code-pro`, `inter`, `geist-sans`, `space-grotesk`, `manrope`, `fraunces`, `ibm-plex-serif`
+
+## Presets
+
+- `command-center` (profile): Command Center. Everything, animated: hero, live stats, a 3D skyline, departure board and project cards. The full show.
+- `minimal-paper` (profile): Minimal Paper. Editorial serif headlines on warm paper. Quiet motion, generous whitespace, all signal.
+- `terminal` (profile): Terminal. Amber phosphor and a shell that types itself. For people who live in tmux.
+- `data-nerd` (profile): Data Nerd. Every number GitHub knows about you, charted: trends, year in review, rhythms and a harvest loop.
+- `portfolio` (profile): Designer Portfolio. A soft, rounded showcase: statement banner, selected work, skills and a contact card.
+- `maintainer` (profile): Open Source Maintainer. Native GitHub colours. Leads with your repositories, releases and the green graph.
+- `student` (profile): Student. Fresh and friendly: about, quick facts, an education timeline, skills you're building and today's quote.
+- `retro-arcade` (profile): Retro Arcade. Warm gruvbox colours, a glitching title and a spinning skyline in chunky mono.
+- `nordic` (profile): Nordic Calm. Arctic blues, serif headlines and slow, deliberate motion. Clocks, weather and long-form writing.
+- `one-card` (profile): One Card. Monochrome and minimal: a headline, your links and one streak card. Nothing else.
+- `live-wire` (profile): Live Wire. Electric violet on ink. A marquee banner, the harvester, a trend line and rotating quotes.
+- `writer` (profile): Writer. For developers who blog: an intro in real markdown, your latest posts and a quote to end on.
+- `oss-library` (project): Open-Source Library. The full treatment for a published package: hero, live shields, install terminal, usage, stars and the people who built it.
+- `cli-tool` (project): CLI Tool. Terminal-first: amber phosphor, a typed install, a usage snippet and the commit pulse of the project.
+- `product-launch` (project): Product Launch. Bold and visual for apps and frameworks: statement banner, feature grid, roadmap progress and a sponsor card.
+- `python-package` (project): Python Package. Calm Nord palette for a PyPI package: pip install, a code sample, releases and repository vitals.
+- `minimal-oss` (project): Minimal OSS. Monochrome and quiet: a title, a row of shields, real markdown docs and nothing that shouts.
+- `maintainers-dashboard` (project): Maintainer's Dashboard. Everything a maintainer watches, at a glance: stats, health, downloads, star growth, commit rhythm and milestones.
+
+## Widgets (54)
+
+- `hero` (profile, full): Hero banner. Your name drawn on stroke by stroke, a typewriter cycling through your roles and an orbiting emblem.
+- `banner` (profile + project, full): Statement banner. A big typographic statement with a subline, brought to life by a gradient sweep, an outline draw-on, a letter-by-letter rise or a marquee.
+- `project-hero` (project, full): Project hero. Your project's name drawn on, its tagline, version, install command and headline numbers over an ambient glow.
+- `socials` (profile + project, full): Social pills. One animated, clickable pill per profile link. Each is its own image so every link works.
+- `terminal` (profile, full): Terminal. A shell session that types out commands about you, with live placeholders, syntax colours and a tmux-style status bar.
+- `stack` (profile + project, full): Tech stack orbit. Your tools as a little solar system: up to three rings of brand icons orbiting a centre emblem.
+- `about` (profile, full): About card. A typographic introduction: monogram, name and pronouns, your roles, a short bio and chips for where you work and live.
+- `facts` (profile + project, full): Quick facts. A tidy key-value list of things worth knowing about you, revealed row by row, in one or two columns.
+- `badges` (profile + project, full): Badges. A row of shields-style badges drawn right in the image, no third-party service, wrapping neatly across lines.
+- `skills` (profile, full): Skill meters. Your strongest tools as filling bars, segmented blocks or radial gauges, each with its icon and level.
+- `timeline` (profile, full): Timeline. Experience and education on a vertical rail whose nodes light up one after another, with a live pulse on what you do now.
+- `contact` (profile + project, full): Contact card. A “let's work together” card with your availability, a short pitch and up to three call-to-action buttons.
+- `clock` (profile + project, half): Local time. A live clock for your time zone that keeps ticking after the build, with your city, UTC offset and today's daylight band.
+- `shields` (project, full): Shields. Shield-style badges for version, licence, build status, stars, downloads and more, each its own image linking to the right page.
+- `contributors` (project, full): Contributor wall. Everyone who has committed to the project as a wall of avatars that pop in one by one, top contributors first.
+- `support` (profile + project, full): Support & sponsor. A warm call to action for sponsors: headline, a short pitch, up to three drawn buttons (GitHub Sponsors, Ko-fi, Open Collective, …) and a beating heart.
+- `stats` (profile, full): Stats board. Rolling odometer counters for your key numbers, with an optional year-progress ring.
+- `languages` (profile + project, half): Top languages. Your most used languages by bytes of code, as an animated donut, bar list or stacked bar.
+- `trophies` (profile, half): Achievements. Hexagonal trophies that unlock in three tiers as your streaks, stars and years on GitHub grow.
+- `streak` (profile, full): Streak card. Current streak in a burning ring, flanked by your longest run and total contributions, each with its date range.
+- `donut` (profile + project, half): Language donut. Your languages as a donut that draws itself in, with the top language in the centre and a percentage legend.
+- `year` (profile, full): Year in review. Your year, wrapped: total contributions, busiest month, best day, favourite weekday and more, over a monthly bar chart.
+- `followers` (profile, half): Follower milestone. Your follower count on a rolling counter with a progress bar towards the next milestone.
+- `repo-stats` (project, full): Repository stats. Rolling counters for stars, forks, issues, pull requests and contributors, each with a tiny trend, plus an issue-health ring.
+- `repo-health` (project, half): Repository vitals. A compact health check: build status with a live pulse, last commit, latest release, issue and pull request balance, and the licence.
+- `downloads` (project, half): Package downloads. Weekly, monthly or all-time downloads from npm, PyPI or crates.io on a rolling counter, with a year-long sparkline and the month-on-month trend.
+- `contrib` (profile, full): Contribution graph. Your last 12 months as an animated heatmap with a scanning beam, best-day callout and weekly totals.
+- `pulse` (profile, full): Heartbeat. Your recent contributions drawn as an ECG trace, one heartbeat per day, with a glowing pulse running along it.
+- `skyline` (profile, full): 3D skyline. Your last 12 months as an isometric city of contribution towers, slowly turning in an animated GIF.
+- `rhythm` (profile, half): Coding rhythm. A 24-hour radial clock of when you commit, with your chronotype and busiest weekday.
+- `journey` (profile, full): Journey timeline. Your years on GitHub as a timeline: contributions per year above the axis, repositories you started below.
+- `board` (profile, full): Departure board. Your latest public GitHub activity on a split-flap departure board that clatters into place.
+- `area` (profile, full): Contribution trend. Weekly contributions as a smooth area chart that draws itself on, with your average and peak week marked.
+- `weekdays` (profile, half): Weekday rhythm. Contributions per day of the week as rising bars, with your busiest day lit up.
+- `harvest` (profile, full): Contribution harvester. A scanner drone glides over your contribution graph, harvesting every lit cell into a running tally before the grid regrows.
+- `star-history` (project, full): Star history. Cumulative stars over time as a chart that draws itself on, with milestone flags and the stars gained this month.
+- `commit-activity` (project, full): Commit activity. A year of weekly commits as growing bars, a heat strip or a line, with the busiest week called out and the latest commit underneath.
+- `now` (profile, full): Now building. Spotlights the project you are pushing to right now, with an animated git graph and the last 30 days of activity.
+- `project` (profile, half): Project card. One repository as a polished card with its description, language and stars, framed by a running accent light.
+- `repos` (profile, full): Top repositories. Your best or most recently pushed repositories with descriptions, languages and rolling star counters.
+- `releases` (profile + project, half): Latest releases. A timeline of the versions you shipped most recently, with tag pills, repositories and how long ago each landed.
+- `posts` (profile + project, full): Latest posts. The newest articles from your blog's RSS or Atom feed, with dates and short summaries, refreshed on every build.
+- `changelog` (project, full): Changelog. Your latest releases on a timeline: version pills, dates, a line or two of release notes and a pulsing marker on the newest one.
+- `roadmap` (project, full): Roadmap. Milestones as progress rows with status chips, issue counts and due dates, from GitHub milestones or a list you write.
+- `today` (profile + project, half): Today. Today at a glance: the date, the moon phase, local weather, the year so far and a quote of the day.
+- `quote` (profile + project, full): Quote. A large typographic quote with attribution; add several and it cross-fades through them on a loop.
+- `markdown` (profile + project, full): Markdown text. Free-form Markdown or HTML written straight into your README, with live placeholders like {name} and {followers}.
+- `install` (project, full): Install command. A terminal that types your install command, cycling through package-manager tabs, with a copy button and an optional quick-start line.
+- `code` (project, full): Code snippet. A syntax-highlighted code card with a file tab, line numbers, highlighted lines and a line-by-line reveal: perfect for a usage example.
+- `features` (project, full): Feature grid. Your project's highlights as a two- or three-column grid of icon tiles, titles and short descriptions, revealed one by one.
+- `toc` (profile + project, full): Table of contents. A markdown table of contents with links to your README's sections, numbered or bulleted, with optional sub-entries.
+- `divider` (profile + project, full): Divider. A thin animated separator between sections: comet, pulse, wave, dashes or a fading line.
+- `footer` (profile + project, full): Footer. Rolling waves, a date barcode and a build stamp that proves the profile is alive.
+- `heading` (profile + project, full): Section heading. A slim section title with an eyebrow label and an animated hairline, for giving your README a clear structure.
+
+Full option reference: https://readme.niessen.dev/llms-full.txt · JSON: https://readme.niessen.dev/widgets.json, https://readme.niessen.dev/presets.json

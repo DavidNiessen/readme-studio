@@ -22,7 +22,7 @@ import {
   BookOpen,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { layoutPresets } from "@readme-studio/core";
+import { layoutPresets, parseConfig } from "@readme-studio/core";
 import { Logo } from "../components/Logo";
 import { Button, IconButton, MOD, Menu, Segmented, copyText, useToast } from "../components/ui";
 import { findBlock } from "../lib/layout";
@@ -258,6 +258,28 @@ export default function Studio() {
       st.newDesign(pm[1]);
       const preset = layoutPresets.find((x) => x.id === pm[1]);
       if (preset) useStudio.setState({ name: preset.name });
+      return;
+    }
+    // #/studio?repo=owner/name opens that repository's committed readme.config.json,
+    // #/studio?config=<https url> any config file (both must be publicly readable)
+    const params = new URLSearchParams(location.hash.split("?")[1] ?? "");
+    const repo = params.get("repo");
+    const cfgUrl = params.get("config");
+    if (repo || cfgUrl) {
+      history.replaceState(null, "", "#/studio");
+      const url = repo && /^[\w.-]+\/[\w.-]+$/.test(repo) ? `https://raw.githubusercontent.com/${repo}/HEAD/readme.config.json` : cfgUrl && /^https:\/\//.test(cfgUrl) ? cfgUrl : null;
+      if (!url) {
+        toast("That link does not point at a public config");
+        return;
+      }
+      fetch(url)
+        .then((r) => (r.ok ? r.text() : Promise.reject(new Error(String(r.status)))))
+        .then((text) => {
+          const { config, warnings } = parseConfig(text);
+          useStudio.getState().replace(config, repo ? `${repo} README` : "Imported design", true);
+          toast(warnings.length ? `Opened with ${warnings.length} repair(s)` : `Opened ${repo ?? "the config"}`);
+        })
+        .catch((e) => toast(repo ? `No readme.config.json found in ${repo} (${(e as Error).message})` : `Could not load that config (${(e as Error).message})`));
       return;
     }
     const m = /design=([^&]+)/.exec(location.hash);

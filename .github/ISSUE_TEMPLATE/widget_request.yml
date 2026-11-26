@@ -1,0 +1,31 @@
+name: Widget or preset idea
+description: Suggest a new widget, an option for an existing one, or a preset.
+labels: [widget]
+body:
+  - type: dropdown
+    id: kind
+    attributes:
+      label: For
+      options:
+        - Profile READMEs
+        - Project READMEs
+        - Both
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What it shows
+      description: The data or content, and why it belongs in a README.
+    validations:
+      required: true
+  - type: textarea
+    id: data
+    attributes:
+      label: Where the data comes from
+      description: GitHub API, another public API, or entered by hand. Widgets cannot run JavaScript or load external images on GitHub.
+  - type: textarea
+    id: look
+    attributes:
+      label: How it could look
+      description: A sketch, a screenshot of something similar, or a description of the animation.
