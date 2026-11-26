@@ -900,3 +900,34 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+/* a ticked option that reorders: grip on the left, arrows on the right */
+.check--sortable {
+  cursor: default;
+  margin-left: -4px;
+  background: var(--surface);
+  border-radius: var(--r-2);
+}
+.check--sortable .check__label {
+  cursor: pointer;
+}
+.check--sortable .check__order {
+  margin-left: auto;
+}
+.check__moves {
+  display: inline-flex;
+  opacity: 0;
+  transition: opacity var(--dur-1);
+}
+.check--sortable:hover .check__moves,
+.check--sortable:focus-within .check__moves {
+  opacity: 1;
+}
+.check--off {
+  padding-left: 18px;
+}
+@media (hover: none) {
+  .check__moves {
+    opacity: 1;
+  }
+}

@@ -75,21 +75,52 @@ export function IconPicker({ value, onChange, label, allowGlyphs = true }: { val
   );
 }
 
+/**
+ * Ticked options come first, in the order the widget shows them, and reorder by their grip or
+ * the arrows; unticked ones follow. Ticking one adds it at the end.
+ */
 function ChecklistControl({ field, value, onChange }: { field: Extract<Field, { type: "checklist" }>; value: string[]; onChange: (v: string[]) => void }) {
   const max = field.max ?? Infinity;
+  const byValue = new Map(field.options.map((o) => [o.value, o]));
+  const picked = value.filter((v) => byValue.has(v));
+  const rest = field.options.filter((o) => !picked.includes(o.value));
+  const move = (i: number, d: -1 | 1) => {
+    const j = i + d;
+    if (j >= 0 && j < picked.length) onChange(arrayMove(picked, i, j));
+  };
   return (
     <div>
-      {field.options.map((o) => {
-        const idx = value.indexOf(o.value);
-        const on = idx >= 0;
-        return (
-          <label className="check" key={o.value}>
-            <input type="checkbox" checked={on} disabled={!on && value.length >= max} onChange={() => onChange(on ? value.filter((x) => x !== o.value) : [...value, o.value])} />
-            <span>{o.label}</span>
-            {on && <span className="check__order">{idx + 1}</span>}
-          </label>
-        );
-      })}
+      <SortableList count={picked.length} onMove={(from, to) => onChange(arrayMove(picked, from, to))}>
+        {picked.map((v, i) => {
+          const o = byValue.get(v)!;
+          return (
+            <SortableItem key={v} index={i} className="check check--sortable">
+              <SortHandle label={`Reorder ${o.label}`} />
+              <input type="checkbox" checked aria-label={o.label} onChange={() => onChange(picked.filter((x) => x !== v))} />
+              <span className="check__label" onClick={() => onChange(picked.filter((x) => x !== v))}>
+                {o.label}
+              </span>
+              <span className="check__order">{i + 1}</span>
+              {picked.length > 1 && (
+                <span className="check__moves">
+                  <IconButton size="sm" label={`Move ${o.label} up`} disabled={i === 0} onClick={() => move(i, -1)}>
+                    <ArrowUp />
+                  </IconButton>
+                  <IconButton size="sm" label={`Move ${o.label} down`} disabled={i === picked.length - 1} onClick={() => move(i, 1)}>
+                    <ArrowDown />
+                  </IconButton>
+                </span>
+              )}
+            </SortableItem>
+          );
+        })}
+      </SortableList>
+      {rest.map((o) => (
+        <label className="check check--off" key={o.value}>
+          <input type="checkbox" checked={false} disabled={picked.length >= max} onChange={() => onChange([...picked, o.value])} />
+          <span>{o.label}</span>
+        </label>
+      ))}
     </div>
   );
 }
