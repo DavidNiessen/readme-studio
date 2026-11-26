@@ -105,6 +105,25 @@ export class GitHub {
     }
   }
 
+  /**
+   * The repository's README as GitHub finds it (README.md, readme.rst, docs/README…), or null.
+   * Without a token the API may be rate-limited; then the common file names are tried directly.
+   */
+  async readme(full: string, ref: string): Promise<{ text: string; path: string } | null> {
+    try {
+      const r = await this.call<{ content: string; path: string }>("GET", `/repos/${full}/readme${ref && ref !== "HEAD" ? `?ref=${encodeURIComponent(ref)}` : ""}`);
+      return { text: fromBase64(r.content), path: r.path };
+    } catch (e) {
+      if (e instanceof GitHubError && e.status === 404) return null;
+      if (!(e instanceof GitHubError) || (e.status !== 403 && e.status !== 429)) throw e;
+    }
+    for (const path of ["README.md", "readme.md", "Readme.md", "README"]) {
+      const f = await this.file(full, path, ref);
+      if (f) return { text: f.text, path };
+    }
+    return null;
+  }
+
   /** Create or update one file in one commit. */
   async putFile(full: string, o: { path: string; text: string; message: string; branch: string; sha?: string | null }): Promise<{ commitUrl: string }> {
     const r = await this.call<{ commit: { html_url: string } }>("PUT", `/repos/${full}/contents/${encPath(o.path)}`, {

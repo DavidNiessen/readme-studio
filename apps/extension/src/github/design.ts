@@ -1,4 +1,4 @@
-import { parseConfig, presetConfig, serializeConfig, workflowYaml, type StudioConfig } from "@readme-studio/core";
+import { normalizeConfig, parseConfig, presetConfig, serializeConfig, workflowYaml, type Block, type StudioConfig } from "@readme-studio/core";
 import { isProfileRepo, type RepoRef } from "../repo";
 import { GitHub, GitHubError } from "./api";
 
@@ -16,12 +16,68 @@ export interface Opened {
   configSha: string | null;
   configExists: boolean;
   workflowExists: boolean;
+  /** the README the design was started from, when the repository had no design yet */
+  importedReadme: string | null;
 }
 
 /** A starting design for a repository without one: a profile preset for `login/login`, a project preset otherwise. */
 export function starterFor(repo: RepoRef): StudioConfig {
   if (isProfileRepo(repo)) return { ...presetConfig("command-center", { login: repo.owner, name: repo.owner }), kind: "profile" };
   return { ...presetConfig("oss-library", { login: repo.owner, name: repo.owner }, { repo: repo.full }), kind: "project" };
+}
+
+/** The Markdown widget's limit for one block; longer sections are split at paragraphs. */
+export const MARKDOWN_MAX = 5000;
+
+/** Top-level sections of a Markdown document, never splitting inside fenced code. */
+export function splitSections(md: string, max = MARKDOWN_MAX): string[] {
+  const lines = md.replace(/\r\n?/g, "\n").split("\n");
+  const sections: string[][] = [[]];
+  let fence: string | null = null;
+  for (const line of lines) {
+    const f = /^(```|~~~)/.exec(line)?.[1];
+    if (f) fence = fence === null ? f : fence === f ? null : fence;
+    if (fence === null && /^##\s/.test(line) && sections[sections.length - 1].some((l) => l.trim())) sections.push([]);
+    sections[sections.length - 1].push(line);
+  }
+  const out: string[] = [];
+  for (const s of sections.map((x) => x.join("\n").trim()).filter(Boolean)) {
+    if (s.length <= max) {
+      out.push(s);
+      continue;
+    }
+    // too long for one block: cut at blank lines outside code, as late as possible
+    let chunk = "";
+    let inFence = false;
+    for (const para of s.split(/\n\n/)) {
+      const piece = chunk ? `${chunk}\n\n${para}` : para;
+      if (piece.length > max && chunk && !inFence) {
+        out.push(chunk);
+        chunk = para;
+      } else chunk = piece;
+      if ((para.match(/^(```|~~~)/gm) ?? []).length % 2 === 1) inFence = !inFence;
+    }
+    if (chunk) out.push(chunk);
+  }
+  return out;
+}
+
+/**
+ * A first design for a repository that has a README but no Readme Studio design: the studio's
+ * header for its kind (hero and shields, or hero and social links) above the existing README,
+ * kept word for word as Markdown blocks, one per section. A leading title that only repeats
+ * the repository name is dropped, since the hero shows it.
+ */
+export function designFromReadme(repo: RepoRef, readme: string): StudioConfig {
+  const starter = starterFor(repo);
+  let text = readme.replace(/\r\n?/g, "\n").trim();
+  const title = /^#\s+(.+?)\s*#*\s*$/m.exec(text.split("\n")[0] ?? "");
+  if (title && title[1].replace(/[*_`]/g, "").trim().toLowerCase() === repo.name.toLowerCase()) text = text.split("\n").slice(1).join("\n").trim();
+  const header: Block[][] =
+    starter.kind === "profile" ? [[{ id: "hero", type: "hero", options: {} }], [{ id: "socials", type: "socials", options: {} }]] : [[{ id: "hero", type: "project-hero", options: {} }], [{ id: "shields", type: "shields", options: {} }]];
+  const blocks = splitSections(text).map((section, i): Block => ({ id: i === 0 ? "readme" : `readme-${i + 1}`, type: "markdown", options: { text: section } }));
+  const layout = [...header, ...blocks.map((b) => [b])].map((row, i) => ({ id: `r${i}`, align: (row[0].type === "markdown" ? "left" : "center") as "left" | "center", blocks: row }));
+  return normalizeConfig({ ...starter, layout }).config;
 }
 
 /** Loads the repository's committed design, or a starter design when it has none. */
@@ -48,9 +104,23 @@ export async function openDesign(gh: GitHub, repo: RepoRef, ref?: string): Promi
       configSha: config.sha,
       configExists: true,
       workflowExists: !!workflow,
+      importedReadme: null,
     };
   }
-  return { repo, branch, config: starterFor(repo), warnings: [], name: `${repo.full} README`, configSha: null, configExists: false, workflowExists: !!workflow };
+  // no design yet: start from the README the repository already has
+  const readme = await gh.readme(repo.full, branch).catch(() => null);
+  const imported = readme && readme.text.trim() ? readme : null;
+  return {
+    repo,
+    branch,
+    config: imported ? designFromReadme(repo, imported.text) : starterFor(repo),
+    warnings: [],
+    name: `${repo.full} README`,
+    configSha: null,
+    configExists: false,
+    workflowExists: !!workflow,
+    importedReadme: imported?.path ?? null,
+  };
 }
 
 export interface SaveRequest {

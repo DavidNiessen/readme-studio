@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { normalizeConfig, serializeConfig } from "@readme-studio/core";
+import { fillOutsideCode, normalizeConfig, serializeConfig } from "@readme-studio/core";
 import { GitHub, _private } from "../src/github/api";
 import { requestDeviceCode, waitForToken } from "../src/github/auth";
-import { CONFIG_PATH, defaultPrBranch, filesFor, openDesign, saveDesign, starterFor, WORKFLOW_PATH } from "../src/github/design";
+import { CONFIG_PATH, defaultPrBranch, designFromReadme, filesFor, openDesign, saveDesign, splitSections, starterFor, WORKFLOW_PATH } from "../src/github/design";
 import { editorUrl, isFresh, PENDING_TTL } from "../src/github/editor";
 import { buildManifest, manifestVersion } from "../src/manifest";
 import { DEFAULT_SETTINGS, upgradeSettings } from "../src/settings";
@@ -205,5 +205,53 @@ describe("settings", () => {
     expect(upgradeSettings({ saveMode: "editor", everyRepo: false })).toEqual({ saveMode: "editor" });
     expect(upgradeSettings({ everyRepo: false, v: 2 })).toEqual({ everyRepo: false });
     expect(upgradeSettings(undefined)).toEqual({});
+  });
+});
+
+describe("importing the current README", () => {
+  const repo = repoRef("mona/aurora")!;
+
+  it("keeps the README word for word under the studio's header, one block per section", () => {
+    const readme = "# aurora\n\nTokens for **{name}** apps.\n\n## Install\n\n```sh\nnpm i aurora\n## not a heading\n```\n\n## Usage\n\nCall `${name}()`.\n";
+    const c = designFromReadme(repo, readme);
+    expect(c.kind).toBe("project");
+    expect(c.layout.map((r) => r.blocks[0].type)).toEqual(["project-hero", "shields", "markdown", "markdown", "markdown"]);
+    const texts = c.layout.slice(2).map((r) => String(r.blocks[0].options.text));
+    expect(texts).toEqual(["Tokens for **{name}** apps.", "## Install\n\n```sh\nnpm i aurora\n## not a heading\n```", "## Usage\n\nCall `${name}()`."]);
+    expect(c.layout.slice(2).every((r) => r.align === "left")).toBe(true);
+    // a title that is not just the repository name stays
+    expect(String(designFromReadme(repo, "# Aurora tokens\n\nHi").layout[2].blocks[0].options.text)).toBe("# Aurora tokens\n\nHi");
+    expect(designFromReadme(repoRef("mona/mona")!, "Hi there").layout.map((r) => r.blocks[0].type)).toEqual(["hero", "socials", "markdown"]);
+  });
+
+  it("splits long sections at paragraphs, never inside code", () => {
+    const para = "word ".repeat(300).trim();
+    const code = "```\n" + "x\n\n".repeat(10) + "```";
+    const parts = splitSections(`## Big\n\n${para}\n\n${para}\n\n${code}\n\n${para}`, 3200);
+    expect(parts.length).toBeGreaterThan(1);
+    expect(parts.every((p) => p.length <= 3200 || p.includes("```"))).toBe(true);
+    expect(parts.join("\n\n").replace(/\s+/g, " ")).toBe(`## Big ${para} ${para} ${code} ${para}`.replace(/\s+/g, " "));
+    expect(parts.some((p) => (p.match(/```/g) ?? []).length === 1)).toBe(false);
+  });
+
+  it("starts from the README when the repository has no design", async () => {
+    const http = (async (u: string | URL) => {
+      const url = String(u);
+      if (url.endsWith("/repos/mona/aurora")) return json({ default_branch: "main", private: false });
+      if (url.includes("/repos/mona/aurora/readme")) return json({ content: _private.toBase64("# aurora\n\nHello"), path: "README.md" });
+      return new Response("", { status: 404 });
+    }) as typeof fetch;
+    const o = await openDesign(new GitHub(null, http), repo);
+    expect(o).toMatchObject({ configExists: false, importedReadme: "README.md" });
+    expect(String(o.config.layout[2].blocks[0].options.text)).toBe("Hello");
+  });
+});
+
+describe("placeholders in Markdown blocks", () => {
+  it("fill prose but leave inline and fenced code alone", () => {
+    const fill = (t: string) => t.replace(/\{name\}/g, "Mona");
+    expect(fillOutsideCode("Hi {name}, run `echo {name}`:\n\n```js\nconst s = `${name}`;\n```\n\nBye {name}", fill)).toBe(
+      "Hi Mona, run `echo {name}`:\n\n```js\nconst s = `${name}`;\n```\n\nBye Mona",
+    );
   });
 });

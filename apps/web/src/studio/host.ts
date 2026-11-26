@@ -14,7 +14,7 @@ export interface StudioHost {
    * With a `source` (e.g. "github:owner/repo") the studio keeps one draft per source: reopening
    * brings back unsaved changes instead of the committed design.
    */
-  open?: () => Promise<{ config: StudioConfig; name: string; warnings?: string[]; source?: string } | null>;
+  open?: () => Promise<{ config: StudioConfig; name: string; warnings?: string[]; source?: string; message?: string } | null>;
   /** Primary actions for the top bar, placed before Export (e.g. "Save to GitHub"). */
   actions?: ReactNode;
   /** Dialogs or panels the host renders next to the studio's own. */

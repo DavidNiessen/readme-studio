@@ -57,7 +57,13 @@ if (repo) {
     const opened = await openDesign(new GitHub(auth?.token ?? null), repo, params.get("ref") ?? undefined);
     setSession({ opened });
     // one draft per repository: closing the studio keeps unsaved changes for next time
-    return { config: opened.config, name: opened.name, warnings: opened.warnings, source: `github:${repo.full.toLowerCase()}` };
+    return {
+      config: opened.config,
+      name: opened.name,
+      warnings: opened.warnings,
+      source: `github:${repo.full.toLowerCase()}`,
+      message: opened.importedReadme ? `Started from your current ${opened.importedReadme}` : undefined,
+    };
   };
   document.title = `${repo.full} · Readme Studio`;
 }
