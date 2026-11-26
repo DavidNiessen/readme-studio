@@ -37,6 +37,7 @@ import { Button, ConfirmProvider, ContextMenuHost, IconButton, MOD, Menu, Segmen
 import { findBlock } from "../lib/layout";
 import { navigate } from "../lib/router";
 import { decodeShare, shareUrl } from "../lib/share";
+import { installWheelScroll } from "../lib/wheelScroll";
 import { getPref, loadDesigns, setPref, type SavedDesign } from "../lib/storage";
 import { useStudio } from "../state/store";
 import { Canvas } from "./Canvas";
@@ -346,6 +347,7 @@ function MobileTabs() {
 }
 
 export default function Studio({ host }: { host?: StudioHost } = {}) {
+  useEffect(installWheelScroll, []);
   return (
     <StudioHostContext.Provider value={host ?? null}>
       <ConfirmProvider>
