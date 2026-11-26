@@ -1,0 +1,21 @@
+# Keeps dependencies current: one grouped pull request per ecosystem each week.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      npm:
+        patterns: ["*"]
+    ignore:
+      # vitest 4.1 fails to resolve its optional peer set in this workspace; moved by hand.
+      - dependency-name: vitest
+        update-types: ["version-update:semver-minor"]
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]

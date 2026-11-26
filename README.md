@@ -163,6 +163,10 @@ Commit the action bundle (`npm run bundle`) before merging; CI fails when it is 
 
 The `pages` workflow builds `apps/web` on every push to `main`. Enable it once in **Settings → Pages → Source: GitHub Actions**.
 
+## Contributing
+
+Bug reports, widget ideas, presets and pull requests are welcome. [CONTRIBUTING.md](CONTRIBUTING.md) explains the setup, how the code fits together and how to add a widget. Please follow the [code of conduct](CODE_OF_CONDUCT.md); report security problems privately as described in [SECURITY.md](SECURITY.md); questions go to [SUPPORT.md](SUPPORT.md).
+
 ## License
 
 MIT © David Nießen. Bundled fonts are licensed under the SIL Open Font License; brand icons come from Simple Icons (CC0) and Font Awesome Free (CC BY 4.0). See [`packages/core/assets/LICENSES.md`](packages/core/assets/LICENSES.md).

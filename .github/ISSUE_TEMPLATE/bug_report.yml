@@ -1,0 +1,52 @@
+name: Bug report
+description: Something does not work as it should.
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What did you do, what did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: dropdown
+    id: where
+    attributes:
+      label: Where
+      options:
+        - The studio (readme.niessen.dev)
+        - The GitHub Action
+        - The command line
+        - A rendered image on GitHub
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open the studio and add the Star history widget
+        2. …
+    validations:
+      required: true
+  - type: textarea
+    id: config
+    attributes:
+      label: Config or share link
+      description: Your readme.config.json, or the link from the studio's ⋯ › Copy share link. Remove anything private.
+      render: json
+  - type: input
+    id: run
+    attributes:
+      label: Workflow run
+      description: Link to the failing run, for action problems.
+  - type: input
+    id: version
+    attributes:
+      label: Action version
+      description: The `uses:` line of your workflow, e.g. DavidNiessen/readme-studio@v1.
+  - type: textarea
+    id: more
+    attributes:
+      label: Anything else
+      description: Screenshots, browser and OS for studio problems, the job summary for action problems.
