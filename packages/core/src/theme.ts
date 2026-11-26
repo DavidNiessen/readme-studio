@@ -383,7 +383,8 @@ function cleanPartial(p: Partial<Palette> | undefined): Partial<Palette> {
 export function resolvePalette(s: ThemeSettings, mode: Mode): Palette {
   const base = s.accent && isHex(s.accent) ? deriveFromAccent(s.accent, mode) : getPalettePreset(s.preset)[mode];
   const ov = cleanPartial(s.overrides?.[mode]);
-  const merged = { ...base, ...ov };
+  // `bg` is the page around the images, i.e. GitHub's own background, unless explicitly overridden
+  const merged = { ...base, bg: mode === "dark" ? "#0d1117" : "#ffffff", ...ov };
   // regenerate the heat scale when the accent changed but no explicit heat was given
   if ((ov.accent || ov.card) && !ov.heat) merged.heat = heatFrom(merged.card, merged.accent, merged.glow, mode);
   return merged;

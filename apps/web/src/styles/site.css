@@ -1,0 +1,204 @@
+/* ---------------------------------------------------------------- site chrome */
+
+.site {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--paper);
+}
+.site main {
+  flex: 1;
+}
+.wrap {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--s-6);
+}
+@media (max-width: 560px) {
+  .wrap {
+    padding: 0 var(--s-4);
+  }
+}
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: color-mix(in srgb, var(--paper) 86%, transparent);
+  backdrop-filter: saturate(1.4) blur(10px);
+  -webkit-backdrop-filter: saturate(1.4) blur(10px);
+  border-bottom: 1px solid transparent;
+  transition: border-color var(--dur-2);
+}
+.site-header.is-scrolled {
+  border-bottom-color: var(--line);
+}
+.site-header__inner {
+  display: flex;
+  align-items: center;
+  gap: var(--s-6);
+  height: 60px;
+}
+.site-nav {
+  display: flex;
+  gap: var(--s-1);
+}
+.site-nav a {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  height: 32px;
+  padding: 0 10px;
+  border-radius: var(--r-2);
+  font-size: var(--t-sm);
+  font-weight: 500;
+  color: var(--muted);
+  text-decoration: none;
+  transition: color var(--dur-1), background var(--dur-1);
+}
+.site-nav a svg {
+  width: 13px;
+  height: 13px;
+}
+.site-nav a:hover,
+.site-nav a[aria-current="page"] {
+  color: var(--ink);
+}
+.site-nav a[aria-current="page"] {
+  background: var(--paper-2);
+}
+.site-header__end {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+.site-header__end .btn {
+  text-decoration: none;
+}
+@media (max-width: 560px) {
+  .site-header__inner {
+    gap: var(--s-2);
+  }
+  .site-header .logo__word {
+    display: none;
+  }
+  .site-nav a {
+    padding: 0 8px;
+  }
+}
+
+.site-footer {
+  margin-top: var(--s-24);
+  border-top: 1px solid var(--line);
+  background: var(--paper-2);
+}
+.site-footer__inner {
+  display: grid;
+  grid-template-columns: 1.6fr repeat(3, 1fr);
+  gap: var(--s-10);
+  padding-top: var(--s-12);
+  padding-bottom: var(--s-10);
+}
+.site-footer__brand p {
+  margin-top: var(--s-3);
+  max-width: 340px;
+  font-size: var(--t-sm);
+  color: var(--muted);
+}
+.site-footer__col {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+}
+.site-footer__col h4 {
+  font-family: var(--font-mono);
+  font-size: var(--t-xs);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-bottom: 4px;
+}
+.site-footer__col a {
+  font-size: var(--t-sm);
+  color: var(--ink-2);
+  text-decoration: none;
+  width: fit-content;
+}
+.site-footer__col a:hover {
+  color: var(--accent-ink);
+}
+.site-footer__base {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--s-4);
+  padding-top: var(--s-4);
+  padding-bottom: var(--s-6);
+  border-top: 1px solid var(--line);
+  font-size: var(--t-xs);
+  color: var(--faint);
+}
+@media (max-width: 820px) {
+  .site-footer__inner {
+    grid-template-columns: 1fr 1fr;
+  }
+  .site-footer__brand {
+    grid-column: 1 / -1;
+  }
+}
+
+/* ---------------------------------------------------------------- page scaffolding */
+
+.page-head {
+  padding: var(--s-16) 0 var(--s-10);
+  border-bottom: 1px solid var(--line);
+}
+.page-head h1 {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: clamp(40px, 6vw, 64px);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  margin-top: var(--s-3);
+}
+.page-head p {
+  margin-top: var(--s-4);
+  max-width: 600px;
+  font-size: var(--t-lg);
+  color: var(--muted);
+}
+
+.section {
+  padding: var(--s-20) 0 0;
+}
+.section__head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  gap: var(--s-10);
+  align-items: end;
+  margin-bottom: var(--s-10);
+}
+.section__head h2 {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: clamp(34px, 4.4vw, 52px);
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+}
+.section__head p {
+  font-size: var(--t-lg);
+  color: var(--muted);
+  max-width: 520px;
+}
+@media (max-width: 820px) {
+  .section {
+    padding-top: var(--s-16);
+  }
+  .section__head {
+    grid-template-columns: 1fr;
+    gap: var(--s-4);
+    margin-bottom: var(--s-8);
+  }
+}
