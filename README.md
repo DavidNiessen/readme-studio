@@ -27,14 +27,16 @@ Everything is static: no server, no database, no third-party image host. Your de
 ## Quick start
 
 1. Open the [studio](https://readme.niessen.dev/#/studio) and design your README (or pick a preset).
-2. Click **Export** and download the project. It contains:
+2. Click **Save to GitHub**. With a personal access token it commits the design and the workflow (or opens a pull request); without one, GitHub's own editor opens and you commit there. Skip to step 4.
+
+   Or choose **Export manually** in that dialog (or press Ctrl/⌘ E) and download the project. It contains:
    ```
    readme.config.json              your design
    .github/workflows/readme.yml    the scheduled workflow
    README.md                       the generated layout
    SETUP.md                        these steps in detail
    ```
-3. Push the files to the repository named after your username (`<you>/<you>`).
+3. Push the files to the repository named after your username (`<you>/<you>`), or to the project's repository.
 4. In **Settings → Actions → General**, set **Workflow permissions** to **Read and write**, then run the `readme` workflow once from the **Actions** tab.
 
 From then on the README rebuilds itself on the schedule you picked.
@@ -93,11 +95,11 @@ Outputs: `assets-dir`, `readme-changed`, `data-source`.
 
 The extension puts the studio inside GitHub. Every repository gets a button in the corner: **Edit README** when it has a `readme.config.json`, **Design README** when it has none (the options page can limit that to your profile repository). It opens the studio as an overlay on the page, with the committed design loaded; click outside it or press Esc to close. The toolbar button does the same. It is the same studio as the website, not a copy: [`apps/extension`](apps/extension) mounts `apps/web`'s studio and adds the GitHub side.
 
-Each repository keeps its own draft: close the overlay, open another repository, come back, and your unsaved changes are still there. The top bar says when the design differs from the repository's, with **Discard** to go back to the committed one.
+Each repository keeps its own draft: close the overlay, open another repository, come back, and your unsaved changes are still there. The top bar says when the design differs from the repository's, with **Reset** to go back to the committed one, and reopening a repository with unsaved changes says so too (and whether the repository's design has changed since). A private repository asks you to sign in; one that GitHub does not show at all says 404.
 
 **Save to GitHub** writes `readme.config.json` (and the workflow, if the repository has none), and the readme workflow renders the rest:
 
-- **Commit** straight to the branch, or **Pull request** from a new branch. Both need a GitHub account: **Sign in with GitHub** (OAuth device flow; the build or the options page supplies an OAuth App client ID with *Enable Device Flow* ticked) or a personal access token (fine-grained: Contents and Workflows read & write; classic: `public_repo` and `workflow`).
+- **Commit** straight to the branch, or **Pull request** from a new branch. Both need a GitHub account: **Sign in with GitHub** (OAuth device flow; the build or the options page supplies an OAuth App client ID with *Enable Device Flow* ticked) or a personal access token (fine-grained: Contents and Workflows read & write; classic: `public_repo`, or `repo` for private repositories, and `workflow`). The website's studio has the same **Save to GitHub** with a token, since GitHub's device flow does not answer web pages.
 - **GitHub editor** needs no sign-in: GitHub's editor opens with the new file filled in, and you review the diff and commit there.
 
 Install it from the latest [release](https://github.com/DavidNiessen/readme-studio/releases/latest): unzip `readme-studio-chrome-*.zip` and load it unpacked (`chrome://extensions`, Developer mode), or open `readme-studio-firefox-*.zip` from `about:debugging`. Store listings follow once they are published.

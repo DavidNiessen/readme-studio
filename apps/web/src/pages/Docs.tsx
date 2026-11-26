@@ -248,10 +248,14 @@ function GettingStarted() {
             same code the action uses, so what you see is what ships. Your work is saved in this browser as you go.
           </p>
         </Step>
-        <Step title="Export the project">
+        <Step title="Save it to GitHub, or export it">
           <p>
-            Click <strong>Export</strong> and download the zip. It contains your config, the workflow, a first README and a <code>SETUP.md</code> with these instructions filled in
-            for your username.
+            Click <strong>Save to GitHub</strong>. With a personal access token the studio commits your design and the workflow, or opens a pull request; without one, GitHub&rsquo;s
+            own editor opens and you commit there. Then skip to the last step.
+          </p>
+          <p>
+            To do it by hand, choose <strong>Export manually</strong> in that dialog and download the zip. It contains your config, the workflow, a first README and a{" "}
+            <code>SETUP.md</code> with these instructions filled in for your username.
           </p>
         </Step>
         <Step title="Push it to your profile repository">
