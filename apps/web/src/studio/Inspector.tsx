@@ -34,6 +34,7 @@ import {
   User,
   Wand2,
   FolderGit2,
+  Plus,
   X,
 } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -96,6 +97,7 @@ function BlockPanel() {
           <FieldControl key={f.key} field={f} values={values} onChange={(patch) => setOptions(b.id, patch)} />
         ))}
       </div>
+      {LINK_WIDGETS.has(b.type) && <LinksEditor />}
       <div className="panel__section">
         <div className="subhead">Placement</div>
         {def.kind !== "markdown" && (
@@ -240,6 +242,9 @@ function ProjectPanel() {
 
 // ---------------------------------------------------------------- profile
 
+/** Widgets that show the profile's links, and so edit them. */
+const LINK_WIDGETS = new Set(["socials", "contact"]);
+
 const LINK_ICONS = ["github", "linkedin", "x", "website", "mail", "mastodon", "bluesky", "youtube", "instagram", "dribbble", "medium", "devto", "discord", "twitch", "stackoverflow", "kofi", "buymeacoffee"];
 
 function TimezoneSelect({ value, onChange }: { value: string; onChange: (v: string) => void }) {
@@ -261,7 +266,6 @@ function ProfilePanel() {
   const [busy, setBusy] = useState(false);
   const setP = (patch: Partial<typeof p>, key?: string) => commit((c) => ({ ...c, profile: { ...c.profile, ...patch } }), key);
   const setLoc = (patch: Partial<typeof p.location>, key?: string) => setP({ location: { ...p.location, ...patch } }, key);
-  const setLink = (i: number, patch: Partial<ProfileLink>) => setP({ links: p.links.map((l, j) => (j === i ? { ...l, ...patch } : l)) }, `link:${i}:${Object.keys(patch)[0]}`);
   const geocode = async () => {
     if (!p.location.city.trim()) return;
     setBusy(true);
@@ -331,10 +335,24 @@ function ProfilePanel() {
           </Field>
         </div>
       </div>
+    </>
+  );
+}
+
+/**
+ * The profile's links, edited from the widgets that show them (social pills, contact card).
+ * They belong to the profile, so both widgets always show the same list.
+ */
+function LinksEditor() {
+  const { config, commit } = useStudio();
+  const p = config.profile;
+  const setP = (patch: Partial<typeof p>, key?: string) => commit((c) => ({ ...c, profile: { ...c.profile, ...patch } }), key);
+  const setLink = (i: number, patch: Partial<ProfileLink>) => setP({ links: p.links.map((l, j) => (j === i ? { ...l, ...patch } : l)) }, `link:${i}:${Object.keys(patch)[0]}`);
+  return (
       <div className="panel__section">
         <div className="subhead">Links</div>
         <p className="field__help" style={{ marginBottom: 10 }}>
-          Shown by the social pills (one clickable image per link) and the contact card.
+          Shared by the social pills (one clickable image per link) and the contact card: a change here shows in both.
         </p>
         <div className="list-ed">
           <SortableList count={p.links.length} onMove={(from, to) => setP({ links: arrayMove(p.links, from, to) })}>
@@ -364,7 +382,13 @@ function ProfilePanel() {
           ))}
           </SortableList>
         </div>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 10 }}>
+        <Button size="sm" style={{ marginTop: 10 }} onClick={() => setP({ links: [...p.links, { icon: "website", label: "", url: "", handle: "" }] })}>
+          <Plus /> Add link
+        </Button>
+        <p className="field__help" style={{ margin: "12px 0 6px" }}>
+          Or start from one of these:
+        </p>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
           {LINK_ICONS.filter((ic) => !p.links.some((l) => l.icon === ic))
             .slice(0, 8)
             .map((ic) => (
@@ -379,7 +403,6 @@ function ProfilePanel() {
             ))}
         </div>
       </div>
-    </>
   );
 }
 
@@ -755,7 +778,7 @@ export function Inspector() {
     ...(selected ? [{ value: "block" as const, label: selection.length > 1 ? `${selection.length} widgets` : "Widget", icon: <SlidersHorizontal /> }] : []),
     { value: "theme", label: "Theme", icon: <PaletteIcon /> },
     ...(project ? [{ value: "project" as const, label: "Project", icon: <FolderGit2 /> }] : []),
-    { value: "profile", label: project ? "Links" : "Profile", icon: <User /> },
+    { value: "profile", label: project ? "Maintainer" : "Profile", icon: <User /> },
     { value: "data", label: "Data", icon: <Database /> },
   ];
   const active = tab === "block" && !selected ? "theme" : tab === "project" && !project ? "profile" : tab;
