@@ -90,3 +90,34 @@
 .ext-options p {
   margin: 0;
 }
+
+/* draft state in the top bar */
+.ext-draft {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--t-xs);
+  color: var(--muted);
+  white-space: nowrap;
+}
+.ext-draft__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+.ext-draft button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+.ext-draft button:hover {
+  background: var(--line);
+}
