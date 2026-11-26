@@ -17,6 +17,7 @@ npx vitest run packages/engine/test/project.test.ts -t "full releases"   # one t
 npm run typecheck            # every workspace
 npm run bundle               # rebuild packages/engine/dist (the action and CLI run the committed bundle)
 npm run build                # studio build; first regenerates apps/web/public/{schema,widgets,presets}.json and llms*.txt
+npm run extension            # browser extension → apps/extension/dist/{chrome,firefox} + zips
 npm run example              # render examples/readme.config.json with mock data → examples/dist/preview.html
 npx tsx scripts/preview-widgets.ts /tmp/sheet crimson dark jetbrains-mono [project]   # contact sheet of every widget
 node packages/engine/dist/cli.mjs --help   # CLI: init, validate, build, link, widgets, presets, themes, schema
@@ -43,6 +44,12 @@ CI (`.github/workflows/ci.yml`) runs `typecheck`, `test`, `bundle` and fails if 
 - `cli.ts`: everything the studio does, scriptable. `--json` gives machine-readable output, and `link` encodes a share token.
 - `dist/{action,cli}.mjs` are self-contained esbuild bundles (`scripts/bundle.ts`). **Commit them whenever core or engine changes.** Users' workflows run them straight from the `v1` tag.
 
+**`apps/extension`**: Manifest V3 extension for Chrome and Firefox, built by `scripts/build.ts` (Vite: two pages, an IIFE content script and background script, icons, a manifest per browser from `src/manifest.ts`, zips).
+- It reuses the studio instead of copying it: `apps/web` exports the studio, store, UI kit and styles (`package.json` `exports`), and `src/studio/main.tsx` mounts `Studio` with a `StudioHost` (`apps/web/src/studio/host.ts`: `open`, `actions`, `overlays`, `onClose`, `context`, `siteUrl`). Put studio features in `apps/web`; only GitHub-specific code belongs in the extension.
+- `src/content/github.ts` adds the "Edit README" button (shadow DOM) on repository pages (found through the `octolytics-dimension-repository_nwo` meta tag), shows `studio.html#repo=owner/name` in an iframe over the page, and fills GitHub's editor for the no-sign-in save mode.
+- `src/github/`: REST client (inject `fetch` in tests; never store `fetch` as a method, browsers throw "Illegal invocation"), device-flow sign-in, opening and saving designs (commit, pull request, GitHub editor).
+- Versions: `RS_VERSION` sets the build version; pre-releases `x.y.z-n` become manifest `x.y.z.n`.
+
 **`apps/web`**: React 19 + Vite + zustand (`state/store.ts`, designs saved in localStorage).
 
 - Hash routing with a relative Vite `base` (`./`), so the same build works on the custom domain and on a sub-path. Don't make `base` absolute.
@@ -64,3 +71,4 @@ CI (`.github/workflows/ci.yml`) runs `typecheck`, `test`, `bundle` and fails if 
   - Full releases are run by hand: Actions → Release, with a `patch`/`minor`/`major` bump or an exact version (`scripts/set-version.mjs`). A full release moves the floating `v1` tag that users' workflows pin.
   - A fix to the action or renderer reaches users only after a full release.
   - `pages.yml` deploys the studio on every push to `main`.
+  - Pre-releases and releases attach the extension zips; a full release also publishes to the Chrome Web Store / Firefox Add-ons when their secrets exist, and skips that otherwise.

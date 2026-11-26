@@ -40,7 +40,8 @@
     "typecheck": "npm run typecheck --workspaces --if-present",
     "test": "vitest run",
     "test:watch": "vitest",
-    "example": "npm run cli -w packages/engine -- build --config ../../examples/readme.config.json --out ../../examples/dist --mock"
+    "example": "npm run cli -w packages/engine -- build --config ../../examples/readme.config.json --out ../../examples/dist --mock",
+    "extension": "npm run build -w apps/extension"
   },
   "devDependencies": {
     "@fontsource/fira-code": "^5.3.0",

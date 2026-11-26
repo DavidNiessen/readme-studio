@@ -28,6 +28,7 @@ npm run example      # render examples/ with sample data → examples/dist/previ
 | `packages/core` | The isomorphic renderer shared by the studio and the action: config schema and repair (`config.ts`), themes, fonts with glyph metrics, every widget (`src/widgets/`), the README composer, presets and the machine-readable catalog. No Node APIs. |
 | `packages/engine` | Node only: live GitHub data with fallbacks, GIF rasterising (resvg), the CLI, publishing to the asset branch and the action entry point. `dist/` is the committed bundle the action runs. |
 | `apps/web` | The studio, landing page, presets and docs (React + Vite), deployed to GitHub Pages. |
+| `apps/extension` | The Chrome and Firefox extension. It mounts `apps/web`'s studio (through the `StudioHost` in `apps/web/src/studio/host.ts`) over GitHub and adds sign-in and saving. Studio changes belong in `apps/web`; only GitHub-specific code lives here. |
 | `scripts/` | Asset generation (fonts, icons), the published catalog files and a widget contact sheet. |
 
 The studio preview and the action call the same renderer, so a widget that looks right in the studio ships exactly like that.
@@ -41,6 +42,7 @@ npm run typecheck
 npm test
 npm run bundle       # rebuilds packages/engine/dist: commit the result when engine or core changed
 npm run build        # the studio
+npm run extension    # the browser extension (load apps/extension/dist/chrome unpacked to try it)
 ```
 
 CI fails when `packages/engine/dist` is stale, because profile repositories run the committed bundle.
