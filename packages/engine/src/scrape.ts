@@ -1,7 +1,7 @@
 /** Node-only fallbacks that read public github.com HTML (no API token required). */
 import type { ContributionDay, Repo } from "@readme-studio/core";
 
-const UA = "readme-studio (+https://github.com/DavidNiessen/readme-generator)";
+const UA = "readme-studio (+https://github.com/DavidNiessen/readme-studio)";
 
 /**
  * Parse the public contributions calendar HTML (github.com/users/<login>/contributions).

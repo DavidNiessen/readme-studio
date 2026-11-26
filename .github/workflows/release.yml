@@ -1,7 +1,7 @@
 name: release
 
 # Keeps the floating major tag (v1, v2, …) pointing at the latest release,
-# so profile repositories can reference DavidNiessen/readme-generator@v1.
+# so profile repositories can reference DavidNiessen/readme-studio@v1.
 on:
   release:
     types: [published]

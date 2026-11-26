@@ -89,7 +89,7 @@ describe("workflow", () => {
     const c = presetConfig("command-center", { login: "mona" });
     const y = workflowYaml(c);
     expect(y).toContain('cron: "17 2 * * *"');
-    expect(y).toContain("uses: DavidNiessen/readme-generator@v1");
+    expect(y).toContain("uses: DavidNiessen/readme-studio@v1");
     expect(y).toContain("contents: write");
     expect(setupGuide(c)).toContain("github.com/mona/mona");
     expect(describeCron("0 */6 * * *")).toBe("every 6 hours at minute 0");

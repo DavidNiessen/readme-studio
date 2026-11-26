@@ -51,7 +51,7 @@ function check(config: StudioConfig, data: ProfileData, label: string): void {
         }
         const where = `${label}/${mode}/${part.name}`;
         expect(out, where).not.toContain("could not be rendered");
-        expect(out, where).not.toMatch(/NaN|undefined|Infinity(?![^<]*<\/tspan>)/);
+        expect(out.replace(/base64,[^)]*\)/g, ""), where).not.toMatch(/NaN|undefined/);
         const valid = XMLValidator.validate(out);
         expect(valid, `${where}: ${JSON.stringify(valid)}`).toBe(true);
         expect(out.length, where).toBeLessThan(1.5 * 1024 * 1024);

@@ -50,7 +50,7 @@ export function odometer(t: Theme, value: string, o: OdometerOptions): string {
   }
   const x0 = anchor === "start" ? o.x : anchor === "middle" ? o.x - width / 2 : o.x - width;
   if (o.static || t.motion === "off") {
-    return `<text x="${x0.toFixed(1)}" y="${o.y}" font-size="${fontSize}" class="${cls}">${esc(value)}</text>`;
+    return `<text x="${x0.toFixed(1)}" y="${o.y}" font-size="${fontSize}" class="${cls}" style="font-variant-numeric:tabular-nums">${esc(value)}</text>`;
   }
   const id = `odo${uid++}`;
   const top = o.y - fontSize * 0.95;
@@ -75,5 +75,5 @@ export function odometer(t: Theme, value: string, o: OdometerOptions): string {
     cols.push(`<g style="--y:${shift.toFixed(1)}px;animation:roll ${duration}s ${EASE} ${colDelay.toFixed(2)}s both">${strip.join("")}</g>`);
     di++;
   });
-  return `<clipPath id="${id}"><rect x="${(x0 - 2).toFixed(1)}" y="${top.toFixed(1)}" width="${(width + 4).toFixed(1)}" height="${lineH.toFixed(1)}"/></clipPath><g clip-path="url(#${id})">${cols.join("")}</g>`;
+  return `<clipPath id="${id}"><rect x="${(x0 - 2).toFixed(1)}" y="${top.toFixed(1)}" width="${(width + 4).toFixed(1)}" height="${lineH.toFixed(1)}"/></clipPath><g clip-path="url(#${id})" style="font-variant-numeric:tabular-nums">${cols.join("")}</g>`;
 }
