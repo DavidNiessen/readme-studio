@@ -34,11 +34,13 @@ import {
   User,
   Wand2,
   FolderGit2,
+  X,
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Button, ColorInput, Field, IconButton, Segmented, Select, Slider, Tabs, TagsInput, TextArea, TextInput, ToggleRow, useToast } from "../components/ui";
 import { canJoin, findBlock, setJoin, setRowAlign, updateBlock } from "../lib/layout";
 import { fetchLive } from "../lib/live";
+import { blockActions } from "./blockActions";
 import { useStudio, type InspectorTab } from "../state/store";
 import { FieldControl, IconPicker } from "./FieldControl";
 import { WidgetIcon } from "./icons";
@@ -692,13 +694,58 @@ function FragmentRow({ k, v }: { k: string; v: string | number }) {
   );
 }
 
+/** Several widgets selected: what they are, and what can be done to all of them at once. */
+function SelectionPanel() {
+  const { config, selection, select, toggleSelect } = useStudio();
+  const blocks = selection.map((id) => findBlock(config, id)?.block).filter((b) => !!b);
+  const actions = blockActions(selection).filter((a): a is Exclude<typeof a, "sep"> => a !== "sep");
+  return (
+    <>
+      <div className="inspector-head">
+        <div className="inspector-head__top">
+          <div>
+            <h2 style={{ margin: 0, fontSize: "var(--t-md)" }}>{blocks.length} widgets selected</h2>
+            <p className="muted" style={{ margin: "4px 0 0", fontSize: "var(--t-xs)" }}>
+              Ctrl/⌘-click adds or removes one, Shift-click selects a range. Right-click for the same actions.
+            </p>
+          </div>
+        </div>
+      </div>
+      <div className="selection-section">
+        <div className="selection-actions">
+          {actions.map((a) => (
+            <Button key={a.label} size="sm" variant={a.danger ? "danger" : "secondary"} disabled={a.disabled} onClick={a.onSelect} title={a.shortcut}>
+              {a.icon} {a.label}
+            </Button>
+          ))}
+        </div>
+      </div>
+      <div className="selection-section">
+        <ul className="selection-list">
+          {blocks.map((b) => (
+            <li key={b.id}>
+              <button type="button" className="selection-list__item" onClick={() => select(b.id)} title="Edit only this one">
+                <span>{getWidget(b.type)?.title ?? b.type}</span>
+                <span className="mono muted">{b.id}</span>
+              </button>
+              <IconButton size="sm" label="Remove from selection" onClick={() => toggleSelect(b.id)}>
+                <X />
+              </IconButton>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </>
+  );
+}
+
 // ---------------------------------------------------------------- shell
 
 export function Inspector() {
-  const { tab, setTab, selected, config } = useStudio();
+  const { tab, setTab, selected, selection, config } = useStudio();
   const project = config.kind === "project";
   const tabs: { value: InspectorTab; label: string; icon: React.ReactNode }[] = [
-    ...(selected ? [{ value: "block" as const, label: "Widget", icon: <SlidersHorizontal /> }] : []),
+    ...(selected ? [{ value: "block" as const, label: selection.length > 1 ? `${selection.length} widgets` : "Widget", icon: <SlidersHorizontal /> }] : []),
     { value: "theme", label: "Theme", icon: <PaletteIcon /> },
     ...(project ? [{ value: "project" as const, label: "Project", icon: <FolderGit2 /> }] : []),
     { value: "profile", label: project ? "Links" : "Profile", icon: <User /> },
@@ -709,7 +756,7 @@ export function Inspector() {
     <aside className="panel panel--inspector" aria-label="Inspector">
       <Tabs label="Inspector" value={active} onChange={setTab} tabs={tabs} />
       <div className="panel__scroll">
-        {active === "block" && <BlockPanel />}
+        {active === "block" && (selection.length > 1 ? <SelectionPanel /> : <BlockPanel />)}
         {active === "theme" && <ThemePanel />}
         {active === "project" && <ProjectPanel />}
         {active === "profile" && <ProfilePanel />}

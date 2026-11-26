@@ -32,7 +32,7 @@ if (embedded) {
       const t = e.target as HTMLElement | null;
       const typing = !!t && (t.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(t.tagName));
       const s = useStudio.getState();
-      if (e.key === "Escape" && !typing && !s.dialog && !s.selected && !document.querySelector("[role=dialog]")) tellPage({ type: "close" });
+      if (e.key === "Escape" && !typing && !s.dialog && !s.selected && !document.querySelector("[role=dialog], [role=menu]")) tellPage({ type: "close" });
     },
     true,
   );
