@@ -1,11 +1,11 @@
 import { projectName } from "../config";
 import { esc, groupDigits } from "../lib/escape";
-import { hasIcon, icon } from "../lib/icons";
 import { odometer, odometerWidth } from "../lib/odometer";
 import { cardStroke, fitSize, fitText, surfaceFill, svg, textWidth, wrapText } from "../lib/svg";
 import { TNUM, compact, dl, optBool, optPick, optStr } from "./kit-d";
 import { homeUrl, latestTag, mono, pdata, repoSlug, xglyph, type XGlyph } from "./kit-e";
 import { accentDeep, glyph, onAccent, type GlyphName } from "./parts";
+import { emblemMark, hasMark } from "./kit-c";
 import { fillPlaceholders } from "./placeholders";
 import { defineWidget, type Ctx } from "./types";
 
@@ -238,14 +238,13 @@ ${xglyph("copy", cx0 + cmdW - 28, cmdY + 10, 16, t.muted)}
 
     // ------------------------------------------------ emblem
     const logoId = optStr(o.emblem) || ctx.project.logo || "";
-    const useIcon = !!logoId && hasIcon(logoId);
+    // a brand icon or a line glyph: the picker offers both
+    const useIcon = hasMark(logoId);
     const emblemAt = (cx: number, cy: number, ks: number, rings: boolean) => {
       const half = ks / 2;
       let inner: string;
       if (useIcon) {
-        const em = icon(logoId);
-        const emInner = em.inner.replace(/fill="currentColor"/g, 'fill="url(#kgrad)"');
-        inner = `<svg x="${-ks * 0.3}" y="${-ks * 0.3}" width="${ks * 0.6}" height="${ks * 0.6}" viewBox="${em.viewBox}" color="url(#kgrad)">${emInner}</svg>`;
+        inner = emblemMark(logoId, -ks * 0.3, -ks * 0.3, ks * 0.6, "url(#kgrad)");
       } else {
         const s = ks * 0.62;
         const m = monogramText(name);

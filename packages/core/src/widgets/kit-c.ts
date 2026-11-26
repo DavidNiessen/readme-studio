@@ -56,6 +56,16 @@ export function mark(t: Theme, id: string, x: number, y: number, size: number, c
   return iconSvg(id, x, y, size, c, extra);
 }
 
+/**
+ * A hero emblem: a line glyph or a brand icon painted with `paint` (a colour or a gradient url)
+ * in a size×size box. The icon picker offers both kinds, so both must draw.
+ */
+export function emblemMark(id: string, x: number, y: number, size: number, paint: string): string {
+  if (isGlyph(id)) return glyph(id, x, y, size, paint);
+  const em = icon(hasIcon(id) ? id : id.toLowerCase().replace(/[^a-z0-9]/g, ""));
+  return `<svg x="${x}" y="${y}" width="${size}" height="${size}" viewBox="${em.viewBox}">${em.inner.replace(/fill="currentColor"/g, `fill="${paint}"`)}</svg>`;
+}
+
 /** User colour override, or the fallback when empty/invalid. */
 export function colorOr(v: unknown, d: string): string {
   return isHex(v) ? (v as string) : d;

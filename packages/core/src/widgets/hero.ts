@@ -1,7 +1,7 @@
 import { formatLongDate, greeting, moonPhase } from "../lib/astro";
 import { esc } from "../lib/escape";
-import { icon } from "../lib/icons";
 import { cardStroke, fitSize, surfaceFill, svg, textWidth } from "../lib/svg";
+import { emblemMark, hasMark } from "./kit-c";
 import { accentDeep, moonGlyph } from "./parts";
 import { defineWidget, type Ctx } from "./types";
 
@@ -125,8 +125,7 @@ export const hero = defineWidget({
     const footY = 236;
     const greet = `${greeting(ctx.now.hour)}${ctx.profile.location.city ? ` from ${ctx.profile.location.city}` : ""}`;
     const moon = moonPhase(ctx.date);
-    const em = icon(o.emblem as string);
-    const emInner = em.inner.replace(/fill="currentColor"/g, 'fill="url(#kgrad)"');
+    const emblemId = String(o.emblem ?? "");
     const emblem =
       o.emblemStyle === "none"
         ? ""
@@ -139,7 +138,7 @@ export const hero = defineWidget({
   }
   <g class="bob loop">
     <circle class="kpulse loop" cx="${ks / 2}" cy="${ks / 2}" r="${ks * 0.36}" fill="${t.accent}" filter="url(#softglow)"/>
-    <svg x="${ks * 0.2}" y="${ks * 0.2}" width="${ks * 0.6}" height="${ks * 0.6}" viewBox="${em.viewBox}">${emInner}</svg>
+    ${emblemMark(hasMark(emblemId) ? emblemId : "github", ks * 0.2, ks * 0.2, ks * 0.6, "url(#kgrad)")}
   </g>
 </g>`;
     const roles = o.typewriter ? ctx.profile.roles.filter(Boolean) : [];
