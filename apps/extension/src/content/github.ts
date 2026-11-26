@@ -30,7 +30,7 @@ const STYLE = `
 @media (prefers-reduced-motion: reduce) { .pill { transition: none; } }
 `;
 
-const MARK = `<svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#fbfaf7"/><rect x="7" y="8" width="18" height="3" rx="1.5" fill="#1b1a17"/><rect x="7" y="14.5" width="11" height="3" rx="1.5" fill="#1b1a17" opacity=".55"/><rect x="7" y="21" width="7" height="3" rx="1.5" fill="#e5532d"/></svg>`;
+const MARK = `<svg xmlns="http://www.w3.org/2000/svg" class="mark" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#fbfaf7"/><rect x="7" y="8" width="18" height="3" rx="1.5" fill="#1b1a17"/><rect x="7" y="14.5" width="11" height="3" rx="1.5" fill="#1b1a17" opacity=".55"/><rect x="7" y="21" width="7" height="3" rx="1.5" fill="#e5532d"/></svg>`;
 
 function shadow(): ShadowRoot {
   let host = document.getElementById(HOST_ID);
@@ -119,8 +119,11 @@ async function updateButton(): Promise<void> {
   const pill = document.createElement("button");
   pill.className = "pill";
   pill.type = "button";
-  pill.innerHTML = `${MARK}<span></span>`;
-  pill.querySelector("span")!.textContent = has ? "Edit README" : "Design README";
+  // parsed rather than assigned to innerHTML: nothing dynamic ever reaches markup
+  pill.append(document.importNode(new DOMParser().parseFromString(MARK, "image/svg+xml").documentElement, true));
+  const label = document.createElement("span");
+  label.textContent = has ? "Edit README" : "Design README";
+  pill.append(label);
   pill.title = has ? `Edit ${repo.full}'s README in Readme Studio` : `Design a README for ${repo.full} in Readme Studio`;
   pill.addEventListener("click", () => openStudio(repo));
   root.appendChild(pill);

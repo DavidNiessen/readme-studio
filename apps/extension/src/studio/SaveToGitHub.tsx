@@ -10,13 +10,13 @@ import { loadSettings, saveSettings, type SaveMode } from "../settings";
 import { AuthPanel } from "./AuthPanel";
 import { setSession, tellPage, useSession } from "./session";
 
-let openDialog: (open: boolean) => void = () => {};
+let showSaveDialog: (open: boolean) => void = () => {};
 
 /** Top-bar action: opens the save dialog. */
 export function SaveButton() {
   const { opened } = useSession();
   return (
-    <Button variant="accent" disabled={!opened} onClick={() => openDialog(true)} aria-label="Save to GitHub">
+    <Button variant="accent" disabled={!opened} onClick={() => showSaveDialog(true)} aria-label="Save to GitHub">
       <UploadCloud /> <span className="hide-sm">Save to GitHub</span>
     </Button>
   );
@@ -39,7 +39,7 @@ export function SaveDialog() {
   const [addWorkflow, setAddWorkflow] = useState(true);
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState<SaveResult | null>(null);
-  openDialog = setOpen;
+  showSaveDialog = setOpen;
 
   useEffect(() => {
     if (open) {
