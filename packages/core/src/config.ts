@@ -62,10 +62,28 @@ export interface OutputSettings {
   schedule: string;
 }
 
+export type DesignKind = "profile" | "project";
+
+export interface ProjectInfo {
+  /** owner/name of the repository the README is for */
+  repo: string;
+  /** display name (defaults to the repository name) */
+  name: string;
+  tagline: string;
+  /** icon id for the project emblem, or "" for a monogram */
+  logo: string;
+  homepage: string;
+  /** package names used for version and download numbers */
+  packages: { npm: string; pypi: string; crates: string };
+}
+
 export interface StudioConfig {
   $schema?: string;
   version: number;
+  /** what the README is for: a GitHub profile or a project repository */
+  kind: DesignKind;
   profile: Profile;
+  project: ProjectInfo;
   theme: ThemeSettings;
   layout: Row[];
   output: OutputSettings;
@@ -85,6 +103,15 @@ export const DEFAULT_PROFILE: Profile = {
     { icon: "linkedin", label: "LinkedIn", url: "https://www.linkedin.com/", handle: "in/octocat" },
     { icon: "website", label: "Website", url: "https://github.blog", handle: "github.blog" },
   ],
+};
+
+export const DEFAULT_PROJECT: ProjectInfo = {
+  repo: "octocat/aurora",
+  name: "",
+  tagline: "A tiny, fast design-token compiler for multi-brand UI kits.",
+  logo: "",
+  homepage: "",
+  packages: { npm: "", pypi: "", crates: "" },
 };
 
 export const DEFAULT_OUTPUT: OutputSettings = { branch: "output", modes: ["dark", "light"], repository: "", schedule: "17 2 * * *" };
@@ -120,9 +147,15 @@ export function allBlocks(c: Pick<StudioConfig, "layout">): Block[] {
   return c.layout.flatMap((r) => r.blocks);
 }
 
-/** owner/repo hosting the assets. */
+/** owner/repo hosting the assets (and the README). */
 export function assetRepository(c: StudioConfig): string {
-  return c.output.repository.trim() || `${c.profile.login}/${c.profile.login}`;
+  if (c.output.repository.trim()) return c.output.repository.trim();
+  return c.kind === "project" ? c.project.repo : `${c.profile.login}/${c.profile.login}`;
+}
+
+/** Display name of the project: explicit name, else the repository name. */
+export function projectName(p: ProjectInfo): string {
+  return p.name.trim() || p.repo.split("/")[1] || p.repo;
 }
 
 export function assetBase(c: StudioConfig): string {
@@ -245,6 +278,24 @@ function normLayout(v: unknown, w: string[]): Row[] {
   return rows;
 }
 
+const REPO_RE = /^[\w.-]+\/[\w.-]+$/;
+
+function normProject(v: unknown, login: string): ProjectInfo {
+  const p = isObj(v) ? v : {};
+  const d = DEFAULT_PROJECT;
+  const pk = isObj(p.packages) ? p.packages : {};
+  const repo = str(p.repo, "", 140).trim().replace(/^https?:\/\/github\.com\//, "").replace(/\.git$/, "").replace(/\/+$/, "");
+  const pkg = (x: unknown) => str(x, "", 214).trim();
+  return {
+    repo: REPO_RE.test(repo) ? repo : `${login || "octocat"}/aurora`,
+    name: str(p.name, d.name, 80),
+    tagline: str(p.tagline, d.tagline, 200),
+    logo: str(p.logo, d.logo, 40),
+    homepage: str(p.homepage, d.homepage, 300),
+    packages: { npm: pkg(pk.npm), pypi: pkg(pk.pypi), crates: pkg(pk.crates) },
+  };
+}
+
 function normOutput(v: unknown): OutputSettings {
   const o = isObj(v) ? v : {};
   const d = DEFAULT_OUTPUT;
@@ -265,10 +316,13 @@ export function normalizeConfig(raw: unknown): Normalized {
   const warnings: string[] = [];
   const c = isObj(raw) ? raw : {};
   if (!isObj(raw)) warnings.push("Config is not an object; using defaults.");
+  const profile = normProfile(c.profile, warnings);
   const config: StudioConfig = {
     $schema: SCHEMA_URL,
     version: CONFIG_VERSION,
-    profile: normProfile(c.profile, warnings),
+    kind: oneOf<DesignKind>(c.kind, ["profile", "project"], "profile"),
+    profile,
+    project: normProject(c.project, profile.login),
     theme: normTheme(c.theme),
     layout: normLayout(c.layout, warnings),
     output: normOutput(c.output),

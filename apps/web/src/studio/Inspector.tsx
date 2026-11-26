@@ -7,9 +7,12 @@ import {
   PALETTE_KEYS,
   palettePresets,
   resolvePalette,
+  projectName,
+  type DesignKind,
   type Mode,
   type Palette,
   type ProfileLink,
+  type ProjectInfo,
   type ThemeSettings,
 } from "@readme-studio/core";
 import {
@@ -30,6 +33,7 @@ import {
   Trash2,
   User,
   Wand2,
+  FolderGit2,
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Button, ColorInput, Field, IconButton, Segmented, Select, Slider, Tabs, TagsInput, TextArea, TextInput, ToggleRow, useToast } from "../components/ui";
@@ -151,6 +155,86 @@ function BlockPanel() {
   );
 }
 
+// ---------------------------------------------------------------- kind + project
+
+function KindSwitch() {
+  const { config, commit } = useStudio();
+  return (
+    <div className="panel__section">
+      <Field label="README for" help={config.kind === "project" ? "A repository's README: stars, contributors, releases, install steps." : "Your GitHub profile: the README of your username repository."}>
+        <Segmented<DesignKind>
+          label="README type"
+          value={config.kind}
+          onChange={(k) => commit((c) => ({ ...c, kind: k }))}
+          options={[
+            { value: "profile", label: "Profile", icon: <User /> },
+            { value: "project", label: "Project", icon: <FolderGit2 /> },
+          ]}
+        />
+      </Field>
+    </div>
+  );
+}
+
+function ProjectPanel() {
+  const { config, commit } = useStudio();
+  const p = config.project;
+  const [repoDraft, setRepoDraft] = useState<string | null>(null);
+  const setP = (patch: Partial<ProjectInfo>, key?: string) => commit((c) => ({ ...c, project: { ...c.project, ...patch } }), key);
+  const setPkg = (k: keyof ProjectInfo["packages"], v: string) => setP({ packages: { ...p.packages, [k]: v.trim() } }, `pkg:${k}`);
+  return (
+    <>
+      <KindSwitch />
+      <div className="panel__section">
+        <div className="subhead">Repository</div>
+        <Field label="Repository" help="owner/name of the public repository this README is for. Its stars, contributors, releases and commits feed the project widgets.">
+          <TextInput
+            mono
+            aria-label="Repository"
+            placeholder="owner/name"
+            value={repoDraft ?? p.repo}
+            onChange={(v) => {
+              const clean = v.trim().replace(/^https?:\/\/github\.com\//, "").replace(/\.git$/, "").replace(/\/+$/, "");
+              setRepoDraft(v);
+              if (/^[\w.-]+\/[\w.-]+$/.test(clean)) setP({ repo: clean }, "repo");
+            }}
+            onBlur={() => setRepoDraft(null)}
+          />
+        </Field>
+        <Field label="Project name" help={`Defaults to the repository name (${projectName({ ...p, name: "" })}).`}>
+          <TextInput aria-label="Project name" value={p.name} placeholder={projectName({ ...p, name: "" })} onChange={(v) => setP({ name: v }, "pname")} />
+        </Field>
+        <Field label="Tagline">
+          <TextArea aria-label="Tagline" value={p.tagline} rows={2} maxLength={200} onChange={(v) => setP({ tagline: v }, "tagline")} />
+        </Field>
+        <Field label="Logo" help="Shown by the project hero. Leave empty for a monogram.">
+          <IconPicker label="Project logo" value={p.logo} onChange={(v) => setP({ logo: v })} />
+        </Field>
+        <Field label="Homepage">
+          <TextInput mono aria-label="Homepage" placeholder="https://" value={p.homepage} onChange={(v) => setP({ homepage: v }, "homepage")} />
+        </Field>
+      </div>
+      <div className="panel__section">
+        <div className="subhead">Packages</div>
+        <p className="field__help" style={{ marginBottom: 10 }}>
+          Used for version numbers, download counts and install commands. Leave empty if not published.
+        </p>
+        <Field label="npm">
+          <TextInput mono aria-label="npm package" placeholder="@scope/name" value={p.packages.npm} onChange={(v) => setPkg("npm", v)} />
+        </Field>
+        <div className="grid-2">
+          <Field label="PyPI">
+            <TextInput mono aria-label="PyPI package" value={p.packages.pypi} onChange={(v) => setPkg("pypi", v)} />
+          </Field>
+          <Field label="crates.io">
+            <TextInput mono aria-label="crates.io crate" value={p.packages.crates} onChange={(v) => setPkg("crates", v)} />
+          </Field>
+        </div>
+      </div>
+    </>
+  );
+}
+
 // ---------------------------------------------------------------- profile
 
 const LINK_ICONS = ["github", "linkedin", "x", "website", "mail", "mastodon", "bluesky", "youtube", "instagram", "dribbble", "medium", "devto", "discord", "twitch", "stackoverflow", "kofi", "buymeacoffee"];
@@ -195,8 +279,9 @@ function ProfilePanel() {
   };
   return (
     <>
+      {config.kind === "profile" && <KindSwitch />}
       <div className="panel__section">
-        <div className="subhead">Identity</div>
+        <div className="subhead">{config.kind === "project" ? "Maintainer" : "Identity"}</div>
         <Field label="GitHub username" help="Your data is fetched for this account. Your profile repository is the one with the same name.">
           <TextInput mono aria-label="GitHub username" value={p.login} onChange={(v) => setP({ login: v.replace(/[^a-z0-9-]/gi, "").slice(0, 39) }, "login")} placeholder="octocat" />
         </Field>
@@ -521,10 +606,21 @@ function DataPanel() {
       const d = await fetchLive(config, token.trim());
       setLive(d);
     } catch (e) {
-      setDataStatus({ state: "error", message: (e as Error).message.includes("404") ? `GitHub user “${config.profile.login}” not found.` : (e as Error).message.includes("403") ? "GitHub rate limit reached. Add a token or try again later." : (e as Error).message });
+      setDataStatus({ state: "error", message: (e as Error).message.includes("404") ? config.kind === "project" ? `Repository “${config.project.repo}” not found (or private).` : `GitHub user “${config.profile.login}” not found.` : (e as Error).message.includes("403") ? "GitHub rate limit reached. Add a token or try again later." : (e as Error).message });
     }
   };
-  const rows: [string, string | number][] = [
+  const pr = data.project;
+  const rows: [string, string | number][] = config.kind === "project" && pr ? [
+    ["source", data.source],
+    ["repository", pr.fullName],
+    ["stars", pr.stars],
+    ["forks", pr.forks],
+    ["contributors", pr.contributorCount],
+    ["open issues", pr.openIssues],
+    ["releases", pr.releases.length],
+    ["commits, last year", pr.commitWeeks.reduce((a, b) => a + b, 0)],
+    ["ci", pr.ci?.status ?? "n/a"],
+  ] : [
     ["source", data.source],
     ["contributions, last year", data.lastYearTotal],
     ["current streak", ""],
@@ -550,7 +646,7 @@ function DataPanel() {
       <p className="field__help" style={{ margin: "10px 0 16px" }}>
         {dataMode === "sample"
           ? "Realistic, deterministic sample data, seeded by your username. Nothing leaves your browser."
-          : `Public data for @${config.profile.login}, fetched just now.`}{" "}
+          : `Public data for ${config.kind === "project" ? config.project.repo : `@${config.profile.login}`}, fetched just now.`}{" "}
         The action always renders with your real numbers.
       </p>
       <Field label="GitHub token (optional)" help="Unlocks your exact contribution calendar in the preview. Kept in memory for this tab only and sent only to api.github.com.">
@@ -558,7 +654,7 @@ function DataPanel() {
       </Field>
       <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
         <Button onClick={load} disabled={dataStatus.state === "loading"}>
-          {dataStatus.state === "loading" ? <span className="spinner" /> : <RefreshCw />} Load @{config.profile.login}
+          {dataStatus.state === "loading" ? <span className="spinner" /> : <RefreshCw />} Load {config.kind === "project" ? config.project.repo : `@${config.profile.login}`}
         </Button>
       </div>
       {dataStatus.state === "error" && (
@@ -567,7 +663,7 @@ function DataPanel() {
           <span>{dataStatus.message}</span>
         </div>
       )}
-      {dataMode === "live" && !token && (
+      {dataMode === "live" && !token && config.kind === "profile" && (
         <div className="note" style={{ marginTop: 12 }}>
           <Info />
           <span>Without a token the browser cannot read your contribution calendar, so the graph widgets show a stand-in. The published README uses the real one.</span>
@@ -599,20 +695,23 @@ function FragmentRow({ k, v }: { k: string; v: string | number }) {
 // ---------------------------------------------------------------- shell
 
 export function Inspector() {
-  const { tab, setTab, selected } = useStudio();
+  const { tab, setTab, selected, config } = useStudio();
+  const project = config.kind === "project";
   const tabs: { value: InspectorTab; label: string; icon: React.ReactNode }[] = [
     ...(selected ? [{ value: "block" as const, label: "Widget", icon: <SlidersHorizontal /> }] : []),
     { value: "theme", label: "Theme", icon: <PaletteIcon /> },
-    { value: "profile", label: "Profile", icon: <User /> },
+    ...(project ? [{ value: "project" as const, label: "Project", icon: <FolderGit2 /> }] : []),
+    { value: "profile", label: project ? "Links" : "Profile", icon: <User /> },
     { value: "data", label: "Data", icon: <Database /> },
   ];
-  const active = tab === "block" && !selected ? "theme" : tab;
+  const active = tab === "block" && !selected ? "theme" : tab === "project" && !project ? "profile" : tab;
   return (
     <aside className="panel panel--inspector" aria-label="Inspector">
       <Tabs label="Inspector" value={active} onChange={setTab} tabs={tabs} />
       <div className="panel__scroll">
         {active === "block" && <BlockPanel />}
         {active === "theme" && <ThemePanel />}
+        {active === "project" && <ProjectPanel />}
         {active === "profile" && <ProfilePanel />}
         {active === "data" && <DataPanel />}
       </div>

@@ -44,6 +44,7 @@ export const board = defineWidget({
   type: "board",
   title: "Departure board",
   description: "Your latest public GitHub activity on a split-flap departure board that clatters into place.",
+  scope: "profile",
   category: "Activity",
   kind: "svg",
   width: "full",

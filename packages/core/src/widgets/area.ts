@@ -40,6 +40,7 @@ export const area = defineWidget({
   type: "area",
   title: "Contribution trend",
   description: "Weekly contributions as a smooth area chart that draws itself on, with your average and peak week marked.",
+  scope: "profile",
   category: "Activity",
   kind: "svg",
   width: "full",

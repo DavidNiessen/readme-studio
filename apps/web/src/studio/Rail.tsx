@@ -1,7 +1,7 @@
 import { closestCenter, DndContext, DragOverlay, KeyboardSensor, PointerSensor, TouchSensor, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
 import { SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { CATEGORIES, getWidget, normalizeConfig, widgetList, type Block, type WidgetCategory, type WidgetDef } from "@readme-studio/core";
+import { CATEGORIES, getWidget, normalizeConfig, widgetFits, widgetList, type Block, type WidgetCategory, type WidgetDef } from "@readme-studio/core";
 import { Copy, Eye, EyeOff, GripVertical, Layers, MoreHorizontal, Plus, Trash2, ArrowUp, ArrowDown, LayoutTemplate } from "lucide-react";
 import { memo, useMemo, useState } from "react";
 import { Button, IconButton, Menu, Tabs, cn } from "../components/ui";
@@ -12,7 +12,7 @@ import { useStudio } from "../state/store";
 import { WidgetIcon } from "./icons";
 
 function LayerRow({ block, joined, overlay }: { block: Block; joined: boolean; overlay?: boolean }) {
-  const { selected, select, duplicate, remove, commit, move, setPane } = useStudio();
+  const { selected, select, duplicate, remove, commit, move, setPane, config } = useStudio();
   const def = getWidget(block.type);
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: block.id, disabled: overlay });
   const style = { transform: CSS.Translate.toString(transform), transition };
@@ -36,7 +36,8 @@ function LayerRow({ block, joined, overlay }: { block: Block; joined: boolean; o
       </span>
       <span className="layer__text">
         <span className="layer__title">{def.title}</span>
-        <span className="layer__id">
+        <span className="layer__id" title={def.scope && def.scope !== "any" && def.scope !== config.kind ? `Made for ${def.scope} READMEs` : undefined}>
+          {def.scope && def.scope !== "any" && def.scope !== config.kind ? `${def.scope} widget · ` : ""}
           {block.id}
           {def.kind === "gif" ? ".gif" : def.kind === "markdown" ? ".md" : ".svg"}
         </span>
@@ -130,21 +131,22 @@ const Thumb = memo(function Thumb({ def }: { def: WidgetDef }) {
 });
 
 function Library() {
-  const { add, setPane, mode } = useStudio();
+  const { add, setPane, mode, config } = useStudio();
   const [q, setQ] = useState("");
   const [cat, setCat] = useState<WidgetCategory | "all">("all");
-  const list = widgetList.filter(
+  const fitting = widgetList.filter((w) => widgetFits(w, config.kind));
+  const list = fitting.filter(
     (w) => (cat === "all" || w.category === cat) && (!q || `${w.title} ${w.description} ${w.type} ${w.category}`.toLowerCase().includes(q.toLowerCase())),
   );
   return (
     <div style={{ ["--thumb-bg" as string]: mode === "dark" ? "#0d1117" : "#ffffff" }}>
       <div className="lib-search">
-        <input className="input" placeholder={`Search ${widgetList.length} widgets`} value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search widgets" />
+        <input className="input" placeholder={`Search ${fitting.length} ${config.kind} widgets`} value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search widgets" />
         <div className="lib-cats" role="group" aria-label="Category">
           <button type="button" aria-pressed={cat === "all"} onClick={() => setCat("all")}>
             All
           </button>
-          {CATEGORIES.map((c) => (
+          {CATEGORIES.filter((c) => fitting.some((w) => w.category === c.id)).map((c) => (
             <button type="button" key={c.id} aria-pressed={cat === c.id} onClick={() => setCat(c.id)}>
               {c.id}
             </button>
@@ -179,6 +181,7 @@ function Library() {
                       {w.title}
                       {w.width !== "full" && <span className="badge">{w.width}</span>}
                       {w.kind === "gif" && <span className="badge">gif</span>}
+                      {w.scope === "project" && <span className="badge badge--accent">project</span>}
                     </div>
                     <div className="lib-card__desc">{w.description}</div>
                   </div>

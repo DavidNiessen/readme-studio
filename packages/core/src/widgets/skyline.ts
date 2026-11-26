@@ -180,6 +180,7 @@ export const skyline = defineWidget({
   type: "skyline",
   title: "3D skyline",
   description: "Your last 12 months as an isometric city of contribution towers, slowly turning in an animated GIF.",
+  scope: "profile",
   category: "Activity",
   kind: "gif",
   width: "full",

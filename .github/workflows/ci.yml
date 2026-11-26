@@ -1,12 +1,18 @@
+# Checks every change: types, tests, the committed action bundle, a build of the studio and a run
+# of the action itself. Runs on pull requests, and is called by the pre-release and release
+# workflows before they publish anything.
 name: ci
 
 on:
-  push:
-    branches: [main, master]
   pull_request:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:

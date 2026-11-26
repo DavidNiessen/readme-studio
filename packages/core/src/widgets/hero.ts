@@ -49,6 +49,7 @@ export const hero = defineWidget({
   type: "hero",
   title: "Hero banner",
   description: "Your name drawn on stroke by stroke, a typewriter cycling through your roles and an orbiting emblem.",
+  scope: "profile",
   category: "Header",
   kind: "svg",
   width: "full",

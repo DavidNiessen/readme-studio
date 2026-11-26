@@ -65,6 +65,7 @@ export const repos = defineWidget({
   type: "repos",
   title: "Top repositories",
   description: "Your best or most recently pushed repositories with descriptions, languages and rolling star counters.",
+  scope: "profile",
   category: "Projects",
   kind: "svg",
   width: "full",

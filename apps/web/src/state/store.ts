@@ -1,9 +1,9 @@
 import { create } from "zustand";
-import { getWidget, hashSeed, mockData, mockWeeks, normalizeConfig, presetConfig, type Mode, type ProfileData, type StudioConfig } from "@readme-studio/core";
+import { getLayoutPreset, getWidget, hashSeed, mockData, mockWeeks, normalizeConfig, presetConfig, type Mode, type ProfileData, type StudioConfig } from "@readme-studio/core";
 import { addBlock, duplicateBlock, findBlock, moveBlock, removeBlock, renameBlock, updateOptions } from "../lib/layout";
 import { getCurrentId, getPref, loadDesigns, saveDesign, setCurrentId, setPref, type SavedDesign } from "../lib/storage";
 
-export type InspectorTab = "block" | "profile" | "theme" | "data";
+export type InspectorTab = "block" | "profile" | "project" | "theme" | "data";
 export type DialogId = "export" | "presets" | "import" | "json" | "shortcuts" | "designs" | "palette" | "add" | null;
 export type MobilePane = "layers" | "canvas" | "inspect";
 
@@ -67,7 +67,7 @@ interface StudioState {
   openDesign: (d: SavedDesign) => void;
 }
 
-const sampleFor = (c: StudioConfig) => mockData(new Date(), c.profile.login, c.profile.name, c.profile.location.timezone);
+const sampleFor = (c: StudioConfig) => mockData(new Date(), c.profile.login, c.profile.name, c.profile.location.timezone, c.kind === "project" ? c.project.repo : undefined);
 
 function initial(): { id: string; name: string; config: StudioConfig } {
   const designs = loadDesigns();
@@ -115,7 +115,12 @@ export const useStudio = create<StudioState>((set, get) => ({
     const now = Date.now();
     const merge = key && key === s.lastKey && now - s.lastAt < 900;
     const past = merge ? s.past : [...s.past, s.config].slice(-HISTORY);
-    const loginChanged = next.profile.login !== s.config.profile.login || next.profile.name !== s.config.profile.name || next.profile.location.timezone !== s.config.profile.location.timezone;
+    const loginChanged =
+      next.profile.login !== s.config.profile.login ||
+      next.profile.name !== s.config.profile.name ||
+      next.profile.location.timezone !== s.config.profile.location.timezone ||
+      next.kind !== s.config.kind ||
+      next.project.repo !== s.config.project.repo;
     set({
       config: next,
       past,
@@ -225,7 +230,7 @@ export const useStudio = create<StudioState>((set, get) => ({
 
   newDesign(presetId) {
     const s = get();
-    const config = presetConfig(presetId, s.config.profile);
+    const config = { ...presetConfig(presetId, s.config.profile), ...(getLayoutPreset(presetId).kind === "project" && s.config.kind === "project" ? { project: s.config.project } : {}) };
     set({
       designId: newId(),
       name: "Untitled design",

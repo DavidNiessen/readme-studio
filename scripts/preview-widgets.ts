@@ -1,18 +1,20 @@
 /**
  * Dev helper: renders every widget with mock data into an HTML contact sheet.
- *   npx tsx scripts/preview-widgets.ts <outDir> [preset] [mode] [font]
+ *   npx tsx scripts/preview-widgets.ts <outDir> [preset] [mode] [font] [kind: profile|project|all]
  */
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { createCtx, loadAllFonts, mockData, normalizeConfig, renderPart, blockParts, widgetList, DEFAULT_PROFILE } from "../packages/core/src/index";
+import { createCtx, loadAllFonts, mockData, normalizeConfig, renderPart, blockParts, widgetList, widgetFits, DEFAULT_PROFILE } from "../packages/core/src/index";
 
-const [out = "preview", preset = "crimson", mode = "dark", font = "jetbrains-mono"] = process.argv.slice(2);
+const [out = "preview", preset = "crimson", mode = "dark", font = "jetbrains-mono", kind = "all"] = process.argv.slice(2);
 await loadAllFonts();
 mkdirSync(out, { recursive: true });
 const { config } = normalizeConfig({
+  kind: kind === "project" ? "project" : "profile",
   profile: DEFAULT_PROFILE,
+  project: { repo: "octocat/aurora", tagline: "A tiny, fast design-token compiler for multi-brand UI kits.", packages: { npm: "aurora" } },
   theme: { preset, font, headingFont: font },
-  layout: [{ blocks: widgetList.map((w) => ({ type: w.type, id: w.type })) }],
+  layout: [{ blocks: widgetList.filter((w) => kind === "all" || widgetFits(w, kind as "profile" | "project")).map((w) => ({ type: w.type, id: w.type })) }],
 });
 const data = mockData(new Date("2026-11-26T09:00:00Z"), config.profile.login, config.profile.name, config.profile.location.timezone);
 const ctx = createCtx(config, data, mode as "dark" | "light", { date: new Date("2026-11-26T09:00:00Z"), run: "42" });

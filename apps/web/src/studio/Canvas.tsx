@@ -1,7 +1,7 @@
-import { getWidget } from "@readme-studio/core";
+import { assetRepository, getWidget } from "@readme-studio/core";
 import { ArrowDown, ArrowUp, BookOpen, Copy, LayoutTemplate, Plus, Trash2 } from "lucide-react";
 import { marked } from "marked";
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { Button, IconButton, cn } from "../components/ui";
 import { WidgetImage } from "../components/WidgetImage";
 import { useRenderedLayout, type RenderedPart } from "../lib/render";
@@ -36,7 +36,7 @@ function Tools({ id }: { id: string }) {
 function Markdown({ part, selected, onSelect }: { part: RenderedPart; selected: boolean; onSelect: () => void }) {
   const html = useMemo(() => marked.parse(part.markdown ?? "", { async: false }) as string, [part.markdown]);
   return (
-    <div className={cn("cv-md", selected && "is-selected")} onClick={onSelect}>
+    <div className={cn("cv-md", selected && "is-selected")} onClick={onSelect} data-block={part.meta.block.id}>
       {selected && <div className="cv-tag">{part.meta.block.id}</div>}
       {selected && <Tools id={part.meta.block.id} />}
       <div dangerouslySetInnerHTML={{ __html: html }} />
@@ -47,16 +47,38 @@ function Markdown({ part, selected, onSelect }: { part: RenderedPart; selected: 
 export function Canvas() {
   const { config, data, mode, device, epoch, selected, select, openDialog, setRailTab, setPane } = useStudio();
   const { rows } = useRenderedLayout(config, data, mode);
+  const scroller = useRef<HTMLElement>(null);
+  const pending = useRef<string | null>(null);
+  // Bring the selected widget into view (it may render a moment later when just added).
+  useEffect(() => {
+    pending.current = selected;
+  }, [selected]);
+  useEffect(() => {
+    const id = pending.current;
+    const box = scroller.current;
+    // hidden on phones while another pane is open: keep it pending until the canvas shows
+    if (!id || !box || box.getClientRects().length === 0) return;
+    const el = box.querySelector<HTMLElement>(`[data-block="${CSS.escape(id)}"]`);
+    if (!el) return;
+    pending.current = null;
+    const r = el.getBoundingClientRect();
+    const v = box.getBoundingClientRect();
+    const visible = r.top >= v.top + 40 && r.bottom <= v.bottom - 16;
+    if (visible) return;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const target = box.scrollTop + r.top - v.top - Math.max(56, (v.height - r.height) / 2);
+    box.scrollTo({ top: Math.max(0, target), behavior: reduce ? "auto" : "smooth" });
+  });
   const empty = !config.layout.length;
   const parts = rows.reduce((a, r) => a + r.parts.length, 0);
   const bytes = rows.reduce((a, r) => a + r.parts.reduce((b, p) => b + (p.svg?.length ?? 0), 0), 0);
   const pick = (id: string) => select(selected === id ? null : id);
   return (
-    <main className="canvas" onClick={() => select(null)} aria-label="Preview">
+    <main className="canvas" ref={scroller} onClick={() => select(null)} aria-label="Preview">
       <div className="canvas__inner">
         <div className="canvas__meta">
           <span className="mono">
-            {config.profile.login}/{config.profile.login} · README.md
+            {assetRepository(config)} · README.md
           </span>
           <span className="mono hide-sm">
             {parts} images · ~{Math.round(bytes / 1024)} KB per theme · {data.source === "mock" ? "sample data" : `live: ${data.source}`}
@@ -66,7 +88,7 @@ export function Canvas() {
           <div className="gh__head">
             <BookOpen />
             <span>README</span>
-            <span className="gh__login">· {config.profile.login}</span>
+            <span className="gh__login">· {config.kind === "project" ? config.project.repo : config.profile.login}</span>
           </div>
           <div className="gh__body">
             {empty ? (
@@ -94,7 +116,7 @@ export function Canvas() {
                 const images = row.parts.filter((p) => p.meta.kind !== "markdown");
                 const md = row.parts.filter((p) => p.meta.kind === "markdown");
                 return (
-                  <div key={row.rowId}>
+                  <div key={row.rowId} className="cv-rowwrap">
                     {md.map((p) => (
                       <Markdown
                         key={p.meta.name}
@@ -116,6 +138,7 @@ export function Canvas() {
                             <span
                               key={p.meta.name}
                               className={cn("cv-item", Boolean(p.meta.fixedHeight) && "cv-item--fixed", isSel && "is-selected", p.meta.block.hidden && "is-hidden")}
+                              data-block={id}
                               style={p.meta.fixedHeight ? { height: p.meta.fixedHeight * (device === "mobile" ? 0.85 : 1) } : { width: widthFor(fluid) }}
                               onClick={(e) => {
                                 e.stopPropagation();

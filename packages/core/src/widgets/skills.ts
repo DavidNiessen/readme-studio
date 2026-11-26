@@ -18,6 +18,7 @@ export const skills = defineWidget({
   type: "skills",
   title: "Skill meters",
   description: "Your strongest tools as filling bars, segmented blocks or radial gauges, each with its icon and level.",
+  scope: "profile",
   category: "Identity",
   kind: "svg",
   width: "full",

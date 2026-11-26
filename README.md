@@ -2,8 +2,8 @@
 
 # Readme Studio
 
-**Design an animated, self-updating GitHub profile README in the browser.**<br>
-A GitHub Action re-renders every image on a schedule, so your streaks, graphs and releases are never stale.
+**Design animated, self-updating READMEs for your GitHub profile and your projects, in the browser.**<br>
+A GitHub Action re-renders every image on a schedule, so streaks, stars, contributors and releases are never stale.
 
 [Open the studio](https://readme.niessen.dev/#/studio) · [Presets](https://readme.niessen.dev/#/presets) · [Docs](https://readme.niessen.dev/#/docs)
 
@@ -17,8 +17,8 @@ Readme Studio has three parts:
 
 | Part | Where | What it does |
 |---|---|---|
-| **Studio** | [`apps/web`](apps/web) | A web designer (hosted on GitHub Pages). Pick a preset or start blank, arrange 39 widgets, tune 17 palettes, 12 typefaces, radius, texture and motion, and preview in GitHub's dark and light themes at desktop or phone width. Exports a ready-to-commit project. |
-| **Action** | [`action.yml`](action.yml), [`packages/engine`](packages/engine) | Runs in your profile repository on a cron. Fetches your GitHub data, renders every widget as an animated SVG (or GIF), force-pushes the images to an asset branch and updates `README.md` when the layout changed. |
+| **Studio** | [`apps/web`](apps/web) | A web designer (hosted on GitHub Pages). Design a **profile** README or a **project** README: pick one of 18 presets or start blank, arrange 54 widgets, tune 17 palettes, 12 typefaces, radius, texture and motion, and preview in GitHub's dark and light themes at desktop or phone width. Exports a ready-to-commit project. |
+| **Action** | [`action.yml`](action.yml), [`packages/engine`](packages/engine) | Runs in your profile or project repository on a cron. Fetches your GitHub data (account or repository), renders every widget as an animated SVG (or GIF), force-pushes the images to an asset branch and updates `README.md` when the layout changed. |
 | **Core** | [`packages/core`](packages/core) | The isomorphic renderer shared by both: themes, fonts with real text metrics, widgets, the config schema and the README composer. The studio preview and the action produce byte-identical SVGs. |
 
 Everything is static: no server, no database, no third-party image host. Your design lives in your browser and in your repository.
@@ -79,19 +79,23 @@ Outputs: `assets-dir`, `readme-changed`, `data-source`.
 
 **Data sources.** With a token the action uses GitHub GraphQL (calendar, totals, pinned repos, languages, releases). Without one it falls back to the REST API plus the public contributions calendar. Weather comes from Open-Meteo, blog posts from any RSS/Atom feed. Only public repositories are ever named.
 
+## Project READMEs
+
+Switch a design to **Project**, enter `owner/name` and, if you publish one, the npm, PyPI or crates.io package. Project widgets then read that repository: a project hero, live shields (one clickable image per badge), an install terminal, a code snippet, a features grid, repository stats, star history, a contributor wall with embedded avatars, weekly commit activity, repository vitals with CI status, package downloads, a changelog from your releases, a roadmap from your milestones, a sponsor card and a table of contents. Prose stays real Markdown, so docs remain searchable. The action runs in the project repository and publishes the images to an orphan branch there.
+
 ## Widgets
 
 <details>
-<summary><b>39 widgets in 7 categories</b></summary>
+<summary><b>54 widgets in 7 categories</b></summary>
 
 | Category | Widgets |
 |---|---|
-| Header | Hero banner, statement banner |
-| Identity | Social pills, terminal, tech-stack orbit, about card, quick facts, badges, skills, timeline, contact card, local clock |
-| Stats | Stats board, languages, trophies, streak card, language donut, year in review, follower milestone |
-| Activity | Contribution graph, heartbeat, 3D skyline (GIF), coding rhythm, journey, departure board, trend chart, weekday rhythm, harvester |
-| Projects | Now building, project card, top repositories, releases, latest posts |
-| Content | Today (date, moon, weather, quote), quote, markdown text |
+| Header | Hero banner, statement banner, project hero |
+| Identity | Social pills, terminal, tech-stack orbit, about card, quick facts, badges, skills, timeline, contact card, local clock, shields, contributor wall, support card |
+| Stats | Stats board, languages, trophies, streak card, language donut, year in review, follower milestone, repository stats, repository vitals, downloads |
+| Activity | Contribution graph, heartbeat, 3D skyline (GIF), coding rhythm, journey, departure board, trend chart, weekday rhythm, harvester, star history, commit activity |
+| Projects | Now building, project card, top repositories, releases, latest posts, changelog, roadmap |
+| Content | Today (date, moon, weather, quote), quote, markdown text, install command, code snippet, features grid, table of contents |
 | Decoration | Divider, footer, section heading |
 
 </details>
@@ -116,7 +120,7 @@ CLI:
 ```bash
 npx tsx packages/engine/src/cli.ts build --config readme.config.json --out dist [--mock] [--only=hero,stats] [--now=2026-12-31T23:00:00Z]
 npx tsx packages/engine/src/cli.ts validate --config readme.config.json
-npx tsx packages/engine/src/cli.ts init --login you --preset minimal-paper
+npx tsx packages/engine/src/cli.ts init --login you --preset minimal-paper   # or --preset oss-library
 npx tsx packages/engine/src/cli.ts presets
 ```
 
@@ -139,7 +143,10 @@ scripts             asset generation (fonts, icons), JSON schema, widget contact
 
 ### Releasing
 
-Publish a GitHub release tagged `vX.Y.Z`. The `release` workflow moves the floating `v1` tag that profile repositories reference. Before releasing, make sure `npm run bundle` has been committed (CI checks this).
+- **Pre-releases are automatic.** Every push to `main` runs the checks and publishes a GitHub pre-release such as `v1.0.1-42` (next patch plus the run number). Pin one with `uses: DavidNiessen/readme-studio@v1.0.1-42` to try the newest work. Only the newest three are kept, and they never move the `v1` tag.
+- **Full releases are manual.** Run **Actions → Release → Run workflow** on `main` and choose a `patch`/`minor`/`major` bump or type an exact version. The workflow runs the checks, commits the version onto a `vX.Y.Z` tag, publishes the release with generated notes, brings `main` up to the new version and moves the floating major tag (`v1`) that profile repositories use.
+
+Commit the action bundle (`npm run bundle`) before merging; CI fails when it is stale.
 
 ### GitHub Pages
 

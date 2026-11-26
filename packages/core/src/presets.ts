@@ -1,4 +1,4 @@
-import { DEFAULT_OUTPUT, DEFAULT_PROFILE, normalizeConfig, type Align, type Profile, type StudioConfig } from "./config";
+import { DEFAULT_OUTPUT, DEFAULT_PROFILE, DEFAULT_PROJECT, normalizeConfig, type Align, type DesignKind, type Profile, type ProjectInfo, type StudioConfig } from "./config";
 import { DEFAULT_THEME, type ThemeSettings } from "./theme";
 
 type B = { type: string; id?: string; options?: Record<string, unknown>; link?: string };
@@ -6,6 +6,8 @@ type R = B[] | { align: Align; blocks: B[] };
 
 export interface LayoutPreset {
   id: string;
+  /** what the preset is for (default: profile) */
+  kind?: DesignKind;
   name: string;
   description: string;
   tags: string[];
@@ -229,17 +231,127 @@ export const layoutPresets: LayoutPreset[] = [
       [{ type: "quote", options: { rotate: false } }],
     ],
   },
+
+  // ---------------------------------------------------------------- project READMEs
+  {
+    id: "oss-library",
+    kind: "project",
+    name: "Open-Source Library",
+    description: "The full treatment for a published package: hero, live shields, install terminal, usage, stars and the people who built it.",
+    tags: ["package", "npm", "complete"],
+    theme: { preset: "github", font: "geist-sans", headingFont: "geist-sans", texture: "none", radius: 10 },
+    rows: [
+      [{ type: "project-hero" }],
+      [{ type: "shields" }],
+      [{ type: "install" }],
+      [{ type: "toc" }],
+      [{ type: "features" }],
+      [{ type: "code" }],
+      [{ type: "repo-stats" }],
+      [{ type: "star-history" }],
+      [{ type: "contributors" }],
+      [{ type: "changelog" }],
+      [{ type: "footer", options: { message: "{project} · {license} licensed", waves: false } }],
+    ],
+  },
+  {
+    id: "cli-tool",
+    kind: "project",
+    name: "CLI Tool",
+    description: "Terminal-first: amber phosphor, a typed install, a usage snippet and the commit pulse of the project.",
+    tags: ["cli", "monospace", "retro"],
+    theme: { preset: "amber", font: "jetbrains-mono", headingFont: "jetbrains-mono", texture: "lines", radius: 6 },
+    rows: [
+      [{ type: "project-hero", options: { emblemStyle: "plain" } }],
+      [{ type: "shields" }],
+      [{ type: "install" }],
+      [{ type: "code" }],
+      [{ type: "commit-activity" }],
+      [{ type: "repo-health" }, { type: "downloads" }],
+      [{ type: "footer", options: { message: "{project} · built in the open", barcode: true } }],
+    ],
+  },
+  {
+    id: "product-launch",
+    kind: "project",
+    name: "Product Launch",
+    description: "Bold and visual for apps and frameworks: statement banner, feature grid, roadmap progress and a sponsor card.",
+    tags: ["app", "bold", "roadmap"],
+    theme: { preset: "ultraviolet", font: "space-grotesk", headingFont: "space-grotesk", texture: "dots", radius: 16 },
+    rows: [
+      [{ type: "project-hero", options: { align: "center" } }],
+      [{ type: "shields" }],
+      [{ type: "features" }],
+      [{ type: "star-history" }],
+      [{ type: "roadmap" }],
+      [{ type: "contributors" }],
+      [{ type: "support" }],
+      [{ type: "footer" }],
+    ],
+  },
+  {
+    id: "python-package",
+    kind: "project",
+    name: "Python Package",
+    description: "Calm Nord palette for a PyPI package: pip install, a code sample, releases and repository vitals.",
+    tags: ["pypi", "calm", "docs"],
+    theme: { preset: "nord", font: "inter", headingFont: "ibm-plex-serif", texture: "none", radius: 10, motion: "subtle" },
+    rows: [
+      [{ type: "project-hero" }],
+      [{ type: "shields" }],
+      [{ type: "install" }],
+      [{ type: "code", options: { language: "python" } }],
+      [{ type: "changelog" }],
+      [{ type: "repo-health" }, { type: "donut" }],
+      [{ type: "contributors" }],
+    ],
+  },
+  {
+    id: "minimal-oss",
+    kind: "project",
+    name: "Minimal OSS",
+    description: "Monochrome and quiet: a title, a row of shields, real markdown docs and nothing that shouts.",
+    tags: ["minimal", "monochrome", "markdown"],
+    theme: { preset: "mono", font: "geist-sans", headingFont: "geist-sans", texture: "none", radius: 8, motion: "subtle" },
+    rows: [
+      [{ type: "project-hero", options: { emblemStyle: "none" } }],
+      [{ type: "shields" }],
+      [{ type: "markdown", options: { text: "## Getting started\n\nInstall the package, import it and you're done. Issues and ideas are welcome on [GitHub](https://github.com/{repo})." } }],
+      [{ type: "commit-activity" }],
+      [{ type: "contributors", options: {} }],
+    ],
+  },
+  {
+    id: "maintainers-dashboard",
+    kind: "project",
+    name: "Maintainer's Dashboard",
+    description: "Everything a maintainer watches, at a glance: stats, health, downloads, star growth, commit rhythm and milestones.",
+    tags: ["data", "health", "dashboard"],
+    theme: { preset: "ocean", font: "geist-mono", headingFont: "space-grotesk", texture: "grid", radius: 10 },
+    rows: [
+      [{ type: "project-hero" }],
+      [{ type: "repo-stats" }],
+      [{ type: "repo-health" }, { type: "downloads" }],
+      [{ type: "star-history" }],
+      [{ type: "commit-activity" }],
+      [{ type: "roadmap" }],
+      [{ type: "changelog" }],
+      [{ type: "contributors" }],
+    ],
+  },
 ];
 
 export function getLayoutPreset(id: string): LayoutPreset {
   return layoutPresets.find((p) => p.id === id) ?? layoutPresets[0];
 }
 
-/** A complete, normalised config for a preset, with the given profile fields merged in. */
-export function presetConfig(id: string, profile: Partial<Profile> = {}): StudioConfig {
+/** A complete, normalised config for a preset, with the given profile (and project) fields merged in. */
+export function presetConfig(id: string, profile: Partial<Profile> = {}, project: Partial<ProjectInfo> = {}): StudioConfig {
   const p = getLayoutPreset(id);
   const raw = {
+    kind: p.kind ?? "profile",
     profile: { ...DEFAULT_PROFILE, ...profile },
+    project: { ...DEFAULT_PROJECT, ...project },
     theme: { ...DEFAULT_THEME, ...p.theme },
     layout: p.rows.map((r) => (Array.isArray(r) ? { align: "center", blocks: r } : r)),
     output: DEFAULT_OUTPUT,

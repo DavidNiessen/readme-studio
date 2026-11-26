@@ -170,7 +170,11 @@ ${rows.length ? legend : `<text x="${lx}" y="${cy - 4}" font-size="12" class="t 
 ${rows.length ? grid : `<text x="${W / 2}" y="${gy + 4}" font-size="12" text-anchor="middle" class="m">No language data yet</text>`}`;
     }
 
-    const note = rows.length ? `by bytes across ${ctx.data.repoCount} owned repositor${ctx.data.repoCount === 1 ? "y" : "ies"}` : "";
+    const note = !rows.length
+      ? ""
+      : ctx.kind === "project"
+        ? `by bytes of code in ${ctx.data.project?.fullName || ctx.project.repo}`
+        : `by bytes across ${ctx.data.repoCount} owned repositor${ctx.data.repoCount === 1 ? "y" : "ies"}`;
     const body = `${card(t, { width: W, height: H })}
 ${lbl ? label(t, 24, 30, fitText(t, lbl.toUpperCase(), 12, W - 64, { bold: true, letterSpacing: 2 })) : ""}
 ${content}

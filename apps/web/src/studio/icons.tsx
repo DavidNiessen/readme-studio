@@ -38,6 +38,15 @@ import {
   User,
   Users,
   Waves,
+  ShieldCheck,
+  Star,
+  GitCommitHorizontal,
+  LayoutGrid,
+  History,
+  Milestone,
+  Download,
+  Heart,
+  ListTree,
   type LucideIcon,
 } from "lucide-react";
 import type { WidgetCategory } from "@readme-studio/core";
@@ -82,6 +91,21 @@ const BY_TYPE: Record<string, LucideIcon> = {
   posts: Rss,
   harvest: Waves,
   followers: Users,
+  "project-hero": LayoutPanelTop,
+  shields: ShieldCheck,
+  "repo-stats": Gauge,
+  "star-history": Star,
+  contributors: Users,
+  "commit-activity": GitCommitHorizontal,
+  "repo-health": HeartPulse,
+  install: SquareTerminal,
+  code: Code2,
+  features: LayoutGrid,
+  changelog: History,
+  roadmap: Milestone,
+  downloads: Download,
+  support: Heart,
+  toc: ListTree,
 };
 
 const BY_CAT: Record<WidgetCategory, LucideIcon> = {

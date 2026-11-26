@@ -50,6 +50,7 @@ export const streak = defineWidget({
   type: "streak",
   title: "Streak card",
   description: "Current streak in a burning ring, flanked by your longest run and total contributions, each with its date range.",
+  scope: "profile",
   category: "Stats",
   kind: "svg",
   width: "full",

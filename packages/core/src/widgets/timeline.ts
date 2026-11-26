@@ -10,6 +10,7 @@ export const timeline = defineWidget({
   type: "timeline",
   title: "Timeline",
   description: "Experience and education on a vertical rail whose nodes light up one after another, with a live pulse on what you do now.",
+  scope: "profile",
   category: "Identity",
   kind: "svg",
   width: "full",

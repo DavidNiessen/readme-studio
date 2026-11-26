@@ -15,12 +15,23 @@ export const PLACEHOLDERS: { token: string; help: string }[] = [
   { token: "{repos}", help: "repository count" },
   { token: "{streak}", help: "current streak in days" },
   { token: "{contributions}", help: "contributions this year" },
+  { token: "{project}", help: "project name" },
+  { token: "{repo}", help: "owner/repository" },
+  { token: "{tagline}", help: "project tagline" },
+  { token: "{version}", help: "latest release or package version" },
+  { token: "{license}", help: "project licence" },
+  { token: "{forks}", help: "repository forks" },
+  { token: "{contributors}", help: "contributor count" },
+  { token: "{npm}", help: "npm package name" },
+  { token: "{pypi}", help: "PyPI package name" },
+  { token: "{crate}", help: "crates.io crate name" },
+  { token: "{owner}", help: "repository owner" },
 ];
 
 /** Inspector help text listing the supported placeholders. */
 export const PLACEHOLDER_HELP = `Placeholders: ${PLACEHOLDERS.map((p) => p.token).join(" ")}`;
 
-type PlaceholderCtx = Pick<Ctx, "profile"> & Partial<Pick<Ctx, "data" | "d" | "now">>;
+type PlaceholderCtx = Pick<Ctx, "profile"> & Partial<Pick<Ctx, "data" | "d" | "now" | "project" | "kind">>;
 
 /**
  * Replace `{name}`, `{login}`, `{city}`, `{company}`, `{role}`, `{year}`, `{followers}`,
@@ -37,7 +48,15 @@ export function fillPlaceholders(text: string, ctx: PlaceholderCtx): string {
     if (!derived && data) derived = derive(data);
     return derived ? String(derived.streaks.current) : "";
   };
+  const pd = data?.project;
+  const pi = ctx.project;
+  const projectName = () => pi?.name?.trim() || pi?.repo?.split("/")[1] || pd?.name || "";
+  const version = () => {
+    const tag = pd?.releases?.[0]?.tag || pd?.downloads?.find((d) => d.version)?.version || "";
+    return tag ? (tag.startsWith("v") ? tag : `v${tag}`) : "";
+  };
   const stars = () => {
+    if (ctx.kind === "project" && pd) return groupDigits(pd.stars);
     if (!data) return "";
     const s = data.totals?.stars ?? (data.repos ?? []).reduce((a, r) => a + (r.stars || 0), 0);
     return groupDigits(s);
@@ -54,6 +73,17 @@ export function fillPlaceholders(text: string, ctx: PlaceholderCtx): string {
     repos: () => (data ? groupDigits(data.repoCount) : ""),
     streak,
     contributions: () => (data ? groupDigits(data.yearTotal) : ""),
+    project: projectName,
+    repo: () => pi?.repo || pd?.fullName || "",
+    tagline: () => pi?.tagline || pd?.description || "",
+    version,
+    license: () => pd?.license || "",
+    forks: () => (pd ? groupDigits(pd.forks) : ""),
+    contributors: () => (pd ? groupDigits(pd.contributorCount) : ""),
+    npm: () => pi?.packages?.npm || "",
+    pypi: () => pi?.packages?.pypi || "",
+    crate: () => pi?.packages?.crates || "",
+    owner: () => (pi?.repo || pd?.fullName || "").split("/")[0] || p?.login || "",
   };
   return text.replace(/\{\s*([a-zA-Z]+)\s*\}/g, (m, key: string) => {
     const f = values[key.toLowerCase()];

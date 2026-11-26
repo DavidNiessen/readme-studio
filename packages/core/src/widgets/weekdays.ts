@@ -11,6 +11,7 @@ export const weekdays = defineWidget({
   type: "weekdays",
   title: "Weekday rhythm",
   description: "Contributions per day of the week as rising bars, with your busiest day lit up.",
+  scope: "profile",
   category: "Activity",
   kind: "svg",
   width: "half",

@@ -10,6 +10,7 @@ import {
   SCHEDULES,
   serializeConfig,
   widgetList,
+  type DesignKind,
   type Mode,
 } from "@readme-studio/core";
 import {
@@ -54,13 +55,15 @@ function ExportDialog() {
   const out = config.output;
   const setOut = (patch: Partial<typeof out>) => commit((c) => ({ ...c, output: { ...c.output, ...patch } }));
   const repo = assetRepository(config);
+  const isProject = config.kind === "project";
+  const slugName = (isProject ? config.project.repo.split("/")[1] : config.profile.login) || "readme";
   return (
     <Dialog
       open={open}
       onClose={() => openDialog(null)}
       width={760}
-      title="Export your profile project"
-      subtitle="Everything your profile repository needs: the design, a scheduled workflow and the README."
+      title={isProject ? "Export your project README" : "Export your profile README"}
+      subtitle={`Everything ${isProject ? config.project.repo : "your profile repository"} needs: the design, a scheduled workflow and the README.`}
       footer={
         <>
           <span className="muted" style={{ marginRight: "auto", fontSize: 12 }}>
@@ -70,7 +73,7 @@ function ExportDialog() {
           <Button
             variant="accent"
             onClick={() => {
-              download(`${config.profile.login}-readme.zip`, projectZip(config, data, { profileToken: pat }), "application/zip");
+              download(`${slugName}-readme.zip`, projectZip(config, data, { profileToken: pat }), "application/zip");
               toast("Project downloaded");
             }}
           >
@@ -84,11 +87,19 @@ function ExportDialog() {
           <div>
             <h4>Where it lives</h4>
             <p>
-              GitHub shows the README of <b>{config.profile.login}/{config.profile.login}</b> on your profile. Images are force-pushed to a separate branch so your history stays clean.
+              {isProject ? (
+                <>
+                  The README goes into <b>{config.project.repo}</b>. Images are force-pushed to a separate branch of that repository so your history stays clean.
+                </>
+              ) : (
+                <>
+                  GitHub shows the README of <b>{config.profile.login}/{config.profile.login}</b> on your profile. Images are force-pushed to a separate branch so your history stays clean.
+                </>
+              )}
             </p>
             <div className="grid-2">
-              <Field label="Repository" help="Leave empty for your profile repository.">
-                <TextInput mono aria-label="Repository" placeholder={`${config.profile.login}/${config.profile.login}`} value={out.repository} onChange={(v) => setOut({ repository: v.trim() })} />
+              <Field label="Repository" help={isProject ? "Leave empty for the project repository." : "Leave empty for your profile repository."}>
+                <TextInput mono aria-label="Repository" placeholder={isProject ? config.project.repo : `${config.profile.login}/${config.profile.login}`} value={out.repository} onChange={(v) => setOut({ repository: v.trim() })} />
               </Field>
               <Field label="Asset branch">
                 <TextInput
@@ -162,16 +173,22 @@ function ExportDialog() {
               .
             </p>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              <Button onClick={() => window.open(`https://github.com/new?name=${encodeURIComponent(config.profile.login)}&visibility=public`, "_blank", "noopener")}>
-                <Plus /> Create the repository
-              </Button>
+              {isProject ? (
+                <Button onClick={() => window.open(`https://github.com/${repo}/settings/actions`, "_blank", "noopener")}>
+                  <Plus /> Open Actions settings
+                </Button>
+              ) : (
+                <Button onClick={() => window.open(`https://github.com/new?name=${encodeURIComponent(config.profile.login)}&visibility=public`, "_blank", "noopener")}>
+                  <Plus /> Create the repository
+                </Button>
+              )}
               <Button
                 disabled={progress !== null}
                 onClick={async () => {
                   setProgress("0%");
                   try {
                     const zip = await assetsZip(config, data, (d, t) => setProgress(`${Math.round((d / t) * 100)}%`));
-                    download(`${config.profile.login}-assets.zip`, zip, "application/zip");
+                    download(`${slugName}-assets.zip`, zip, "application/zip");
                   } finally {
                     setProgress(null);
                   }
@@ -196,6 +213,11 @@ function PresetsDialog() {
   const { dialog, openDialog, replace, config, mode } = useStudio();
   const toast = useToast();
   const [keep, setKeep] = useState(true);
+  const [kind, setKind] = useState<DesignKind>(config.kind);
+  useEffect(() => {
+    if (dialog === "presets") setKind(config.kind);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dialog]);
   return (
     <Dialog
       open={dialog === "presets"}
@@ -205,18 +227,30 @@ function PresetsDialog() {
       subtitle="Complete designs: theme plus layout. Your profile details carry over, and you can undo."
       footer={
         <div style={{ marginRight: "auto" }}>
-          <ToggleRow label="Keep my profile details" checked={keep} onChange={setKeep} />
+          <ToggleRow label={kind === "project" ? "Keep my project and profile details" : "Keep my profile details"} checked={keep} onChange={setKeep} />
         </div>
       }
     >
+      <div style={{ maxWidth: 260, marginBottom: 16 }}>
+        <Segmented<DesignKind>
+          label="Preset type"
+          value={kind}
+          onChange={setKind}
+          options={[
+            { value: "profile", label: `Profile · ${layoutPresets.filter((p) => (p.kind ?? "profile") === "profile").length}` },
+            { value: "project", label: `Project · ${layoutPresets.filter((p) => p.kind === "project").length}` },
+          ]}
+        />
+      </div>
       <div className="preset-grid">
-        {layoutPresets.map((p) => (
+        {layoutPresets.filter((p) => (p.kind ?? "profile") === kind).map((p) => (
           <button
             type="button"
             key={p.id}
             className="preset-card"
             onClick={() => {
-              const next = normalizeConfig({ ...presetConfig(p.id), profile: keep ? config.profile : presetConfig(p.id).profile, output: config.output }).config;
+              const fresh = presetConfig(p.id);
+              const next = normalizeConfig({ ...fresh, profile: keep ? config.profile : fresh.profile, project: keep ? config.project : fresh.project, output: config.output }).config;
               replace(next);
               openDialog(null);
               toast(`Applied “${p.name}”`);
@@ -451,16 +485,27 @@ function DesignsDialog() {
       subtitle="Saved automatically in this browser."
       width={560}
       footer={
-        <Button
-          variant="primary"
-          onClick={() => {
-            newDesign("command-center");
-            openDialog(null);
-            toast("New design created");
-          }}
-        >
-          <Plus /> New design
-        </Button>
+        <>
+          <Button
+            onClick={() => {
+              newDesign(layoutPresets.find((p) => p.kind === "project")?.id ?? "command-center");
+              openDialog(null);
+              toast("New project design created");
+            }}
+          >
+            <Plus /> New project README
+          </Button>
+          <Button
+            variant="primary"
+            onClick={() => {
+              newDesign("command-center");
+              openDialog(null);
+              toast("New profile design created");
+            }}
+          >
+            <Plus /> New profile README
+          </Button>
+        </>
       }
     >
       <div className="design-list">
@@ -469,7 +514,7 @@ function DesignsDialog() {
             <div>
               <div className="design-item__name">{d.id === designId ? name : d.name}</div>
               <div className="design-item__meta">
-                {d.config.layout.reduce((a, r) => a + r.blocks.length, 0)} widgets · {palettePresets.find((p) => p.id === d.config.theme.preset)?.name ?? "Custom"} · edited {new Date(d.updatedAt).toLocaleString()}
+                {d.config.kind === "project" ? d.config.project.repo : "profile"} · {d.config.layout.reduce((a, r) => a + r.blocks.length, 0)} widgets · {palettePresets.find((p) => p.id === d.config.theme.preset)?.name ?? "Custom"} · edited {new Date(d.updatedAt).toLocaleString()}
               </div>
             </div>
             <div style={{ display: "flex", gap: 6 }}>
@@ -548,7 +593,7 @@ function CommandPalette() {
         icon: <Palette />,
         run: () => s.commit((c) => ({ ...c, theme: { ...c.theme, preset: p.id, accent: undefined } })),
       })),
-      ...layoutPresets.map((p) => ({ group: "Preset", label: p.name, hint: "replaces layout", icon: <LayoutTemplate />, run: () => s.replace(normalizeConfig({ ...presetConfig(p.id), profile: s.config.profile, output: s.config.output }).config) })),
+      ...layoutPresets.map((p) => ({ group: "Preset", label: p.name, hint: "replaces layout", icon: <LayoutTemplate />, run: () => s.replace(normalizeConfig({ ...presetConfig(p.id), profile: s.config.profile, project: s.config.project, output: s.config.output }).config) })),
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [s.mode, s.config],

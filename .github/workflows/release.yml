@@ -1,27 +1,102 @@
-name: release
+# A full release, started by hand (Actions › Release › Run workflow). It checks main, raises the
+# version, commits it onto a release tag, publishes the GitHub release with generated notes,
+# brings main up to the new version and moves the floating major tag (v1, v2, …) that profile
+# repositories reference with `uses: DavidNiessen/readme-studio@v1`.
+#
+# If the version cannot be brought onto main (main changed package.json meanwhile), fix main and
+# use "Re-run failed jobs": the tag and release are kept.
+name: Release
 
-# Keeps the floating major tag (v1, v2, …) pointing at the latest release,
-# so profile repositories can reference DavidNiessen/readme-studio@v1.
 on:
-  release:
-    types: [published]
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: Which part of the version to raise
+        type: choice
+        options: [patch, minor, major]
+        default: minor
+      version:
+        description: Or an exact version (e.g. 1.0.0); overrides the bump
+        required: false
 
 permissions:
   contents: write
 
+concurrency:
+  group: release
+  cancel-in-progress: false
+
 jobs:
-  major-tag:
+  checks:
+    if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/ci.yml
+
+  release:
+    name: Version, tag and publish
+    needs: checks
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.v.outputs.version }}
     steps:
       - uses: actions/checkout@v4
 
-      - name: Move the major tag
+      - id: v
+        name: Pick the version
         env:
-          TAG: ${{ github.event.release.tag_name }}
+          BUMP: ${{ inputs.bump }}
+          EXACT: ${{ inputs.version }}
         run: |
-          major="${TAG%%.*}"
-          case "$major" in v[0-9]*) ;; *) echo "::error::release tag $TAG is not semver (vX.Y.Z)"; exit 1 ;; esac
+          current=$(node -p "require('./package.json').version")
+          IFS=. read -r major minor patch <<< "${current%%-*}"
+          if [ -n "$EXACT" ]; then version="${EXACT#v}"
+          elif [ "$BUMP" = major ]; then version="$((major + 1)).0.0"
+          elif [ "$BUMP" = minor ]; then version="${major}.$((minor + 1)).0"
+          else version="${major}.${minor}.$((patch + 1))"; fi
+          if ! [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then echo "::error::$version is not a release version (x.y.z)"; exit 1; fi
+          if git ls-remote --exit-code --tags origin "refs/tags/v$version" > /dev/null; then echo "::error::v$version exists already"; exit 1; fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      # The version commit goes onto the tag; main gets it in the next job.
+      - name: Commit the version and tag it
+        env:
+          VERSION: ${{ steps.v.outputs.version }}
+        run: |
+          node scripts/set-version.mjs "$VERSION"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git tag -fa "$major" -m "$major → $TAG" "$TAG"
-          git push origin "$major" --force
+          git commit -am "chore(release): v$VERSION [skip ci]"
+          git tag "v$VERSION"
+          git push origin "v$VERSION"
+
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.v.outputs.version }}
+        run: gh release create "v$VERSION" --verify-tag --generate-notes --latest --title "Readme Studio $VERSION"
+
+  publish:
+    name: Bring main up and move the major tag
+    needs: release
+    runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ needs.release.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      # Straight onto the tag when main has not moved since; otherwise the tag's version commit is merged in.
+      - name: Bring main up to the release
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin "refs/tags/v$VERSION:refs/tags/v$VERSION"
+          git merge --ff-only "v$VERSION" || git merge --no-ff --no-edit -m "chore(release): v$VERSION into main [skip ci]" "v$VERSION"
+          git push origin HEAD:main
+
+      - name: Move the major tag
+        run: |
+          major="v${VERSION%%.*}"
+          git tag -fa "$major" -m "$major → v$VERSION" "v$VERSION^{commit}"
+          git push origin "refs/tags/$major" --force

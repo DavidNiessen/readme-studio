@@ -1,5 +1,5 @@
 import { localParts } from "../lib/astro";
-import type { ActivityEvent, ContributionDay, Post, ProfileData, Release, Repo, RepoSummary } from "./types";
+import type { ActivityEvent, ContributionDay, Contributor, Post, ProfileData, ProjectData, Release, Repo, RepoSummary } from "./types";
 
 /** Small deterministic PRNG (mulberry32). */
 export function rng(seed: number): () => number {
@@ -88,7 +88,7 @@ const REPO_IDEAS: [string, string][] = [
   ["dotfiles", "My terminal, editor and shell setup"],
 ];
 
-export function mockData(now = new Date(), login = "octocat", name = "Mona Lisa Octocat", timeZone = "UTC"): ProfileData {
+export function mockData(now = new Date(), login = "octocat", name = "Mona Lisa Octocat", timeZone = "UTC", repo?: string): ProfileData {
   const seed = hashSeed(login);
   const r = rng(seed);
   const weeks = mockWeeks(now, seed);
@@ -188,5 +188,93 @@ export function mockData(now = new Date(), login = "octocat", name = "Mona Lisa 
     weather: { temperature: 3.4 + r() * 18, min: -1.2 + r() * 10, max: 6 + r() * 18, code: [0, 1, 2, 3, 61, 71][Math.floor(r() * 6)], isDay: true, wind: Math.round(4 + r() * 20) },
     releases,
     feeds: { default: posts },
+    project: mockProject(repo ?? `${login}/aurora`, now),
+  };
+}
+
+/** Plausible, deterministic repository data for previews and tests. */
+export function mockProject(repo = "octocat/aurora", now = new Date()): ProjectData {
+  const [owner, name = "aurora"] = repo.split("/");
+  const r = rng(hashSeed(repo));
+  const day = 86_400_000;
+  const created = new Date(now.getTime() - (420 + Math.floor(r() * 500)) * day);
+  const stars = 800 + Math.round(r() ** 1.4 * 9000);
+  // S-curve star history with a launch spike
+  const points = 40;
+  const span = now.getTime() - created.getTime();
+  const starHistory = Array.from({ length: points }, (_, i) => {
+    const t = i / (points - 1);
+    const curve = 1 / (1 + Math.exp(-9 * (t - 0.42)));
+    const spike = t > 0.3 ? 0.18 : 0;
+    return { date: new Date(created.getTime() + span * t).toISOString().slice(0, 10), stars: Math.round(stars * Math.min(1, curve * 0.82 + spike * (t > 0.3 ? 1 : 0))) };
+  });
+  starHistory[points - 1].stars = stars;
+  for (let i = 1; i < points; i++) starHistory[i].stars = Math.max(starHistory[i].stars, starHistory[i - 1].stars);
+  const commitWeeks = Array.from({ length: 52 }, (_, i) => {
+    const base = 6 + Math.sin(i / 5) * 4 + r() * 10;
+    return Math.max(0, Math.round(i > 44 ? base * 1.8 : i % 13 === 0 ? base * 0.2 : base));
+  });
+  const handles = ["mona", "hubot", "octocat", "linus-t", "ada-l", "grace-h", "kat", "devon", "sam-r", "jun", "priya", "omar", "lea", "noah", "zoe", "ivan", "mei", "tariq"];
+  const contributors: Contributor[] = handles.map((login, i) => ({ login, avatar: "", contributions: Math.max(1, Math.round(900 / (i + 1) ** 1.25 + r() * 10)) }));
+  const t = (d: number) => new Date(now.getTime() - d * day).toISOString();
+  const releases: Release[] = [
+    ["v2.4.0", 3, "Faster incremental builds and a new watch mode."],
+    ["v2.3.1", 19, "Fixes a regression in nested token references."],
+    ["v2.3.0", 41, "Adds design-token aliases and CSS layer output."],
+    ["v2.2.0", 77, "Plugin API, typed config and Windows path fixes."],
+    ["v2.0.0", 160, "Rewritten core: 6× faster, zero dependencies."],
+  ].map(([tag, ago]) => ({ repo: name, tag: tag as string, name: "", url: `https://github.com/${repo}/releases/tag/${tag}`, publishedAt: t(ago as number) }));
+  const releaseNotes = Object.fromEntries(
+    [
+      ["v2.4.0", "Faster incremental builds and a new watch mode."],
+      ["v2.3.1", "Fixes a regression in nested token references."],
+      ["v2.3.0", "Adds design-token aliases and CSS layer output."],
+      ["v2.2.0", "Plugin API, typed config and Windows path fixes."],
+      ["v2.0.0", "Rewritten core: 6× faster, zero dependencies."],
+    ] as [string, string][],
+  );
+  const weekly = Array.from({ length: 52 }, (_, i) => Math.round((1800 + i * 160) * (0.85 + r() * 0.3)));
+  return {
+    owner,
+    name,
+    fullName: `${owner}/${name}`,
+    description: "A tiny, fast design-token compiler for multi-brand UI kits.",
+    homepage: `https://${name}.dev`,
+    url: `https://github.com/${repo}`,
+    topics: ["design-tokens", "css", "typescript", "cli", "build-tool"],
+    license: "MIT",
+    defaultBranch: "main",
+    createdAt: created.toISOString(),
+    pushedAt: t(0.2),
+    stars,
+    forks: Math.round(stars * 0.07),
+    watchers: Math.round(stars * 0.02) + 4,
+    openIssues: 23 + Math.round(r() * 30),
+    closedIssues: 410 + Math.round(r() * 300),
+    openPulls: 6 + Math.round(r() * 8),
+    mergedPulls: 520 + Math.round(r() * 400),
+    size: 4200,
+    language: { name: "TypeScript", color: "#3178c6" },
+    languages: [
+      { name: "TypeScript", color: "#3178c6", bytes: 612_000 },
+      { name: "Rust", color: "#dea584", bytes: 188_000 },
+      { name: "CSS", color: "#663399", bytes: 42_000 },
+      { name: "JavaScript", color: "#f1e05a", bytes: 21_000 },
+      { name: "Shell", color: "#89e051", bytes: 6_000 },
+    ],
+    contributors,
+    contributorCount: 64,
+    commitWeeks,
+    lastCommit: { message: "perf: cache resolved aliases between builds", sha: "9f2c1ab", date: t(0.2), author: "mona" },
+    releases,
+    releaseNotes,
+    starHistory,
+    ci: { name: "ci", status: "passing", url: `https://github.com/${repo}/actions` },
+    milestones: [
+      { title: "v2.5: plugin marketplace", open: 7, closed: 15, dueOn: t(-30).slice(0, 10), url: `https://github.com/${repo}/milestone/7` },
+      { title: "v3.0: multi-platform output", open: 22, closed: 9, dueOn: t(-120).slice(0, 10), url: `https://github.com/${repo}/milestone/8` },
+      { title: "Docs overhaul", open: 3, closed: 27, dueOn: "", url: `https://github.com/${repo}/milestone/6` },
+    ],
+    downloads: [{ registry: "npm", name, lastWeek: weekly[51], lastMonth: weekly.slice(-4).reduce((a, b) => a + b, 0), total: weekly.reduce((a, b) => a + b, 0) * 3, weekly, version: "2.4.0" }],
   };
 }

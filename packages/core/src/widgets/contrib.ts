@@ -18,6 +18,7 @@ export const contrib = defineWidget({
   type: "contrib",
   title: "Contribution graph",
   description: "Your last 12 months as an animated heatmap with a scanning beam, best-day callout and weekly totals.",
+  scope: "profile",
   category: "Activity",
   kind: "svg",
   width: "full",

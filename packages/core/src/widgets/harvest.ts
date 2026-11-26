@@ -74,6 +74,7 @@ export const harvest = defineWidget({
   type: "harvest",
   title: "Contribution harvester",
   description: "A scanner drone glides over your contribution graph, harvesting every lit cell into a running tally before the grid regrows.",
+  scope: "profile",
   category: "Activity",
   kind: "svg",
   width: "full",

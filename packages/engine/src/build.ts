@@ -5,6 +5,7 @@ import {
   assetFileName,
   createCtx,
   fetchProfileData,
+  fetchProjectProfile,
   getWidget,
   layoutParts,
   loadFonts,
@@ -66,8 +67,23 @@ export function dataNeeds(config: StudioConfig): { weather: boolean; events: boo
 export async function loadData(o: Pick<BuildOptions, "config" | "mock" | "now" | "token" | "log">): Promise<ProfileData> {
   const now = o.now ?? new Date();
   const p = o.config.profile;
-  if (o.mock) return mockData(now, p.login, p.name, p.location.timezone);
+  if (o.mock) return mockData(now, p.login, p.name, p.location.timezone, o.config.kind === "project" ? o.config.project.repo : undefined);
   const needs = dataNeeds(o.config);
+  if (o.config.kind === "project") {
+    const pr = o.config.project;
+    return fetchProjectProfile({
+      repo: pr.repo,
+      packages: pr.packages,
+      login: pr.repo.split("/")[0],
+      token: o.token,
+      timeZone: p.location.timezone,
+      location: { latitude: p.location.latitude, longitude: p.location.longitude },
+      weather: needs.weather,
+      feeds: needs.feeds,
+      now,
+      log: o.log,
+    });
+  }
   return fetchProfileData({
     login: p.login,
     token: o.token,

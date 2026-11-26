@@ -1,4 +1,4 @@
-import type { Profile } from "../config";
+import type { DesignKind, Profile, ProjectInfo } from "../config";
 import type { Derived } from "../data/derive";
 import type { ProfileData } from "../data/types";
 import type { LocalDate } from "../lib/astro";
@@ -12,6 +12,10 @@ export interface Ctx {
   now: LocalDate;
   date: Date;
   profile: Profile;
+  /** what the README is for */
+  kind: DesignKind;
+  /** project settings (meaningful when kind is "project") */
+  project: ProjectInfo;
   /** GitHub Actions run number, when available */
   run: string | null;
 }
@@ -81,25 +85,32 @@ export interface WidgetDef<O extends Options = Options> {
   kind: "svg" | "gif" | "markdown";
   /** suggested width in a row */
   width: WidgetWidth;
+  /** which kinds of README the widget suits (default: both) */
+  scope?: DesignKind | "any";
   /** fixed-height pills (rendered with height instead of a percentage width) */
   fixedHeight?: number;
   /** data sources the widget reads; drives fetch work in the action */
-  needs?: ("calendar" | "repos" | "events" | "weather" | "languages" | "hours" | "releases" | "feed")[];
+  needs?: ("calendar" | "repos" | "events" | "weather" | "languages" | "hours" | "releases" | "feed" | "project" | "stars" | "contributors" | "downloads")[];
   defaults: O;
   fields: Field[];
-  alt(ctx: Pick<Ctx, "profile" | "data">, o: O): string;
+  alt(ctx: Pick<Ctx, "profile" | "data" | "project" | "kind">, o: O): string;
   /** default link target */
-  href?(ctx: Pick<Ctx, "profile" | "data">, o: O): string | undefined;
+  href?(ctx: Pick<Ctx, "profile" | "data" | "project" | "kind">, o: O): string | undefined;
   /** svg markup (kind svg), markdown (kind markdown), or a static preview frame (kind gif) */
   render(ctx: Ctx, o: O): string;
   /** animation frames, for kind gif */
   frames?(ctx: Ctx, o: O): GifFrames;
   /** widgets that emit several images (e.g. one per social link) */
-  parts?(ctx: Pick<Ctx, "profile" | "data">, o: O): AssetPart[];
+  parts?(ctx: Pick<Ctx, "profile" | "data" | "project" | "kind">, o: O): AssetPart[];
   renderPart?(ctx: Ctx, o: O, key: string): string;
 }
 
 /** Identity helper that type-checks a widget declaration. */
+/** Whether a widget belongs in the library for a kind of README. */
+export function widgetFits(def: Pick<WidgetDef, "scope">, kind: DesignKind): boolean {
+  return !def.scope || def.scope === "any" || def.scope === kind;
+}
+
 export function defineWidget(def: WidgetDef): WidgetDef {
   return def;
 }
