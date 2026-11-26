@@ -119,6 +119,8 @@
 .field {
   display: grid;
   gap: 6px;
+  /* next to a taller field (one with help text) the label and input stay at the top */
+  align-content: start;
 }
 .field + .field {
   margin-top: 14px;

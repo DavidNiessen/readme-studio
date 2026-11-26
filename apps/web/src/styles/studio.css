@@ -998,6 +998,10 @@
   grid-template-columns: 1fr 1fr;
   gap: var(--s-3);
 }
+/* side by side, not stacked: the stacking margin would push the second column down */
+.grid-2 > .field + .field {
+  margin-top: 0;
+}
 
 /* presets dialog */
 .preset-grid {
