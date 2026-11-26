@@ -46,7 +46,8 @@ CI (`.github/workflows/ci.yml`) runs `typecheck`, `test`, `bundle` and fails if 
 
 **`apps/extension`**: Manifest V3 extension for Chrome and Firefox, built by `scripts/build.ts` (Vite: two pages, an IIFE content script and background script, icons, a manifest per browser from `src/manifest.ts`, zips).
 - It reuses the studio instead of copying it: `apps/web` exports the studio, store, UI kit and styles (`package.json` `exports`), and `src/studio/main.tsx` mounts `Studio` with a `StudioHost` (`apps/web/src/studio/host.ts`: `open`, `actions`, `overlays`, `onClose`, `context`, `siteUrl`). Put studio features in `apps/web`; only GitHub-specific code belongs in the extension.
-- `src/content/github.ts` adds the "Edit README" button (shadow DOM) on repository pages (found through the `octolytics-dimension-repository_nwo` meta tag), shows `studio.html#repo=owner/name` in an iframe over the page, and fills GitHub's editor for the no-sign-in save mode.
+- `src/content/github.ts` adds the "Edit README" / "Design README" button (shadow DOM) on repository pages (found through the `octolytics-dimension-repository_nwo` meta tag), shows `studio.html#repo=owner/name` in an iframe inside an overlay panel (backdrop click or Esc closes it), and fills GitHub's editor for the no-sign-in save mode.
+- Drafts: the host's `open()` returns `source: "github:owner/repo"`; the studio store keeps one saved design per source (`openSource`), so unsaved work survives closing and each repository has its own.
 - `src/github/`: REST client (inject `fetch` in tests; never store `fetch` as a method, browsers throw "Illegal invocation"), device-flow sign-in, opening and saving designs (commit, pull request, GitHub editor).
 - Versions: `RS_VERSION` sets the build version; pre-releases `x.y.z-n` become manifest `x.y.z.n`.
 
