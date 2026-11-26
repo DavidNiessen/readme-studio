@@ -104,6 +104,14 @@ function Options() {
         Settings and your GitHub sign-in stay in this browser and are sent only to GitHub.{" "}
         <a href="https://readme.niessen.dev/privacy.html" target="_blank" rel="noopener">
           Privacy policy
+        </a>{" "}
+        ·{" "}
+        <a href="https://readme.niessen.dev/terms.html" target="_blank" rel="noopener">
+          Terms
+        </a>{" "}
+        ·{" "}
+        <a href="https://readme.niessen.dev/impressum.html" target="_blank" rel="noopener">
+          Impressum
         </a>
       </p>
     </main>

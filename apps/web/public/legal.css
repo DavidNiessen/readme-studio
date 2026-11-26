@@ -114,3 +114,50 @@ footer {
 footer a {
   color: var(--muted);
 }
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.langs {
+  display: flex;
+  gap: 4px;
+}
+.langs a {
+  padding: 4px 10px;
+  border: 1px solid var(--line);
+  border-radius: 99px;
+  color: var(--muted);
+  font-size: 14px;
+  text-decoration: none;
+}
+.langs a:hover {
+  color: var(--ink);
+}
+/* the English translation follows the binding German text */
+section + section {
+  margin-top: 72px;
+  padding-top: 40px;
+  border-top: 1px solid var(--line);
+}
+section {
+  scroll-margin-top: 16px;
+}
+.address {
+  line-height: 1.6;
+}
+.note {
+  margin-top: 12px;
+  padding: 10px 14px;
+  border-left: 3px solid var(--accent);
+  background: var(--code);
+  border-radius: 6px;
+  font-size: 14px;
+}
+.links {
+  margin-top: 36px;
+  color: var(--muted);
+  font-size: 15px;
+}
