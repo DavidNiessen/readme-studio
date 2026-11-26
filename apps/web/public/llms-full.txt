@@ -323,7 +323,7 @@ Shields: Shield-style badges for version, licence, build status, stars, download
 Category Identity · output svg · width full · for project READMEs · one image per item
 
 - `badges` (checklist: version | license | ci | stars | forks | downloads | contributors | issues | prs | commit | release | topics) · default ["version","license","ci","stars","downloads","contributors"]
-- `style` (segmented: flat | rounded | outline | plastic) · default "rounded"
+- `style` (segmented: flat | rounded | outline | plastic) · default "rounded" · Large is shields.io's “for the badge” look: taller, in capitals.
 - `color` (segmented: accent | neutral) · default "accent" · Build status always uses green, amber or red.
 - `icons` (toggle) · default true
 - `custom` (list) · default []

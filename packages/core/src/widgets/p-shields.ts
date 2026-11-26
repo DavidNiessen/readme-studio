@@ -273,11 +273,12 @@ export const shields = defineWidget({
       key: "style",
       label: "Style",
       type: "segmented",
+      help: "Large is shields.io's “for the badge” look: taller, in capitals.",
       options: [
         { value: "flat", label: "Flat" },
         { value: "rounded", label: "Rounded" },
         { value: "outline", label: "Outline" },
-        { value: "plastic", label: "FOR THE BADGE" },
+        { value: "plastic", label: "Large" },
       ],
     },
     {

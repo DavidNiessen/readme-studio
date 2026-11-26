@@ -236,6 +236,11 @@
   gap: 5px;
   transition: background var(--dur-1), color var(--dur-1), box-shadow var(--dur-1);
 }
+.seg__text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .seg button svg {
   width: 13px;
   height: 13px;

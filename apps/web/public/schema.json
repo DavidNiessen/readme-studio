@@ -1192,6 +1192,7 @@
                           },
                           "style": {
                             "title": "Style",
+                            "description": "Large is shields.io's “for the badge” look: taller, in capitals.",
                             "enum": [
                               "flat",
                               "rounded",
