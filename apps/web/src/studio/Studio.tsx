@@ -49,6 +49,7 @@ import { parseRepo } from "../github/repo";
 import { OpenFailed } from "./github/OpenFailed";
 import { webPlatform } from "./github/webPlatform";
 import { StudioHostContext, useStudioHost, type StudioHost } from "./host";
+import { Welcome } from "./Welcome";
 
 export function useUiTheme(): ["light" | "dark" | "system", (t: "light" | "dark" | "system") => void] {
   const [t, setT] = useState<"light" | "dark" | "system">(() => getPref("ui-theme-choice", "system"));
@@ -361,6 +362,8 @@ function StudioShell() {
   // design is in, the editor stays hidden: whatever design the store held is not this one.
   const [opening, setOpening] = useState<{ state: "loading" } | { state: "ready" } | { state: "failed"; error: unknown }>({ state: host?.open ? "loading" : "ready" });
   const [attempt, setAttempt] = useState(0);
+  // a link that says what to open (a repository, preset, shared design or config) skips the welcome
+  const [deepLink] = useState(() => /[?&](repo|preset|design|config)=/.test(location.hash));
   useEffect(() => {
     if (!host?.open) return;
     let cancelled = false;
@@ -485,6 +488,7 @@ function StudioShell() {
       <DraftBanner />
       <Dialogs />
       <SaveDialog platform={host?.github ?? webPlatform} />
+      {!host?.open && !deepLink && <Welcome />}
       <ContextMenuHost />
       {host?.overlays}
     </div>

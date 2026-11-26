@@ -20,6 +20,9 @@ interface StudioState {
   base: StudioConfig | null;
   /** unsaved changes that came back when a source was opened again; the studio offers to reset them */
   restoredDraft: { stale: boolean; committed: StudioConfig } | null;
+  /** nothing saved in this browser yet: the studio asks what to make instead of assuming */
+  firstRun: boolean;
+  setFirstRun: (v: boolean) => void;
   setRestoredDraft: (d: { stale: boolean; committed: StudioConfig } | null) => void;
   name: string;
   config: StudioConfig;
@@ -100,12 +103,12 @@ interface StudioState {
 
 const sampleFor = (c: StudioConfig) => mockData(new Date(), c.profile.login, c.profile.name, c.profile.location.timezone, c.kind === "project" ? c.project.repo : undefined);
 
-function initial(): { id: string; name: string; config: StudioConfig; source: string | null; base: StudioConfig | null } {
+function initial(): { id: string; name: string; config: StudioConfig; source: string | null; base: StudioConfig | null; firstRun: boolean } {
   const designs = loadDesigns();
   const current = getCurrentId();
   const found = designs.find((d) => d.id === current) ?? designs[0];
-  if (found) return { id: found.id, name: found.name, config: found.config, source: found.source ?? null, base: found.base ?? null };
-  return { id: newId(), name: "My profile", config: presetConfig("command-center"), source: null, base: null };
+  if (found) return { id: found.id, name: found.name, config: found.config, source: found.source ?? null, base: found.base ?? null, firstRun: false };
+  return { id: newId(), name: "My profile", config: presetConfig("command-center"), source: null, base: null, firstRun: true };
 }
 
 /** Two configs are the same design when they serialise the same way. */
@@ -124,6 +127,10 @@ export const useStudio = create<StudioState>((set, get) => ({
   designId: init.id,
   source: init.source,
   base: init.base,
+  firstRun: init.firstRun,
+  setFirstRun(v) {
+    set({ firstRun: v });
+  },
   restoredDraft: null,
   setRestoredDraft(d) {
     set({ restoredDraft: d });
@@ -195,7 +202,7 @@ export const useStudio = create<StudioState>((set, get) => ({
       selected: null,
       lastKey: null,
       ...(name ? { name } : {}),
-      ...(newDesign ? { designId: newId(), source: null, base: null, restoredDraft: null } : {}),
+      ...(newDesign ? { designId: newId(), source: null, base: null, restoredDraft: null, firstRun: false } : {}),
       ...(s.dataMode === "sample" ? { data: sampleFor(config) } : {}),
     });
   },
@@ -336,6 +343,7 @@ export const useStudio = create<StudioState>((set, get) => ({
       source: null,
       base: null,
       restoredDraft: null,
+      firstRun: false,
       name: "Untitled design",
       config,
       past: [],
@@ -345,13 +353,14 @@ export const useStudio = create<StudioState>((set, get) => ({
     });
   },
   openDesign(d) {
-    set((s) => ({ designId: d.id, source: d.source ?? null, base: d.base ?? null, restoredDraft: null, name: d.name, config: d.config, past: [], future: [], selected: null, ...(s.dataMode === "sample" ? { data: sampleFor(d.config) } : {}) }));
+    set((s) => ({ designId: d.id, source: d.source ?? null, base: d.base ?? null, restoredDraft: null, firstRun: false, name: d.name, config: d.config, past: [], future: [], selected: null, ...(s.dataMode === "sample" ? { data: sampleFor(d.config) } : {}) }));
   },
   openSource(source, committed, name) {
     const kept = findDesignBySource(source);
     const config = normalizeConfig(kept?.config ?? committed).config;
     set((s) => ({
       designId: kept?.id ?? newId(),
+      firstRun: false,
       source,
       // drafts saved before bases were kept count as started from what the source holds now
       base: kept?.base ?? committed,
