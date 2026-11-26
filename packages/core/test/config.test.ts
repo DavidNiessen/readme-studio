@@ -27,7 +27,7 @@ describe("config normalisation", () => {
     expect(config.layout).toHaveLength(1);
     expect(config.layout[0].blocks[0].id).toBe("hero-banner");
     expect(config.layout[0].blocks[0].options.glitch).toBe(true);
-    expect(config.output.branch).toBe("output");
+    expect(config.output.branch).toBe("readme-studio");
     expect(config.output.modes).toEqual(["light"]);
     expect(warnings.some((w) => w.includes("unknown"))).toBe(true);
   });
@@ -64,8 +64,8 @@ describe("readme composer", () => {
 
   it("emits theme-aware pictures pointing at the asset branch", () => {
     const md = renderReadme(c, data);
-    expect(assetBase(c)).toBe("https://raw.githubusercontent.com/mona/mona/output");
-    expect(md).toContain('<source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/mona/mona/output/hero-dark.svg">');
+    expect(assetBase(c)).toBe("https://raw.githubusercontent.com/mona/mona/readme-studio");
+    expect(md).toContain('<source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/mona/mona/readme-studio/hero-dark.svg">');
     expect(md).toContain('<img alt="');
     expect(md).toContain('height="52"');
     expect(md).not.toContain("undefined");

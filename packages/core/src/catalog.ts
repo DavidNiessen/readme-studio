@@ -143,7 +143,7 @@ Everything is driven by one file, \`readme.config.json\` (schema: ${SCHEMA_URL})
 - \`kind\`: "profile" (the <login>/<login> repository) or "project" (any public repository; set \`project.repo\`).
 - \`layout\`: array of rows \`{ align, blocks: [{ id, type, options, hidden?, link? }] }\`. Blocks in one row sit side by side (use half-width widgets in pairs). \`id\` becomes the image file name.
 - \`theme\`: \`preset\` (palette), \`font\`, \`headingFont\`, \`radius\`, \`border\`, \`texture\` (dots|grid|lines|none), \`motion\` (full|subtle|off), \`surface\`, optional \`accent\` to generate a palette.
-- \`output\`: \`branch\` (asset branch, default "output"), \`modes\` (["dark","light"]), \`schedule\` (cron), \`repository\`.
+- \`output\`: \`branch\` (asset branch, default "readme-studio"), \`modes\` (["dark","light"]), \`schedule\` (cron), \`repository\`.
 - Free text accepts placeholders: ${PLACEHOLDERS.map((p) => p.token).join(" ")}.
 - Unknown widgets are skipped and invalid values repaired; \`validate\` lists every repair.
 

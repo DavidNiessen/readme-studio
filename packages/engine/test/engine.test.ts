@@ -99,7 +99,7 @@ describe("build", () => {
     expect(existsSync(join(out, "preview.html"))).toBe(true);
     expect(existsSync(join(out, "hero-dark.svg"))).toBe(true);
     expect(existsSync(join(out, "hero-light.svg"))).toBe(true);
-    expect(res.readme).toContain("raw.githubusercontent.com/mona/mona/output/hero-dark.svg");
+    expect(res.readme).toContain("raw.githubusercontent.com/mona/mona/readme-studio/hero-dark.svg");
     expect(dataNeeds(config).weather).toBe(true);
     expect(existsSync(join(out, "skyline-dark.gif"))).toBe(true);
   });
@@ -129,8 +129,8 @@ describe("publish", () => {
     const assets = tmp();
     mkdirSync(join(assets, "sub"), { recursive: true });
     writeFileSync(join(assets, "a-dark.svg"), "<svg/>");
-    publishAssets({ dir: assets, repository: "mona/mona", branch: "output", token: "t", remote });
-    expect(git(remote, "ls-tree", "--name-only", "output")).toContain("a-dark.svg");
+    publishAssets({ dir: assets, repository: "mona/mona", branch: "readme-studio", token: "t", remote });
+    expect(git(remote, "ls-tree", "--name-only", "readme-studio")).toContain("a-dark.svg");
 
     const md = join(tmp(), "README.md");
     writeFileSync(md, "new\n");

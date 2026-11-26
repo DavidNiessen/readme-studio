@@ -114,7 +114,7 @@ export const DEFAULT_PROJECT: ProjectInfo = {
   packages: { npm: "", pypi: "", crates: "" },
 };
 
-export const DEFAULT_OUTPUT: OutputSettings = { branch: "output", modes: ["dark", "light"], repository: "", schedule: "17 2 * * *" };
+export const DEFAULT_OUTPUT: OutputSettings = { branch: "readme-studio", modes: ["dark", "light"], repository: "", schedule: "17 2 * * *" };
 
 // ------------------------------------------------------------ helpers
 

@@ -11380,7 +11380,7 @@ var DEFAULT_PROJECT = {
   homepage: "",
   packages: { npm: "", pypi: "", crates: "" }
 };
-var DEFAULT_OUTPUT = { branch: "output", modes: ["dark", "light"], repository: "", schedule: "17 2 * * *" };
+var DEFAULT_OUTPUT = { branch: "readme-studio", modes: ["dark", "light"], repository: "", schedule: "17 2 * * *" };
 var counter = 0;
 function uid2(prefix = "r") {
   counter = (counter + 1) % 1e6;

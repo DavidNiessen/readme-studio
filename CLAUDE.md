@@ -40,7 +40,7 @@ CI (`.github/workflows/ci.yml`) runs `typecheck`, `test`, `bundle` and fails if 
 
 - `build.ts`: loads data and renders every part to files, plus `README.md`, `preview.html` and `data.json`. GIFs are rasterised with resvg in `raster.ts`.
 - `action.ts`: the action entry point. It publishes only on the repository's default branch (`branch.ts`); pull requests and other branches render only.
-- `publish.ts`: force-pushes the assets to an orphan asset branch (default `output`), then commits `README.md` with `[skip ci]` only when it changed.
+- `publish.ts`: force-pushes the assets to an orphan asset branch (default `readme-studio`), then commits `README.md` with `[skip ci]` only when it changed.
 - `cli.ts`: everything the studio does, scriptable. `--json` gives machine-readable output, and `link` encodes a share token.
 - `dist/{action,cli}.mjs` are self-contained esbuild bundles (`scripts/bundle.ts`). **Commit them whenever core or engine changes.** Users' workflows run them straight from the `v1` tag.
 
