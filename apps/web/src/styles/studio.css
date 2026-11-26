@@ -638,6 +638,70 @@
 .cv-md ol {
   padding-left: 2em;
 }
+/* GitHub's look for the rest of Markdown: tables, code blocks, rules, task lists, details */
+.cv-md table {
+  display: block;
+  width: max-content;
+  max-width: 100%;
+  overflow: auto;
+  border-spacing: 0;
+  border-collapse: collapse;
+}
+.cv-md th,
+.cv-md td {
+  padding: 6px 13px;
+  border: 1px solid var(--frame-border);
+  min-width: 2em;
+}
+.cv-md th {
+  font-weight: 600;
+}
+.cv-md tr:nth-child(2n) td {
+  background: color-mix(in srgb, var(--frame-muted) 8%, transparent);
+}
+.cv-md pre {
+  padding: 16px;
+  overflow: auto;
+  border-radius: 6px;
+  font-size: 85%;
+  line-height: 1.45;
+  background: color-mix(in srgb, var(--frame-muted) 12%, transparent);
+}
+.cv-md pre code {
+  padding: 0;
+  background: none;
+  font-size: 100%;
+}
+.cv-md hr {
+  height: 0.25em;
+  margin: 24px 0;
+  padding: 0;
+  border: 0;
+  background: var(--frame-border);
+}
+.cv-md li:has(> input[type="checkbox"]) {
+  list-style: none;
+}
+.cv-md li > input[type="checkbox"] {
+  margin: 0 0.2em 0.25em -1.4em;
+  vertical-align: middle;
+}
+.cv-md h4,
+.cv-md h5,
+.cv-md h6 {
+  font-size: 1em;
+  margin: 0.6em 0 12px;
+}
+.cv-md details {
+  margin: 0 0 16px;
+}
+.cv-md kbd {
+  padding: 3px 5px;
+  font: 11px var(--font-mono);
+  border: 1px solid var(--frame-border);
+  border-bottom-width: 2px;
+  border-radius: 6px;
+}
 
 .canvas-empty {
   display: grid;
@@ -1685,5 +1749,183 @@
 @media (max-width: 560px) {
   .gh-steps li {
     flex-wrap: wrap;
+  }
+}
+
+/* ------------------------------------------------- Markdown editor on the canvas */
+
+.cv-md.is-editing {
+  padding: 0;
+  outline-color: var(--sel);
+  cursor: auto;
+}
+.md-editor {
+  display: grid;
+  border-radius: 6px;
+  overflow: hidden;
+  /* the text sits on the README's own colours, the tools on the studio's */
+  background: var(--frame-bg);
+  color: var(--frame-fg);
+}
+.md-editor__bar,
+.md-editor__ask,
+.md-editor__foot {
+  font-family: var(--font-sans);
+  color: var(--ink);
+}
+.md-editor__bar {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px;
+  padding: 6px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+.md-tool {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+.md-tool:hover,
+.md-tool:focus-visible,
+.md-tool[aria-expanded="true"] {
+  background: var(--sunken);
+  color: var(--ink);
+}
+.md-tool svg {
+  width: 15px;
+  height: 15px;
+}
+.md-sep {
+  width: 1px;
+  height: 18px;
+  margin: 0 4px;
+  background: var(--line);
+}
+.md-table-tools {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.md-chip {
+  height: 24px;
+  padding: 0 8px;
+  border: 1px solid var(--line);
+  border-radius: 99px;
+  background: var(--surface);
+  color: var(--ink-2);
+  font: inherit;
+  font-size: var(--t-xs);
+  cursor: pointer;
+}
+.md-chip:hover {
+  border-color: var(--line-strong);
+  color: var(--ink);
+}
+.md-editor__modes {
+  margin-left: auto;
+  width: 290px;
+}
+.md-editor__ask {
+  display: flex;
+  align-items: end;
+  gap: 8px;
+  padding: 8px 10px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+.md-editor__ask label {
+  flex: 1;
+  display: grid;
+  gap: 4px;
+  font-size: var(--t-xs);
+  color: var(--muted);
+}
+.md-editor__body {
+  display: grid;
+  min-height: 220px;
+}
+.md-editor__body.is-split {
+  grid-template-columns: 1fr 1fr;
+}
+.md-editor__rich,
+.md-editor__preview {
+  padding: 12px 16px;
+  outline: none;
+  min-height: 220px;
+  overflow-wrap: anywhere;
+}
+.md-editor__preview {
+  border-left: 1px solid var(--line);
+  overflow: auto;
+}
+.md-editor__rich:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
+.md-editor__raw {
+  width: 100%;
+  min-height: 320px;
+  resize: vertical;
+  padding: 12px 14px;
+  border: 0;
+  outline: none;
+  background: var(--surface);
+  color: var(--ink);
+  font: 13px/1.6 var(--font-mono);
+  tab-size: 2;
+}
+.md-editor__foot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+  font-size: var(--t-xs);
+}
+.md-hint {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.md-count {
+  font-family: var(--font-mono);
+  color: var(--muted);
+}
+.md-count.is-over {
+  color: var(--danger);
+}
+.md-summary {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.md-summary > .btn {
+  justify-self: start;
+}
+@media (max-width: 760px) {
+  .md-editor__body.is-split {
+    grid-template-columns: 1fr;
+  }
+  .md-editor__preview {
+    border-left: 0;
+    border-top: 1px solid var(--line);
+  }
+  .md-editor__modes {
+    width: 100%;
+    margin-left: 0;
   }
 }

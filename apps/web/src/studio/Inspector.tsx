@@ -14,6 +14,7 @@ import {
   type ProfileLink,
   type ProjectInfo,
   type ThemeSettings,
+  PLACEHOLDER_HELP,
 } from "@readme-studio/core";
 import {
   AlertTriangle,
@@ -34,6 +35,7 @@ import {
   User,
   Wand2,
   FolderGit2,
+  Pencil,
   Plus,
   X,
 } from "lucide-react";
@@ -95,9 +97,13 @@ function BlockPanel() {
       <div className="panel__section">
         <div className="subhead">Options</div>
         {def.fields.length === 0 && <p className="field__help">This widget has no options; it follows your theme and profile.</p>}
-        {def.fields.map((f) => (
-          <FieldControl key={f.key} field={f} values={values} onChange={(patch) => setOptions(b.id, patch)} />
-        ))}
+        {def.type === "markdown" && <MarkdownSummary id={b.id} text={String(values.text ?? "")} />}
+        {def.fields
+          // Markdown is edited on the canvas, where it renders, not in a box here
+          .filter((f) => !(def.type === "markdown" && f.key === "text"))
+          .map((f) => (
+            <FieldControl key={f.key} field={f} values={values} onChange={(patch) => setOptions(b.id, patch)} />
+          ))}
       </div>
       {LINK_WIDGETS.has(b.type) && <LinksEditor />}
       <div className="panel__section">
@@ -243,6 +249,22 @@ function ProjectPanel() {
 }
 
 // ---------------------------------------------------------------- profile
+
+/** A Markdown block's text at a glance, and the way into the editor on the canvas. */
+function MarkdownSummary({ id, text }: { id: string; text: string }) {
+  const editMarkdown = useStudio((s) => s.editMarkdown);
+  const first = text.split("\n").find((l) => l.trim())?.trim() ?? "";
+  return (
+    <div className="md-summary">
+      <Button variant="primary" onClick={() => editMarkdown(id)}>
+        <Pencil /> Edit Markdown
+      </Button>
+      <p className="field__help">
+        Or double-click it on the canvas. {text.length.toLocaleString()} characters{first ? ` · starts “${first.length > 60 ? `${first.slice(0, 60)}…` : first}”` : ""}. {PLACEHOLDER_HELP}
+      </p>
+    </div>
+  );
+}
 
 /** Widgets that show the profile's links, and so edit them. */
 const LINK_WIDGETS = new Set(["socials", "contact"]);

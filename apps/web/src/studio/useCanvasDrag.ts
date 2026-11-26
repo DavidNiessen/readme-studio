@@ -96,7 +96,7 @@ export function useCanvasDrag(scroller: React.RefObject<HTMLElement | null>) {
   const handle = (id: string) => ({
     onPointerDown: (e: React.PointerEvent) => {
       if (e.button !== 0 || e.pointerType === "touch") return;
-      if ((e.target as HTMLElement).closest(".cv-tools, a[href], textarea, input")) return;
+      if ((e.target as HTMLElement).closest(".cv-tools, .md-editor, a[href], textarea, input, [contenteditable]")) return;
       press.current = { id, x: e.clientX, y: e.clientY };
     },
     onDragStart: (e: React.DragEvent) => e.preventDefault(),

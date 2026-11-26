@@ -9,6 +9,7 @@ export { mockData, mockProject, mockWeeks, assignLevels, rng, hashSeed } from ".
 export * from "./widgets/types";
 export { widgetList, getWidget } from "./widgets/registry";
 export { fillOutsideCode } from "./widgets/markdown";
+export { PLACEHOLDERS, PLACEHOLDER_HELP } from "./widgets/placeholders";
 export * from "./lib/color";
 export { icon, iconList, iconSvg, hasIcon, type Icon } from "./lib/icons";
 export { encodeGif, type Frame } from "./lib/gif";

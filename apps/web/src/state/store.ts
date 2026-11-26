@@ -36,6 +36,9 @@ interface StudioState {
   selected: string | null;
   /** every selected block, in layer order; holds `selected` whenever something is selected */
   selection: string[];
+  /** the Markdown block being edited on the canvas, if any */
+  editing: string | null;
+  editMarkdown: (id: string | null) => void;
   mode: Mode;
   device: "desktop" | "mobile";
   epoch: number;
@@ -151,6 +154,10 @@ export const useStudio = create<StudioState>((set, get) => ({
 
   selected: null,
   selection: [],
+  editing: null,
+  editMarkdown(id) {
+    set(id ? { editing: id, selected: id, selection: [id], tab: "block" } : { editing: null });
+  },
   mode: getPref<Mode>("mode", "dark"),
   device: "desktop",
   epoch: 0,
@@ -397,8 +404,10 @@ export const useStudio = create<StudioState>((set, get) => ({
  * deleting): a single selection follows it, and blocks that no longer exist drop out.
  */
 useStudio.subscribe((s, prev) => {
-  if (s.selected === prev.selected && s.config === prev.config && s.selection === prev.selection) return;
+  if (s.selected === prev.selected && s.config === prev.config && s.selection === prev.selection && s.designId === prev.designId) return;
   const ids = new Set(flatten(s.config).map((x) => x.block.id));
+  // the Markdown editor closes with its block, or when another design opens
+  if (s.editing && (!ids.has(s.editing) || s.designId !== prev.designId)) useStudio.setState({ editing: null });
   let selection = s.selection.filter((id) => ids.has(id));
   if (!s.selected) selection = [];
   else if (!selection.includes(s.selected)) selection = [s.selected];

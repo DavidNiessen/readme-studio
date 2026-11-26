@@ -8,6 +8,7 @@ import { useRenderedLayout, type RenderedPart } from "../lib/render";
 import { resolveRepoLinks } from "../lib/repoLinks";
 import { useStudio } from "../state/store";
 import { clickBlock, onBlockContextMenu, onEmptyContextMenu } from "./blockActions";
+import { MarkdownEditor } from "./markdown/MarkdownEditor";
 import { useCanvasDrag, type DropAt } from "./useCanvasDrag";
 
 type DragHandle = ReturnType<typeof useCanvasDrag>["handle"];
@@ -43,6 +44,7 @@ function Tools({ id }: { id: string }) {
 
 function Markdown({ part, repo, selected, primary, drop, drag, dragged }: { part: RenderedPart; repo: string; selected: boolean; primary: boolean; drop: DropAt | null; drag: DragHandle; dragged: boolean }) {
   const id = part.meta.block.id;
+  const editable = part.meta.block.type === "markdown";
   // relative images and links resolve against the design's repository, as they do on GitHub
   const html = useMemo(() => resolveRepoLinks(marked.parse(part.markdown ?? "", { async: false }) as string, repo), [part.markdown, repo]);
   return (
@@ -50,6 +52,13 @@ function Markdown({ part, repo, selected, primary, drop, drag, dragged }: { part
       className={cn("cv-md", selected && "is-selected", dragged && "is-dragged", drop?.id === id && (drop.after ? "is-drop-after" : "is-drop-before"))}
       data-block={id}
       {...drag(id)}
+      onDoubleClick={(e) => {
+        // only Markdown text blocks hold text to edit; others (a table of contents) render Markdown
+        if (!editable) return;
+        e.stopPropagation();
+        useStudio.getState().editMarkdown(id);
+      }}
+      title={editable ? "Double-click to edit" : undefined}
       onContextMenu={(e) => onBlockContextMenu(e, id)}
       onClick={(e) => {
         // the canvas behind clears the selection on click, so the click stops here
@@ -75,7 +84,7 @@ function Markdown({ part, repo, selected, primary, drop, drag, dragged }: { part
 }
 
 export function Canvas() {
-  const { config, data, mode, device, epoch, selected, selection, select, openDialog, setRailTab, setPane } = useStudio();
+  const { config, data, mode, device, epoch, selected, selection, select, openDialog, setRailTab, setPane, editing, editMarkdown, setOptions } = useStudio();
   const { rows } = useRenderedLayout(config, data, mode);
   const scroller = useRef<HTMLElement>(null);
   const { drag: dragging, drop, handle } = useCanvasDrag(scroller);
@@ -149,7 +158,18 @@ export function Canvas() {
                 return (
                   <div key={row.rowId} className="cv-rowwrap">
                     {md.map((p) => (
-                      <Markdown key={p.meta.name} part={p} repo={repo} selected={selection.includes(p.meta.block.id)} primary={selected === p.meta.block.id} drop={drop} drag={handle} dragged={!!dragging?.ids.includes(p.meta.block.id)} />
+                      editing === p.meta.block.id && p.meta.block.type === "markdown" ? (
+                        <div key={p.meta.name} className="cv-md is-selected is-editing" data-block={p.meta.block.id}>
+                          <MarkdownEditor
+                            text={String(p.meta.block.options.text ?? "")}
+                            repo={repo}
+                            onChange={(text) => setOptions(p.meta.block.id, { text }, `md:${p.meta.block.id}`)}
+                            onClose={() => editMarkdown(null)}
+                          />
+                        </div>
+                      ) : (
+                        <Markdown key={p.meta.name} part={p} repo={repo} selected={selection.includes(p.meta.block.id)} primary={selected === p.meta.block.id} drop={drop} drag={handle} dragged={!!dragging?.ids.includes(p.meta.block.id)} />
+                      )
                     ))}
                     {images.length > 0 && (
                       <div className="cv-row" style={{ textAlign: row.align as "left" }}>
