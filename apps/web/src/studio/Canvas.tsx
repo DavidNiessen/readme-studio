@@ -94,7 +94,7 @@ export function Canvas() {
                 const images = row.parts.filter((p) => p.meta.kind !== "markdown");
                 const md = row.parts.filter((p) => p.meta.kind === "markdown");
                 return (
-                  <div key={row.rowId}>
+                  <div key={row.rowId} className="cv-rowwrap">
                     {md.map((p) => (
                       <Markdown
                         key={p.meta.name}
