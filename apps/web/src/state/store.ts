@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { getLayoutPreset, getWidget, hashSeed, mockData, mockWeeks, normalizeConfig, presetConfig, type Mode, type ProfileData, type StudioConfig } from "@readme-studio/core";
-import { addBlock, duplicateBlock, findBlock, moveBlock, removeBlock, renameBlock, updateOptions } from "../lib/layout";
+import { addBlock, duplicateBlock, findBlock, flatten, moveBlock, removeBlock, renameBlock, updateBlock, updateOptions } from "../lib/layout";
 import { findDesignBySource, getCurrentId, getPref, loadDesigns, saveDesign, setCurrentId, setPref, type SavedDesign } from "../lib/storage";
 
 export type InspectorTab = "block" | "profile" | "project" | "theme" | "data";
@@ -26,7 +26,10 @@ interface StudioState {
   lastAt: number;
   savedAt: number;
 
+  /** the block the inspector shows (the last one clicked) */
   selected: string | null;
+  /** every selected block, in layer order; holds `selected` whenever something is selected */
+  selection: string[];
   mode: Mode;
   device: "desktop" | "mobile";
   epoch: number;
@@ -60,6 +63,16 @@ interface StudioState {
   remove: (id: string) => void;
   duplicate: (id: string) => void;
   move: (id: string, dir: -1 | 1) => void;
+  /** Ctrl/⌘-click: adds a block to the selection or takes it out. */
+  toggleSelect: (id: string) => void;
+  /** Shift-click: selects every block from the last one clicked to this one. */
+  rangeSelect: (id: string) => void;
+  selectAll: () => void;
+  /** Bulk actions on several blocks, each one undoable step. */
+  removeMany: (ids: string[]) => void;
+  duplicateMany: (ids: string[]) => void;
+  moveMany: (ids: string[], dir: -1 | 1) => void;
+  setHidden: (ids: string[], hidden: boolean) => void;
   setOptions: (id: string, patch: Record<string, unknown>, key?: string) => void;
   rename: (id: string, wanted: string) => void;
 
@@ -115,6 +128,7 @@ export const useStudio = create<StudioState>((set, get) => ({
   savedAt: 0,
 
   selected: null,
+  selection: [],
   mode: getPref<Mode>("mode", "dark"),
   device: "desktop",
   epoch: 0,
@@ -178,7 +192,7 @@ export const useStudio = create<StudioState>((set, get) => ({
   },
 
   select(id) {
-    set((s) => ({ selected: id, tab: id ? "block" : s.tab === "block" ? "theme" : s.tab }));
+    set((s) => ({ selected: id, selection: id ? [id] : [], tab: id ? "block" : s.tab === "block" ? "theme" : s.tab }));
   },
   setMode(m) {
     setPref("mode", m);
@@ -228,6 +242,60 @@ export const useStudio = create<StudioState>((set, get) => ({
   },
   move(id, dir) {
     get().commit((c) => moveBlock(c, id, dir));
+  },
+  toggleSelect(id) {
+    const s = get();
+    const order = flatten(s.config).map((x) => x.block.id);
+    const has = s.selection.includes(id);
+    const selection = order.filter((x) => (x === id ? !has : s.selection.includes(x)));
+    const selected = has ? (s.selected === id ? (selection[selection.length - 1] ?? null) : s.selected) : id;
+    set({ selection, selected, tab: selected ? "block" : s.tab === "block" ? "theme" : s.tab });
+  },
+  rangeSelect(id) {
+    const s = get();
+    const order = flatten(s.config).map((x) => x.block.id);
+    const from = order.indexOf(s.selected ?? id);
+    const to = order.indexOf(id);
+    if (from < 0 || to < 0) return get().select(id);
+    const [a, b] = from < to ? [from, to] : [to, from];
+    set({ selection: order.slice(a, b + 1), selected: id, tab: "block" });
+  },
+  selectAll() {
+    const order = flatten(get().config).map((x) => x.block.id);
+    set({ selection: order, selected: order[order.length - 1] ?? null, tab: order.length ? "block" : get().tab });
+  },
+  removeMany(ids) {
+    if (ids.length <= 1) return ids[0] ? get().remove(ids[0]) : undefined;
+    get().commit((c) => ids.reduce(removeBlock, c));
+    set({ selected: null, selection: [] });
+  },
+  duplicateMany(ids) {
+    if (ids.length <= 1) return ids[0] ? get().duplicate(ids[0]) : undefined;
+    const made: string[] = [];
+    get().commit((c) =>
+      ids.reduce((acc, id) => {
+        const r = duplicateBlock(acc, id);
+        made.push(r.id);
+        return r.config;
+      }, c),
+    );
+    // the copies become the selection, ready to move or restyle together
+    const order = flatten(get().config).map((x) => x.block.id);
+    const selection = order.filter((x) => made.includes(x));
+    set({ selection, selected: selection[selection.length - 1] ?? null });
+  },
+  moveMany(ids, dir) {
+    if (ids.length <= 1) return ids[0] ? get().move(ids[0], dir) : undefined;
+    const order = flatten(get().config).map((x) => x.block.id);
+    const sorted = order.filter((x) => ids.includes(x));
+    // the block at the edge leads, so the group keeps its order; at the very edge nothing moves
+    const lead = dir < 0 ? sorted : [...sorted].reverse();
+    const edge = dir < 0 ? order[0] : order[order.length - 1];
+    if (lead[0] === edge) return;
+    get().commit((c) => lead.reduce((acc, id) => moveBlock(acc, id, dir), c));
+  },
+  setHidden(ids, hidden) {
+    get().commit((c) => ids.reduce((acc, id) => updateBlock(acc, id, { hidden: hidden || undefined }), c));
   },
   setOptions(id, patch, key) {
     get().commit((c) => updateOptions(c, id, patch), key ?? `opt:${id}:${Object.keys(patch).join(",")}`);
@@ -294,6 +362,19 @@ export const useStudio = create<StudioState>((set, get) => ({
     set({ base: config, selected: null });
   },
 }));
+
+/**
+ * Keeps the selection in step with everything else that sets `selected` (clicks, undo, adding,
+ * deleting): a single selection follows it, and blocks that no longer exist drop out.
+ */
+useStudio.subscribe((s, prev) => {
+  if (s.selected === prev.selected && s.config === prev.config && s.selection === prev.selection) return;
+  const ids = new Set(flatten(s.config).map((x) => x.block.id));
+  let selection = s.selection.filter((id) => ids.has(id));
+  if (!s.selected) selection = [];
+  else if (!selection.includes(s.selected)) selection = [s.selected];
+  if (selection.length !== s.selection.length || selection.some((x, i) => x !== s.selection[i])) useStudio.setState({ selection });
+});
 
 /** Debounced autosave of the current design. */
 let saveTimer = 0;

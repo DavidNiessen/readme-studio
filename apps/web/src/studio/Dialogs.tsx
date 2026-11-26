@@ -19,6 +19,8 @@ import {
   Download,
   UploadCloud,
   FileJson,
+  FileText,
+  FolderGit2,
   FolderOpen,
   ImageDown,
   LayoutTemplate,
@@ -39,7 +41,13 @@ import { Button, CodeBlock, CopyButton, Dialog, Field, Kbd, MOD, Segmented, Sele
 import { assetsZip, download, projectFiles, projectZip } from "../lib/export";
 import { shareUrl } from "../lib/share";
 import { deleteDesign, loadDesigns, type SavedDesign } from "../lib/storage";
+import { GitHub } from "../github/api";
+import { designFromReadme, openDesign, RepoUnavailable } from "../github/design";
+import { repoRef } from "../github/repo";
 import { useStudio } from "../state/store";
+import { suggestedRepo } from "./github/SaveToGitHub";
+import { webPlatform } from "./github/webPlatform";
+import { useStudioHost } from "./host";
 
 // ---------------------------------------------------------------- export
 
@@ -278,66 +286,185 @@ function PresetsDialog() {
 
 // ---------------------------------------------------------------- import
 
+type ImportFrom = "config" | "markdown" | "github";
+
+/**
+ * Starts a design from something that exists: a readme.config.json, any README's Markdown
+ * (pasted or dropped), or a GitHub repository (its design, else its README).
+ */
 function ImportDialog() {
-  const { dialog, openDialog, replace } = useStudio();
+  const { dialog, openDialog, replace, config } = useStudio();
   const toast = useToast();
+  const host = useStudioHost();
+  const [from, setFrom] = useState<ImportFrom>("config");
   const [text, setText] = useState("");
+  const [markdown, setMarkdown] = useState("");
+  const [repoText, setRepoText] = useState("");
+  const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [over, setOver] = useState(false);
   const input = useRef<HTMLInputElement>(null);
-  const apply = (raw: string, name?: string) => {
+  const open = dialog === "import";
+
+  useEffect(() => {
+    if (!open) return;
+    setError(null);
+    setRepoText(suggestedRepo(useStudio.getState().config));
+  }, [open]);
+
+  const done = (msg: string, warn = false) => {
+    openDialog(null);
+    setText("");
+    setMarkdown("");
+    setError(null);
+    toast(msg, warn ? <AlertTriangle /> : undefined);
+  };
+
+  const applyConfig = (raw: string, name?: string) => {
     try {
       const { config, warnings } = parseConfig(raw);
       replace(config, name, true);
-      openDialog(null);
-      setText("");
-      setError(null);
-      toast(warnings.length ? `Imported with ${warnings.length} warning(s)` : "Design imported", warnings.length ? <AlertTriangle /> : undefined);
+      done(warnings.length ? `Imported with ${warnings.length} warning(s)` : "Design imported", warnings.length > 0);
     } catch (e) {
       setError(`That isn't valid JSON: ${(e as Error).message}`);
     }
   };
-  const readFile = async (f: File) => apply(await f.text(), f.name.replace(/\.json$/, ""));
+
+  const applyMarkdown = (md: string) => {
+    const repo = repoRef(repoText);
+    if (!repo) return setError("Enter the repository the README belongs to, as owner/name.");
+    if (!md.trim()) return setError("Paste some Markdown first.");
+    replace(designFromReadme(repo, md), `${repo.full} README`, true);
+    done("Started a design from your Markdown");
+  };
+
+  const applyGitHub = async () => {
+    const repo = repoRef(repoText);
+    if (!repo) return setError("Enter a repository as owner/name.");
+    setBusy(true);
+    setError(null);
+    try {
+      const auth = await (host?.github ?? webPlatform).loadAuth();
+      const opened = await openDesign(new GitHub(auth?.token ?? null), repo);
+      if (!opened.configExists && !opened.importedReadme) return setError(`${repo.full} has no README yet.`);
+      replace(opened.config, opened.name, true);
+      done(opened.configExists ? `Opened the design in ${repo.full}` : `Started from ${repo.full}'s ${opened.importedReadme}`);
+    } catch (e) {
+      if (e instanceof RepoUnavailable && e.rateLimited) setError("GitHub is limiting requests without signing in. Add a token under Save to GitHub, or try again later.");
+      else if (e instanceof RepoUnavailable) setError(e.signedIn ? `${repo.full} was not found, or your token cannot see it.` : `${repo.full} was not found. If it is private, add a token under Save to GitHub first.`);
+      else setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  // a dropped or chosen file goes where its kind belongs
+  const readFile = async (f: File) => {
+    const body = await f.text();
+    if (/\.(md|markdown|mdx|txt)$/i.test(f.name)) {
+      setFrom("markdown");
+      setMarkdown(body);
+    } else applyConfig(body, f.name.replace(/\.json$/, ""));
+  };
+
+  const repoField = (label: string, help: string) => (
+    <Field label={label} help={help}>
+      <TextInput mono aria-label={label} placeholder="owner/name" value={repoText} onChange={(v) => setRepoText(v.trim())} />
+    </Field>
+  );
+
   return (
     <Dialog
-      open={dialog === "import"}
+      open={open}
       onClose={() => openDialog(null)}
       title="Import a design"
-      subtitle="Open a readme.config.json from your profile repository, or paste its contents."
+      subtitle="Start from a Readme Studio config, from any README's Markdown, or from a repository on GitHub."
       width={600}
       footer={
         <>
           <Button onClick={() => openDialog(null)}>Cancel</Button>
-          <Button variant="primary" disabled={!text.trim()} onClick={() => apply(text)}>
-            <Upload /> Import
-          </Button>
+          {from === "config" && (
+            <Button variant="primary" disabled={!text.trim()} onClick={() => applyConfig(text)}>
+              <Upload /> Import
+            </Button>
+          )}
+          {from === "markdown" && (
+            <Button variant="primary" disabled={!markdown.trim()} onClick={() => applyMarkdown(markdown)}>
+              <Upload /> Import Markdown
+            </Button>
+          )}
+          {from === "github" && (
+            <Button variant="primary" disabled={!repoRef(repoText) || busy} onClick={applyGitHub}>
+              <FolderGit2 /> {busy ? "Importing…" : "Import from GitHub"}
+            </Button>
+          )}
         </>
       }
     >
-      <div
-        className={cn("drop", over && "is-over")}
-        onDragOver={(e) => {
-          e.preventDefault();
-          setOver(true);
-        }}
-        onDragLeave={() => setOver(false)}
-        onDrop={(e) => {
-          e.preventDefault();
-          setOver(false);
-          const f = e.dataTransfer.files[0];
-          if (f) readFile(f);
-        }}
-      >
-        <FileJson />
-        <span>Drop readme.config.json here</span>
-        <Button size="sm" onClick={() => input.current?.click()}>
-          <FolderOpen /> Choose file
-        </Button>
-        <input ref={input} type="file" accept="application/json,.json" hidden onChange={(e) => e.target.files?.[0] && readFile(e.target.files[0])} />
+      <div style={{ marginBottom: 14 }}>
+        <Segmented<ImportFrom>
+          label="Import from"
+          value={from}
+          onChange={(v) => {
+            setFrom(v);
+            setError(null);
+          }}
+          options={[
+            { value: "config", label: "Config", icon: <FileJson /> },
+            { value: "markdown", label: "Markdown", icon: <FileText /> },
+            { value: "github", label: "GitHub README", icon: <FolderGit2 /> },
+          ]}
+        />
       </div>
-      <Field label="…or paste JSON">
-        <textarea className="json-editor" style={{ minHeight: 180 }} value={text} onChange={(e) => setText(e.target.value)} spellCheck={false} placeholder='{ "profile": { "login": "…" }, … }' />
-      </Field>
+      {from === "github" ? (
+        <>
+          {repoField("Repository", "Its Readme Studio design when it has one, else its README, split into Markdown blocks under a header.")}
+        </>
+      ) : (
+        <div
+          className={cn("drop", over && "is-over")}
+          onDragOver={(e) => {
+            e.preventDefault();
+            setOver(true);
+          }}
+          onDragLeave={() => setOver(false)}
+          onDrop={(e) => {
+            e.preventDefault();
+            setOver(false);
+            const f = e.dataTransfer.files[0];
+            if (f) readFile(f);
+          }}
+        >
+          {from === "config" ? <FileJson /> : <FileText />}
+          <span>{from === "config" ? "Drop readme.config.json here" : "Drop README.md here"}</span>
+          <Button size="sm" onClick={() => input.current?.click()}>
+            <FolderOpen /> Choose file
+          </Button>
+          <input
+            ref={input}
+            type="file"
+            accept={from === "config" ? "application/json,.json" : ".md,.markdown,.mdx,.txt,text/markdown,text/plain"}
+            hidden
+            onChange={(e) => {
+              if (e.target.files?.[0]) readFile(e.target.files[0]);
+              e.target.value = "";
+            }}
+          />
+        </div>
+      )}
+      {from === "config" && (
+        <Field label="…or paste JSON">
+          <textarea className="json-editor" style={{ minHeight: 180 }} value={text} onChange={(e) => setText(e.target.value)} spellCheck={false} placeholder='{ "profile": { "login": "…" }, … }' />
+        </Field>
+      )}
+      {from === "markdown" && (
+        <>
+          <Field label="…or paste Markdown" help="Kept word for word, one Markdown block per section, under the header for its kind of README.">
+            <textarea className="json-editor" style={{ minHeight: 180 }} value={markdown} onChange={(e) => setMarkdown(e.target.value)} spellCheck={false} placeholder={"# My project\n\nWhat it does…\n\n## Install\n…"} />
+          </Field>
+          {repoField("Repository it belongs to", "Decides the header (a profile README for owner/owner, a project otherwise) and where relative links point.")}
+        </>
+      )}
       {error && (
         <div className="warn" style={{ marginTop: 10 }}>
           <AlertTriangle /> {error}
@@ -438,10 +565,15 @@ function ShortcutsDialog() {
     ["Command palette", <><Kbd>{MOD}</Kbd><Kbd>K</Kbd></>],
     ["Undo", <><Kbd>{MOD}</Kbd><Kbd>Z</Kbd></>],
     ["Redo", <><Kbd>{MOD}</Kbd><Kbd>⇧</Kbd><Kbd>Z</Kbd></>],
-    ["Duplicate widget", <><Kbd>{MOD}</Kbd><Kbd>D</Kbd></>],
-    ["Delete widget", <Kbd>Del</Kbd>],
-    ["Move widget up / down", <><Kbd>Alt</Kbd><Kbd>↑</Kbd><Kbd>↓</Kbd></>],
+    ["Select several widgets", <><Kbd>{MOD}</Kbd>/<Kbd>⇧</Kbd> click</>],
+    ["Select all", <><Kbd>{MOD}</Kbd><Kbd>A</Kbd></>],
+    ["Duplicate selected", <><Kbd>{MOD}</Kbd><Kbd>D</Kbd></>],
+    ["Delete selected", <Kbd>Del</Kbd>],
+    ["Hide / show selected", <Kbd>H</Kbd>],
+    ["Move selected up / down", <><Kbd>Alt</Kbd><Kbd>↑</Kbd><Kbd>↓</Kbd></>],
     ["Select previous / next", <><Kbd>↑</Kbd><Kbd>↓</Kbd></>],
+    ["Extend the selection", <><Kbd>⇧</Kbd><Kbd>↑</Kbd><Kbd>↓</Kbd></>],
+    ["More actions", <>right-click</>],
     ["Deselect", <Kbd>Esc</Kbd>],
     ["Add widget", <Kbd>A</Kbd>],
     ["Toggle dark / light preview", <Kbd>T</Kbd>],
@@ -574,7 +706,7 @@ function CommandPalette() {
       { group: "Actions", label: "Save to GitHub", icon: <UploadCloud />, run: () => s.openDialog("save") },
       { group: "Actions", label: "Export manually", icon: <Download />, run: () => s.openDialog("export") },
       { group: "Actions", label: "Browse presets", icon: <LayoutTemplate />, run: () => s.openDialog("presets") },
-      { group: "Actions", label: "Import config", icon: <Upload />, run: () => s.openDialog("import") },
+      { group: "Actions", label: "Import design", icon: <Upload />, run: () => s.openDialog("import") },
       { group: "Actions", label: "Edit config as JSON", icon: <FileJson />, run: () => s.openDialog("json") },
       {
         group: "Actions",

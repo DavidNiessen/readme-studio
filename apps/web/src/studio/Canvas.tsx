@@ -7,6 +7,7 @@ import { WidgetImage } from "../components/WidgetImage";
 import { useRenderedLayout, type RenderedPart } from "../lib/render";
 import { resolveRepoLinks } from "../lib/repoLinks";
 import { useStudio } from "../state/store";
+import { clickBlock, onBlockContextMenu, onEmptyContextMenu } from "./blockActions";
 
 marked.setOptions({ gfm: true, breaks: false });
 
@@ -14,54 +15,63 @@ function widthFor(count: number): string {
   return count <= 1 ? "100%" : `${Math.floor(100 / count) - 1}%`;
 }
 
+/** Quick actions on the block the inspector shows; with several selected they act on all of them. */
 function Tools({ id }: { id: string }) {
-  const { move, duplicate, remove } = useStudio();
+  const { moveMany, duplicateMany, removeMany, selection } = useStudio();
+  const ids = selection.includes(id) ? selection : [id];
+  const n = ids.length > 1 ? ` ${ids.length} widgets` : "";
   return (
     <div className="cv-tools" onClick={(e) => e.stopPropagation()}>
-      <IconButton size="sm" label="Move up" onClick={() => move(id, -1)} tipSide="top">
+      <IconButton size="sm" label="Move up" onClick={() => moveMany(ids, -1)} tipSide="top">
         <ArrowUp />
       </IconButton>
-      <IconButton size="sm" label="Move down" onClick={() => move(id, 1)} tipSide="top">
+      <IconButton size="sm" label="Move down" onClick={() => moveMany(ids, 1)} tipSide="top">
         <ArrowDown />
       </IconButton>
-      <IconButton size="sm" label="Duplicate" onClick={() => duplicate(id)} tipSide="top">
+      <IconButton size="sm" label={`Duplicate${n}`} onClick={() => duplicateMany(ids)} tipSide="top">
         <Copy />
       </IconButton>
-      <IconButton size="sm" label="Delete" onClick={() => remove(id)} tipSide="top">
+      <IconButton size="sm" label={`Delete${n}`} onClick={() => removeMany(ids)} tipSide="top">
         <Trash2 />
       </IconButton>
     </div>
   );
 }
 
-function Markdown({ part, repo, selected, onSelect }: { part: RenderedPart; repo: string; selected: boolean; onSelect: () => void }) {
+function Markdown({ part, repo, selected, primary }: { part: RenderedPart; repo: string; selected: boolean; primary: boolean }) {
+  const id = part.meta.block.id;
   // relative images and links resolve against the design's repository, as they do on GitHub
   const html = useMemo(() => resolveRepoLinks(marked.parse(part.markdown ?? "", { async: false }) as string, repo), [part.markdown, repo]);
   return (
     <div
       className={cn("cv-md", selected && "is-selected")}
-      data-block={part.meta.block.id}
+      data-block={id}
+      onContextMenu={(e) => onBlockContextMenu(e, id)}
       onClick={(e) => {
         // the canvas behind clears the selection on click, so the click stops here
         e.stopPropagation();
         const link = (e.target as HTMLElement).closest("a[href]") as HTMLAnchorElement | null;
         // a click on a link selects the block like any other click; Ctrl/⌘-click opens it
+        // (so on a link, Ctrl/⌘ does not add to the selection: Shift still does)
         if (link) {
           e.preventDefault();
-          if (e.metaKey || e.ctrlKey) window.open(link.href, "_blank", "noopener");
+          if ((e.metaKey || e.ctrlKey) && !e.shiftKey) {
+            window.open(link.href, "_blank", "noopener");
+            return;
+          }
         }
-        onSelect();
+        clickBlock(e, id, true);
       }}
     >
-      {selected && <div className="cv-tag">{part.meta.block.id}</div>}
-      {selected && <Tools id={part.meta.block.id} />}
+      {selected && <div className="cv-tag">{id}</div>}
+      {primary && <Tools id={id} />}
       <div dangerouslySetInnerHTML={{ __html: html }} />
     </div>
   );
 }
 
 export function Canvas() {
-  const { config, data, mode, device, epoch, selected, select, openDialog, setRailTab, setPane } = useStudio();
+  const { config, data, mode, device, epoch, selected, selection, select, openDialog, setRailTab, setPane } = useStudio();
   const { rows } = useRenderedLayout(config, data, mode);
   const scroller = useRef<HTMLElement>(null);
   const pending = useRef<string | null>(null);
@@ -88,10 +98,9 @@ export function Canvas() {
   const empty = !config.layout.length;
   const parts = rows.reduce((a, r) => a + r.parts.length, 0);
   const bytes = rows.reduce((a, r) => a + r.parts.reduce((b, p) => b + (p.svg?.length ?? 0), 0), 0);
-  const pick = (id: string) => select(selected === id ? null : id);
   const repo = assetRepository(config);
   return (
-    <main className="canvas" ref={scroller} onClick={() => select(null)} aria-label="Preview">
+    <main className="canvas" ref={scroller} onClick={() => select(null)} onContextMenu={onEmptyContextMenu} aria-label="Preview">
       <div className="canvas__inner">
         <div className="canvas__meta">
           <span className="mono">
@@ -135,21 +144,14 @@ export function Canvas() {
                 return (
                   <div key={row.rowId} className="cv-rowwrap">
                     {md.map((p) => (
-                      <Markdown
-                        key={p.meta.name}
-                        part={p}
-                        repo={repo}
-                        selected={selected === p.meta.block.id}
-                        onSelect={() => {
-                          pick(p.meta.block.id);
-                        }}
-                      />
+                      <Markdown key={p.meta.name} part={p} repo={repo} selected={selection.includes(p.meta.block.id)} primary={selected === p.meta.block.id} />
                     ))}
                     {images.length > 0 && (
                       <div className="cv-row" style={{ textAlign: row.align as "left" }}>
                         {images.map((p, i) => {
                           const id = p.meta.block.id;
-                          const isSel = selected === id;
+                          const isSel = selection.includes(id);
+                          const isPrimary = selected === id;
                           const firstOfBlock = images.findIndex((x) => x.meta.block.id === id) === i;
                           const def = getWidget(p.meta.block.type);
                           return (
@@ -160,8 +162,9 @@ export function Canvas() {
                               style={p.meta.fixedHeight ? { height: p.meta.fixedHeight * (device === "mobile" ? 0.85 : 1) } : { width: widthFor(fluid) }}
                               onClick={(e) => {
                                 e.stopPropagation();
-                                pick(id);
+                                clickBlock(e, id, true);
                               }}
+                              onContextMenu={(e) => onBlockContextMenu(e, id)}
                               title={def?.title}
                             >
                               {isSel && firstOfBlock && (
@@ -169,7 +172,7 @@ export function Canvas() {
                                   {def?.title} · {id}
                                 </span>
                               )}
-                              {isSel && firstOfBlock && <Tools id={id} />}
+                              {isPrimary && firstOfBlock && <Tools id={id} />}
                               <WidgetImage part={p} epoch={epoch} style={p.meta.fixedHeight ? { height: "100%", width: "auto" } : undefined} />
                             </span>
                           );

@@ -511,6 +511,90 @@ export function Menu({ trigger, items, align = "end" }: { trigger: ReactElement<
   );
 }
 
+// ---------------------------------------------------------------- context menu
+
+type ContextMenuState = { x: number; y: number; title?: string; items: (MenuItem | "sep")[] } | null;
+let showContextMenu: (m: ContextMenuState) => void = () => {};
+
+/** Opens the right-click menu at the pointer (or at a keyboard-chosen point). */
+export function openContextMenu(e: { clientX: number; clientY: number; preventDefault(): void }, items: (MenuItem | "sep")[], title?: string): void {
+  e.preventDefault();
+  showContextMenu({ x: e.clientX, y: e.clientY, items, title });
+}
+
+/** Renders the right-click menu; mount once. */
+export function ContextMenuHost() {
+  const [menu, setMenu] = useState<ContextMenuState>(null);
+  const pop = useRef<HTMLDivElement>(null);
+  showContextMenu = setMenu;
+  useEffect(() => {
+    if (!menu) return;
+    const close = () => setMenu(null);
+    const onDown = (e: MouseEvent) => !pop.current?.contains(e.target as Node) && close();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.stopPropagation();
+        close();
+      }
+      if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+        e.preventDefault();
+        const els = [...(pop.current?.querySelectorAll<HTMLElement>(".menu-item:not(:disabled)") ?? [])];
+        const i = els.indexOf(document.activeElement as HTMLElement);
+        els[(i + (e.key === "ArrowDown" ? 1 : -1) + els.length) % els.length]?.focus();
+      }
+    };
+    document.addEventListener("mousedown", onDown, true);
+    document.addEventListener("keydown", onKey, true);
+    window.addEventListener("resize", close);
+    window.addEventListener("blur", close);
+    // the wheel, not scroll events: the canvas may still be gliding to a block just selected
+    document.addEventListener("wheel", close, { capture: true, passive: true });
+    requestAnimationFrame(() => pop.current?.querySelector<HTMLElement>(".menu-item:not(:disabled)")?.focus());
+    return () => {
+      document.removeEventListener("mousedown", onDown, true);
+      document.removeEventListener("keydown", onKey, true);
+      window.removeEventListener("resize", close);
+      window.removeEventListener("blur", close);
+      document.removeEventListener("wheel", close, { capture: true });
+    };
+  }, [menu]);
+  // keep it on screen: open up or left of the pointer near the edges
+  useLayoutEffect(() => {
+    if (!menu || !pop.current) return;
+    const r = pop.current.getBoundingClientRect();
+    if (menu.x + r.width > window.innerWidth - 8) pop.current.style.left = `${Math.max(8, menu.x - r.width)}px`;
+    if (menu.y + r.height > window.innerHeight - 8) pop.current.style.top = `${Math.max(8, menu.y - r.height)}px`;
+  }, [menu]);
+  if (!menu) return null;
+  return createPortal(
+    <div ref={pop} className="popover context-menu" role="menu" aria-label={menu.title ?? "Actions"} style={{ top: menu.y, left: menu.x }} onContextMenu={(e) => e.preventDefault()}>
+      {menu.title && <div className="context-menu__title">{menu.title}</div>}
+      {menu.items.map((it, i) =>
+        it === "sep" ? (
+          <div key={i} className="menu-sep" />
+        ) : (
+          <button
+            key={i}
+            type="button"
+            role="menuitem"
+            disabled={it.disabled}
+            className={cn("menu-item", it.danger && "menu-item--danger")}
+            onClick={() => {
+              setMenu(null);
+              it.onSelect();
+            }}
+          >
+            {it.icon}
+            <span>{it.label}</span>
+            {it.shortcut && <span className="kbd">{it.shortcut}</span>}
+          </button>
+        ),
+      )}
+    </div>,
+    document.body,
+  );
+}
+
 // ---------------------------------------------------------------- toasts
 
 type Toast = { id: number; text: string; icon?: ReactNode };

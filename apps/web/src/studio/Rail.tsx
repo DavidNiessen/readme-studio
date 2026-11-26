@@ -2,17 +2,19 @@ import { closestCenter, DndContext, DragOverlay, KeyboardSensor, PointerSensor, 
 import { SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { CATEGORIES, getWidget, normalizeConfig, widgetFits, widgetList, type Block, type WidgetCategory, type WidgetDef } from "@readme-studio/core";
-import { Copy, Eye, EyeOff, GripVertical, Layers, MoreHorizontal, Plus, Trash2, ArrowUp, ArrowDown, LayoutTemplate } from "lucide-react";
+import { Eye, EyeOff, GripVertical, Layers, MoreHorizontal, Plus, LayoutTemplate } from "lucide-react";
 import { memo, useMemo, useState } from "react";
 import { Button, IconButton, Menu, Tabs, cn } from "../components/ui";
 import { WidgetImage } from "../components/WidgetImage";
 import { flatten, reorderFlat, updateBlock } from "../lib/layout";
 import { renderBlock, useFontsReady } from "../lib/render";
 import { useStudio } from "../state/store";
+import { blockActions, clickBlock, onBlockContextMenu, onEmptyContextMenu, targetsOf } from "./blockActions";
 import { WidgetIcon } from "./icons";
 
 function LayerRow({ block, joined, overlay }: { block: Block; joined: boolean; overlay?: boolean }) {
-  const { selected, select, duplicate, remove, commit, move, setPane, config } = useStudio();
+  const { selected, selection, commit, setPane, config } = useStudio();
+  const isSelected = selection.includes(block.id);
   const def = getWidget(block.type);
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: block.id, disabled: overlay });
   const style = { transform: CSS.Translate.toString(transform), transition };
@@ -21,12 +23,15 @@ function LayerRow({ block, joined, overlay }: { block: Block; joined: boolean; o
     <li
       ref={overlay ? undefined : setNodeRef}
       style={overlay ? undefined : style}
-      className={cn("layer", joined && "layer--joined", selected === block.id && "is-selected", isDragging && "is-dragging", overlay && "is-overlay", block.hidden && "is-hidden")}
-      onClick={() => {
-        select(block.id);
-        if (window.matchMedia("(max-width: 960px)").matches) setPane("inspect");
+      className={cn("layer", joined && "layer--joined", isSelected && "is-selected", isDragging && "is-dragging", overlay && "is-overlay", block.hidden && "is-hidden")}
+      onClick={(e) => {
+        clickBlock(e, block.id);
+        const plain = !e.shiftKey && !e.metaKey && !e.ctrlKey;
+        if (plain && window.matchMedia("(max-width: 960px)").matches) setPane("inspect");
       }}
+      onContextMenu={(e) => onBlockContextMenu(e, block.id)}
       aria-current={selected === block.id ? "true" : undefined}
+      aria-selected={isSelected}
     >
       <span className="layer__grip" {...attributes} {...listeners} aria-label={`Reorder ${def.title}`} onClick={(e) => e.stopPropagation()}>
         <GripVertical />
@@ -52,13 +57,7 @@ function LayerRow({ block, joined, overlay }: { block: Block; joined: boolean; o
               <MoreHorizontal />
             </button>
           }
-          items={[
-            { label: "Move up", icon: <ArrowUp />, onSelect: () => move(block.id, -1) },
-            { label: "Move down", icon: <ArrowDown />, onSelect: () => move(block.id, 1) },
-            { label: "Duplicate", icon: <Copy />, shortcut: "⌘D", onSelect: () => duplicate(block.id) },
-            "sep",
-            { label: "Delete", icon: <Trash2 />, danger: true, onSelect: () => remove(block.id) },
-          ]}
+          items={blockActions(targetsOf(block.id))}
         />
       </span>
     </li>
@@ -103,7 +102,7 @@ function Layers_() {
   return (
     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={(e) => setActive(String(e.active.id))} onDragEnd={onEnd} onDragCancel={() => setActive(null)}>
       <SortableContext items={items.map((x) => x.block.id)} strategy={verticalListSortingStrategy}>
-        <ul className="layers" aria-label="Layers">
+        <ul className="layers" aria-label="Layers" aria-multiselectable="true" onContextMenu={onEmptyContextMenu}>
           {items.map((x) => (
             <LayerRow key={x.block.id} block={x.block} joined={x.join} />
           ))}

@@ -26,7 +26,7 @@ import {
 import { useEffect, useState } from "react";
 import { layoutPresets, parseConfig, type StudioConfig } from "@readme-studio/core";
 import { Logo, LogoMark } from "../components/Logo";
-import { Button, IconButton, MOD, Menu, Segmented, cn, copyText, useToast } from "../components/ui";
+import { Button, ContextMenuHost, IconButton, MOD, Menu, Segmented, cn, copyText, useToast } from "../components/ui";
 import { findBlock } from "../lib/layout";
 import { navigate } from "../lib/router";
 import { decodeShare, shareUrl } from "../lib/share";
@@ -147,7 +147,7 @@ function TopBar() {
           items={[
             { label: "Presets", icon: <LayoutTemplate />, onSelect: () => s.openDialog("presets") },
             { label: "My designs", icon: <FolderOpen />, onSelect: () => s.openDialog("designs") },
-            { label: "Import config", icon: <Upload />, onSelect: () => s.openDialog("import") },
+            { label: "Import design", icon: <Upload />, onSelect: () => s.openDialog("import") },
             { label: "Edit as JSON", icon: <FileJson />, onSelect: () => s.openDialog("json") },
             { label: "Export manually", icon: <Download />, shortcut: `${MOD} E`, onSelect: () => s.openDialog("export") },
             {
@@ -221,26 +221,41 @@ function useShortcuts() {
         return;
       }
       const sel = s.selected;
-      if (mod && k === "d" && sel) {
+      // actions apply to every selected block
+      const ids = s.selection.length ? s.selection : sel ? [sel] : [];
+      if (mod && k === "d" && ids.length) {
         e.preventDefault();
-        s.duplicate(sel);
+        s.duplicateMany(ids);
+        return;
+      }
+      if (mod && k === "a") {
+        e.preventDefault();
+        s.selectAll();
         return;
       }
       if (mod) return;
-      if ((e.key === "Delete" || e.key === "Backspace") && sel) {
+      if ((e.key === "Delete" || e.key === "Backspace") && ids.length) {
         e.preventDefault();
-        s.remove(sel);
+        s.removeMany(ids);
       } else if (e.key === "Escape") s.select(null);
-      else if (e.altKey && (e.key === "ArrowUp" || e.key === "ArrowDown") && sel) {
+      else if (e.altKey && (e.key === "ArrowUp" || e.key === "ArrowDown") && ids.length) {
         e.preventDefault();
-        s.move(sel, e.key === "ArrowUp" ? -1 : 1);
+        s.moveMany(ids, e.key === "ArrowUp" ? -1 : 1);
       } else if (e.key === "ArrowUp" || e.key === "ArrowDown") {
-        const ids = s.config.layout.flatMap((r) => r.blocks.map((b) => b.id));
-        if (!ids.length) return;
+        const order = s.config.layout.flatMap((r) => r.blocks.map((b) => b.id));
+        if (!order.length) return;
         e.preventDefault();
-        const i = sel ? ids.indexOf(sel) : -1;
-        const j = e.key === "ArrowUp" ? Math.max(0, i - 1) : Math.min(ids.length - 1, i + 1);
-        s.select(ids[j]);
+        const i = sel ? order.indexOf(sel) : -1;
+        const j = e.key === "ArrowUp" ? Math.max(0, i - 1) : Math.min(order.length - 1, i + 1);
+        // Shift extends the selection, as Shift-click does
+        if (e.shiftKey && sel) {
+          const anchor = order.indexOf(s.selection[0] === sel ? s.selection[s.selection.length - 1] : s.selection[0]);
+          const [a, b] = anchor < j ? [anchor, j] : [j, anchor];
+          useStudio.setState({ selection: order.slice(a, b + 1), selected: order[j] });
+        } else s.select(order[j]);
+      } else if (k === "h" && ids.length) {
+        const blocks = s.config.layout.flatMap((r) => r.blocks).filter((b) => ids.includes(b.id));
+        s.setHidden(ids, !blocks.every((b) => b.hidden));
       } else if (k === "t") s.setMode(s.mode === "dark" ? "light" : "dark");
       else if (k === "r") s.replay();
       else if (k === "a") {
@@ -398,6 +413,7 @@ function StudioShell() {
       {draft && <DraftBanner {...draft} context={host?.context} onDone={() => setDraft(null)} />}
       <Dialogs />
       <SaveDialog platform={host?.github ?? webPlatform} />
+      <ContextMenuHost />
       {host?.overlays}
     </div>
   );
