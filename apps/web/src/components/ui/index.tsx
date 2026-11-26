@@ -149,9 +149,16 @@ export function Segmented<T extends string>({
   return (
     <div className="seg" role="group" aria-label={label}>
       {options.map((o) => (
-        <button key={o.value} type="button" aria-pressed={o.value === value} title={o.title} onClick={() => onChange(o.value)}>
+        <button
+          key={o.value}
+          type="button"
+          aria-pressed={o.value === value}
+          title={o.title ?? (typeof o.label === "string" ? o.label : undefined)}
+          onClick={() => onChange(o.value)}
+        >
           {o.icon}
-          {o.label}
+          {/* a text label in its own box, so a long one ends in "…" instead of being cut on both sides */}
+          {typeof o.label === "string" ? <span className="seg__text">{o.label}</span> : o.label}
         </button>
       ))}
     </div>

@@ -8690,11 +8690,12 @@ var shields = defineWidget({
       key: "style",
       label: "Style",
       type: "segmented",
+      help: "Large is shields.io's \u201Cfor the badge\u201D look: taller, in capitals.",
       options: [
         { value: "flat", label: "Flat" },
         { value: "rounded", label: "Rounded" },
         { value: "outline", label: "Outline" },
-        { value: "plastic", label: "FOR THE BADGE" }
+        { value: "plastic", label: "Large" }
       ]
     },
     {

@@ -1495,6 +1495,7 @@
           "label": "Style",
           "type": "segmented",
           "default": "rounded",
+          "help": "Large is shields.io's “for the badge” look: taller, in capitals.",
           "choices": [
             {
               "value": "flat",
@@ -1510,7 +1511,7 @@
             },
             {
               "value": "plastic",
-              "label": "FOR THE BADGE"
+              "label": "Large"
             }
           ]
         },
