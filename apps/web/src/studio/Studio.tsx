@@ -20,12 +20,13 @@ import {
   Upload,
   Layers,
   BookOpen,
+  RotateCcw,
   X,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { layoutPresets, parseConfig } from "@readme-studio/core";
+import { layoutPresets, parseConfig, type StudioConfig } from "@readme-studio/core";
 import { Logo, LogoMark } from "../components/Logo";
-import { Button, IconButton, MOD, Menu, Segmented, copyText, useToast } from "../components/ui";
+import { Button, IconButton, MOD, Menu, Segmented, cn, copyText, useToast } from "../components/ui";
 import { findBlock } from "../lib/layout";
 import { navigate } from "../lib/router";
 import { decodeShare, shareUrl } from "../lib/share";
@@ -283,6 +284,8 @@ function StudioShell() {
   // design is in, the editor stays hidden: whatever design the store held is not this one.
   const [opening, setOpening] = useState<{ state: "loading" } | { state: "ready" } | { state: "failed"; error: unknown }>({ state: host?.open ? "loading" : "ready" });
   const [attempt, setAttempt] = useState(0);
+  // unsaved changes that came back when the host opened its design
+  const [draft, setDraft] = useState<{ stale: boolean; committed: StudioConfig } | null>(null);
   useEffect(() => {
     if (!host?.open) return;
     let cancelled = false;
@@ -294,8 +297,8 @@ function StudioShell() {
         setOpening({ state: "ready" });
         if (!r) return;
         if (r.source) {
-          const { restored } = useStudio.getState().openSource(r.source, r.config, r.name);
-          if (restored) toast("Your unsaved changes are back");
+          const { restored, stale } = useStudio.getState().openSource(r.source, r.config, r.name);
+          if (restored) setDraft({ stale, committed: r.config });
           else if (r.message) toast(r.message);
         } else {
           useStudio.getState().replace(r.config, r.name, true);
@@ -390,8 +393,56 @@ function StudioShell() {
         <Inspector />
       </div>
       <MobileTabs />
+      {draft && <DraftBanner {...draft} context={host?.context} onDone={() => setDraft(null)} />}
       <Dialogs />
       {host?.overlays}
+    </div>
+  );
+}
+
+/**
+ * Unsaved changes came back on reopening. Reset goes back to what the source holds (one undoable
+ * step); when the source changed since the changes were made, the banner says the draft is out
+ * of date.
+ */
+function DraftBanner({ stale, committed, context, onDone }: { stale: boolean; committed: StudioConfig; context?: string; onDone: () => void }) {
+  const where = context ?? "the repository";
+  return (
+    <div className={cn("draft-banner", stale && "draft-banner--stale")} role="status">
+      <p>
+        {stale ? (
+          <>
+            <b>Your unsaved changes are out of date.</b> The design in {where} changed after you made them.
+          </>
+        ) : (
+          <>
+            <b>Your unsaved changes are back.</b> They differ from the design in {where}.
+          </>
+        )}
+      </p>
+      <div className="draft-banner__actions">
+        <Button
+          size="sm"
+          variant={stale ? "accent" : "secondary"}
+          onClick={() => {
+            useStudio.getState().resetToSource(committed);
+            onDone();
+          }}
+        >
+          <RotateCcw /> Reset changes
+        </Button>
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={() => {
+            // keeping them means they now build on what the source holds
+            useStudio.getState().rebase(committed);
+            onDone();
+          }}
+        >
+          Keep mine
+        </Button>
+      </div>
     </div>
   );
 }

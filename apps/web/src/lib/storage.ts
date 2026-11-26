@@ -30,6 +30,11 @@ export interface SavedDesign {
    * have unsaved work at the same time.
    */
   source?: string;
+  /**
+   * The source's design when this draft started from it (what a save writes over). If the
+   * source has changed since, the draft is out of date.
+   */
+  base?: StudioConfig;
 }
 
 export function loadDesigns(): SavedDesign[] {

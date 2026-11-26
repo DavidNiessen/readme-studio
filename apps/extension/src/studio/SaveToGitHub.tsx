@@ -35,16 +35,16 @@ export function DraftNotice() {
     <span className="ext-draft hide-sm" title={opened.configExists ? "Differs from the design in the repository" : "Not saved to the repository yet"}>
       <span className="ext-draft__dot" />
       {opened.configExists ? "Unsaved changes" : "Not saved yet"}
-      {opened.configExists && (
-        <button
-          type="button"
-          onClick={() => {
-            if (window.confirm(`Discard your changes and load the design committed to ${opened.repo.full}?`)) useStudio.getState().replace(opened.config, opened.name);
-          }}
-        >
-          <RotateCcw size={12} /> Discard
-        </button>
-      )}
+      <button
+        type="button"
+        title="Undo with Ctrl/⌘ Z"
+        onClick={() => {
+          if (window.confirm(opened.configExists ? `Reset your changes to the design committed to ${opened.repo.full}?` : `Reset your changes and start again from what ${opened.repo.full} has?`))
+            useStudio.getState().resetToSource(opened.config);
+        }}
+      >
+        <RotateCcw size={12} /> Reset
+      </button>
     </span>
   );
 }
@@ -122,7 +122,10 @@ export function SaveDialog() {
       });
       setDone(result);
       // the committed design is now this one: the draft has nothing unsaved left
-      if (result.kind === "commit") setSession({ opened: { ...opened, config, configExists: true, workflowExists: opened.workflowExists || (needsWorkflow && addWorkflow) } });
+      if (result.kind === "commit") {
+        setSession({ opened: { ...opened, config, configExists: true, workflowExists: opened.workflowExists || (needsWorkflow && addWorkflow) } });
+        useStudio.getState().rebase(config);
+      }
       tellPage({ type: "saved", url: result.url, kind: result.kind });
       toast(result.kind === "pull-request" ? "Pull request opened" : "Committed to GitHub");
     } catch (e) {

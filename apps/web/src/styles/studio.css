@@ -1197,6 +1197,49 @@
   height: 22px;
 }
 
+/* ------------------------------------------- unsaved changes on reopening */
+
+.draft-banner {
+  position: fixed;
+  z-index: 40;
+  top: calc(var(--topbar-h) + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(620px, calc(100vw - 32px));
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 10px 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-3);
+  background: var(--surface);
+  box-shadow: var(--shadow-2, 0 8px 24px rgb(0 0 0 / 0.18));
+  font-size: var(--t-sm);
+}
+.draft-banner--stale {
+  border-color: var(--accent);
+}
+.draft-banner p {
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+  line-height: 1.45;
+}
+.draft-banner__actions {
+  display: flex;
+  gap: 6px;
+  flex: none;
+}
+@media (max-width: 560px) {
+  .draft-banner {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .draft-banner__actions {
+    justify-content: flex-end;
+  }
+}
+
 /* ------------------------------------------------- opening / could not open */
 
 .studio-gate {
