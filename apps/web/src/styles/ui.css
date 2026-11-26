@@ -475,13 +475,115 @@
   position: absolute;
   inset: 0;
 }
-.color__swatch input {
-  position: absolute;
-  inset: -6px;
-  width: calc(100% + 12px);
-  height: calc(100% + 12px);
-  opacity: 0;
+.color__swatch {
+  padding: 0;
   cursor: pointer;
+}
+.color__swatch:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* colour picker */
+.cp {
+  width: 236px;
+  padding: 10px;
+  display: grid;
+  gap: 10px;
+}
+.cp__square {
+  position: relative;
+  height: 150px;
+  border-radius: var(--r-2);
+  background-image: linear-gradient(to top, #000, transparent), linear-gradient(to right, #fff, transparent) !important;
+  background-blend-mode: normal;
+  cursor: crosshair;
+  touch-action: none;
+  outline: none;
+}
+.cp__square:focus-visible {
+  box-shadow: 0 0 0 2px var(--accent);
+}
+.cp__thumb {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  margin: -7px 0 0 -7px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 1px rgb(0 0 0 / 0.35), 0 1px 3px rgb(0 0 0 / 0.4);
+  pointer-events: none;
+}
+.cp__hue {
+  appearance: none;
+  width: 100%;
+  height: 12px;
+  margin: 0;
+  border-radius: 99px;
+  background: linear-gradient(to right, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00);
+  cursor: pointer;
+}
+.cp__hue::-webkit-slider-thumb {
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 0 1px rgb(0 0 0 / 0.35), 0 1px 3px rgb(0 0 0 / 0.4);
+}
+.cp__hue::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border: 0;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 0 1px rgb(0 0 0 / 0.35), 0 1px 3px rgb(0 0 0 / 0.4);
+}
+.cp__hue:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.cp__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.cp__now {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  border: 1px solid var(--line-strong);
+}
+.cp__hex {
+  flex: 1;
+  font-size: var(--t-sm);
+  color: var(--ink-2);
+}
+.cp__label {
+  margin-bottom: -4px;
+  font-size: var(--t-xs);
+  color: var(--muted);
+}
+.cp__swatches {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 4px;
+}
+.cp__swatch {
+  aspect-ratio: 1;
+  padding: 0;
+  border-radius: 5px;
+  border: 1px solid var(--line-strong);
+  cursor: pointer;
+}
+.cp__swatch:hover,
+.cp__swatch:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+.cp__swatch.is-current {
+  box-shadow: inset 0 0 0 2px var(--surface);
+  outline: 2px solid var(--ink);
 }
 
 /* tabs */

@@ -14,6 +14,7 @@ import {
   type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
+import { ColorPopover } from "../ColorPicker";
 
 export function cn(...xs: (string | false | null | undefined)[]): string {
   return xs.filter(Boolean).join(" ");
@@ -288,12 +289,15 @@ export function ColorInput({ value, onChange, placeholder, onReset, label }: { v
   const [text, setText] = useState(value);
   useEffect(() => setText(value), [value]);
   const shown = /^#[0-9a-f]{6}$/i.test(value) ? value : placeholder && /^#[0-9a-f]{6}$/i.test(placeholder) ? placeholder : "#000000";
+  const swatch = useRef<HTMLButtonElement>(null);
+  const [open, setOpen] = useState(false);
+  const close = useCallback(() => setOpen(false), []);
   return (
     <div className="color">
-      <label className="color__swatch" title={label}>
+      <button ref={swatch} type="button" className="color__swatch" title={label} aria-label={`${label}: ${value || "theme"}`} aria-expanded={open} aria-haspopup="dialog" onClick={() => setOpen((o) => !o)}>
         <span style={{ background: value || placeholder || "transparent" }} />
-        <input type="color" aria-label={label} value={shown} onChange={(e) => onChange(e.target.value)} />
-      </label>
+      </button>
+      {open && swatch.current && <ColorPopover anchor={swatch.current} value={shown} onChange={onChange} onClose={close} label={label} />}
       <input
         className="input input--mono"
         aria-label={`${label} hex`}

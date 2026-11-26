@@ -29,8 +29,9 @@ import {
   RotateCcw,
   X,
 } from "lucide-react";
-import { useEffect, useState } from "react";
-import { layoutPresets, parseConfig, type StudioConfig } from "@readme-studio/core";
+import { useEffect, useMemo, useState } from "react";
+import { layoutPresets, parseConfig, resolvePalette, type StudioConfig } from "@readme-studio/core";
+import { ThemeSwatchesContext } from "../components/ColorPicker";
 import { Logo, LogoMark } from "../components/Logo";
 import { Button, ContextMenuHost, IconButton, MOD, Menu, Segmented, cn, copyText, useToast, type MenuHeading, type MenuItem } from "../components/ui";
 import { findBlock } from "../lib/layout";
@@ -454,6 +455,13 @@ function StudioShell() {
     } else toast("That share link is broken or incomplete");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+  // the theme's colours, offered as swatches in every colour picker
+  const theme = useStudio((st) => st.config.theme);
+  const previewMode = useStudio((st) => st.mode);
+  const swatches = useMemo(() => {
+    const p = resolvePalette(theme, previewMode);
+    return (["accent", "glow", "accent2", "text", "muted", "subtle", "card", "raised", "border", "bg"] as const).map((k) => ({ label: k === "bg" ? "page" : k, color: String(p[k] ?? "") }));
+  }, [theme, previewMode]);
   if (opening.state !== "ready") {
     return (
       <div className="studio-gate">
@@ -477,6 +485,7 @@ function StudioShell() {
   }
   // selecting on the canvas on phones jumps to the inspector only on explicit request
   return (
+    <ThemeSwatchesContext.Provider value={swatches}>
     <div className="studio" data-pane={pane}>
       <TopBar />
       <div className="studio__body">
@@ -492,6 +501,7 @@ function StudioShell() {
       <ContextMenuHost />
       {host?.overlays}
     </div>
+    </ThemeSwatchesContext.Provider>
   );
 }
 

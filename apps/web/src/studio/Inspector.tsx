@@ -38,6 +38,7 @@ import {
   X,
 } from "lucide-react";
 import { useMemo, useState } from "react";
+import { ColorSwatchButton } from "../components/ColorPicker";
 import { arrayMove, SortableItem, SortableList, SortHandle } from "../components/Sortable";
 import { Button, ColorInput, Field, IconButton, Segmented, Select, Slider, Tabs, TagsInput, TextArea, TextInput, ToggleRow, useToast } from "../components/ui";
 import { canJoin, findBlock, setJoin, setRowAlign, updateBlock } from "../lib/layout";
@@ -487,18 +488,16 @@ function TokenEditor({ settings, mode, onChange }: { settings: ThemeSettings; mo
         <span>Heat scale</span>
         <div className="heat-row">
           {cur.heat.map((h, i) => (
-            <label key={i} style={{ background: h }} title={`level ${i}`}>
-              <input
-                type="color"
-                aria-label={`${mode} heat level ${i}`}
-                value={h}
-                onChange={(e) => {
-                  const next = [...cur.heat];
-                  next[i] = e.target.value;
-                  onChange("heat", next);
-                }}
-              />
-            </label>
+            <ColorSwatchButton
+              key={i}
+              label={`${mode} heat level ${i}`}
+              value={h}
+              onChange={(v) => {
+                const next = [...cur.heat];
+                next[i] = v;
+                onChange("heat", next);
+              }}
+            />
           ))}
         </div>
       </div>
