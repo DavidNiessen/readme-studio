@@ -76,7 +76,7 @@ export function pkgNames(ctx: MetaCtx): PkgNames {
 }
 
 /**
- * Placeholder fill for code and shell commands: only exact `{token}`s (no inner spaces, so `{ name }`
+ * Placeholder fill for code and shell commands: only exact project `{token}`s (no inner spaces, so `{ name }`
  * destructuring survives), with package tokens that never come back empty.
  */
 export function fillStrict(text: string, ctx: MetaCtx & Partial<Pick<Ctx, "d" | "now">>): string {
@@ -93,10 +93,11 @@ export function fillStrict(text: string, ctx: MetaCtx & Partial<Pick<Ctx, "d" | 
     repo: n.repo,
     project: n.name,
   };
+  // only project tokens: `{name}` or `{city}` in an f-string or template must survive
+  const passthrough = new Set(["version", "license", "tagline"]);
   return text.replace(/\{([a-z]+)\}/g, (m, key: string) => {
     if (key in own) return own[key];
-    const v = fillPlaceholders(m, ctx);
-    return v;
+    return passthrough.has(key) ? fillPlaceholders(m, ctx) : m;
   });
 }
 

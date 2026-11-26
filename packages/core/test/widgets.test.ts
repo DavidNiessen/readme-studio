@@ -1,6 +1,6 @@
 import { XMLValidator } from "fast-xml-parser";
 import { beforeAll, describe, expect, it } from "vitest";
-import { blockParts, createCtx, loadAllFonts, MODES, mockData, normalizeConfig, renderFrames, renderPart, widgetList, type ProfileData, type StudioConfig } from "../src/index";
+import { blockParts, createCtx, loadAllFonts, MODES, mockData, normalizeConfig, renderFrames, renderPart, widgetFits, widgetList, type ProfileData, type StudioConfig } from "../src/index";
 
 const DATE = new Date("2026-11-26T09:30:00Z");
 
@@ -90,6 +90,22 @@ describe("widgets", () => {
   });
 
   it("render gracefully with empty data", () => check(configFor("crimson"), emptyData(), "empty"));
+
+  it("render every project-capable widget with and without repository data", () => {
+    const c = normalizeConfig({
+      kind: "project",
+      project: { repo: "octocat/aurora", packages: { npm: "aurora" } },
+      theme: { preset: "github", font: "inter", headingFont: "inter" },
+      layout: [{ blocks: widgetList.filter((w) => widgetFits(w, "project")).map((w) => ({ type: w.type, id: w.type })) }],
+    }).config;
+    check(c, mockData(DATE, "octocat", "Mona", "UTC", "octocat/aurora"), "project");
+    const bare = mockData(DATE, "octocat", "Mona", "UTC", "octocat/aurora");
+    delete bare.project;
+    check(c, bare, "project-without-data");
+    const empty = mockData(DATE, "octocat", "Mona", "UTC", "octocat/aurora");
+    empty.project = { ...empty.project!, contributors: [], releases: [], milestones: [], downloads: [], starHistory: [], commitWeeks: [], ci: null, lastCommit: null, stars: 0, forks: 0, languages: [] };
+    check(c, empty, "project-empty");
+  });
 
   it("render with empty profile and hostile strings", () => {
     const c = configFor("ember");
