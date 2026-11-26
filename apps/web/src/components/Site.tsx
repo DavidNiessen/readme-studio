@@ -65,7 +65,7 @@ export function SiteFooter() {
           <p>Animated, self-updating GitHub profile READMEs. Designed in the browser, rendered by a GitHub Action, served from your own repository.</p>
         </div>
         <FooterCol title="Product" links={[["Studio", href("/studio")], ["Presets", href("/presets")], ["Widgets", href("/docs/widgets")]]} />
-        <FooterCol title="Docs" links={[["Getting started", href("/docs")], ["Action reference", href("/docs/action")], ["Config reference", href("/docs/config")], ["FAQ", href("/docs/faq")]]} />
+        <FooterCol title="Docs" links={[["Getting started", href("/docs")], ["Action reference", href("/docs/action")], ["Config reference", href("/docs/config")], ["AI agents", href("/docs/agents")], ["FAQ", href("/docs/faq")]]} />
         <FooterCol title="Source" links={[["GitHub", REPO_URL], ["Issues", `${REPO_URL}/issues`], ["MIT License", `${REPO_URL}/blob/main/LICENSE`]]} />
       </div>
       <div className="wrap site-footer__base">

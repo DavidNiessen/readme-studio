@@ -1,0 +1,4596 @@
+{
+  "widgets": [
+    {
+      "type": "hero",
+      "title": "Hero banner",
+      "description": "Your name drawn on stroke by stroke, a typewriter cycling through your roles and an orbiting emblem.",
+      "category": "Header",
+      "output": "svg",
+      "width": "full",
+      "scope": "profile",
+      "needs": [],
+      "multiPart": false,
+      "options": [
+        {
+          "key": "title",
+          "label": "Headline",
+          "type": "text",
+          "default": ""
+        },
+        {
+          "key": "typewriter",
+          "label": "Typewriter roles",
+          "type": "toggle",
+          "default": true,
+          "help": "Cycles through the roles from your profile."
+        },
+        {
+          "key": "greeting",
+          "label": "Greeting line",
+          "type": "toggle",
+          "default": true,
+          "help": "Time-of-day greeting, date and moon phase."
+        },
+        {
+          "key": "emblem",
+          "label": "Emblem",
+          "type": "icon",
+          "default": "github"
+        },
+        {
+          "key": "emblemStyle",
+          "label": "Emblem style",
+          "type": "segmented",
+          "default": "orbit",
+          "choices": [
+            {
+              "value": "orbit",
+              "label": "Orbit"
+            },
+            {
+              "value": "plain",
+              "label": "Plain"
+            },
+            {
+              "value": "none",
+              "label": "None"
+            }
+          ]
+        },
+        {
+          "key": "glitch",
+          "label": "Glitch flicker",
+          "type": "toggle",
+          "default": true
+        },
+        {
+          "key": "scanline",
+          "label": "Scanline sweep",
+          "type": "toggle",
+          "default": true
+        },
+        {
+          "key": "glow",
+          "label": "Ambient glow",
+          "type": "toggle",
+          "default": true
+        }
+      ]
+    },
+    {
+      "type": "banner",
+      "title": "Statement banner",
+      "description": "A big typographic statement with a subline, brought to life by a gradient sweep, an outline draw-on, a letter-by-letter rise or a marquee.",
+      "category": "Header",
+      "output": "svg",
+      "width": "full",
+      "scope": "any",
+      "needs": [],
+      "multiPart": false,
+      "options": [
+        {
+          "key": "headline",
+          "label": "Headline",
+          "type": "text",
+          "default": "Crafting calm, fast software.",
+          "help": "Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions} {project} {repo} {tagline} {version} {license} {forks} {contributors} {npm} {pypi} {crate} {owner}",
+          "max": 80
+        },
+        {
+          "key": "subline",
+          "label": "Subline",
+          "type": "text",
+          "default": "Developer tools, typed APIs and small interfaces that feel good to use.",
+          "max": 160
+        },
+        {
+          "key": "effect",
+          "label": "Effect",
+          "type": "select",
+          "default": "gradient",
+          "choices": [
+            {
+              "value": "gradient",
+              "label": "Gradient sweep"
+            },
+            {
+              "value": "outline",
+              "label": "Outline draw-on"
+            },
+            {
+              "value": "rise",
+              "label": "Letter-by-letter rise"
+            },
+            {
+              "value": "marquee",
+              "label": "Marquee loop"
+            },
+            {
+              "value": "none",
+              "label": "None"
+            }
+          ]
+        },
+        {
+          "key": "align",
+          "label": "Alignment",
+          "type": "segmented",
+          "default": "left",
+          "choices": [
+            {
+              "value": "left",
+              "label": "Left"
+            },
+            {
+              "value": "center",
+              "label": "Center"
+            }
+          ]
+        },
+        {
+          "key": "height",
+          "label": "Height",
+          "type": "segmented",
+          "default": "regular",
+          "choices": [
+            {
+              "value": "compact",
+              "label": "Compact"
+            },
+            {
+              "value": "regular",
+              "label": "Regular"
+            },
+            {
+              "value": "tall",
+              "label": "Tall"
+            }
+          ]
+        },
+        {
+          "key": "glow",
+          "label": "Ambient glow",
+          "type": "toggle",
+          "default": true
+        },
+        {
+          "key": "corners",
+          "label": "Corner marks",
+          "type": "toggle",
+          "default": true,
+          "help": "Small registration ticks in the corners."
+        }
+      ]
+    },
+    {
+      "type": "project-hero",
+      "title": "Project hero",
+      "description": "Your project's name drawn on, its tagline, version, install command and headline numbers over an ambient glow.",
+      "category": "Header",
+      "output": "svg",
+      "width": "full",
+      "scope": "project",
+      "needs": [
+        "project",
+        "releases"
+      ],
+      "multiPart": false,
+      "options": [
+        {
+          "key": "title",
+          "label": "Headline",
+          "type": "text",
+          "default": ""
+        },
+        {
+          "key": "align",
+          "label": "Alignment",
+          "type": "segmented",
+          "default": "left",
+          "choices": [
+            {
+              "value": "left",
+              "label": "Left"
+            },
+            {
+              "value": "center",
+              "label": "Centre"
+            }
+          ]
+        },
+        {
+          "key": "version",
+          "label": "Version pill",
+          "type": "toggle",
+          "default": true,
+          "help": "Latest release tag next to the name."
+        },
+        {
+          "key": "install",
+          "label": "Install command",
+          "type": "text",
+          "default": "npm i {npm}",
+          "help": "Shown in a code pill under the tagline. Leave empty to hide. Placeholders: {npm} {repo} {project} {version}"
+        },
+        {
+          "key": "stats",
+          "label": "Headline numbers",
+          "type": "toggle",
+          "default": true
+        },
+        {
+          "key": "third",
+          "label": "Third number",
+          "type": "segmented",
+          "default": "license",
+          "when": {
+            "key": "stats",
+            "is": [
+              true
+            ]
+          },
+          "choices": [
+            {
+              "value": "license",
+              "label": "Licence"
+            },
+            {
+              "value": "downloads",
+              "label": "Downloads"
+            },
+            {
+              "value": "contributors",
+              "label": "Contributors"
+            }
+          ]
+        },
+        {
+          "key": "emblem",
+          "label": "Emblem icon",
+          "type": "icon",
+          "default": "",
+          "help": "Defaults to the project logo; without one a monogram tile is drawn."
+        },
+        {
+          "key": "emblemStyle",
+          "label": "Emblem style",
+          "type": "segmented",
+          "default": "orbit",
+          "choices": [
+            {
+              "value": "orbit",
+              "label": "Orbit"
+            },
+            {
+              "value": "plain",
+              "label": "Plain"
+            },
+            {
+              "value": "none",
+              "label": "None"
+            }
+          ]
+        },
+        {
+          "key": "scanline",
+          "label": "Scanline sweep",
+          "type": "toggle",
+          "default": true
+        },
+        {
+          "key": "glow",
+          "label": "Ambient glow",
+          "type": "toggle",
+          "default": true
+        }
+      ]
+    },
+    {
+      "type": "socials",
+      "title": "Social pills",
+      "description": "One animated, clickable pill per profile link. Each is its own image so every link works.",
+      "category": "Identity",
+      "output": "svg",
+      "width": "full",
+      "scope": "any",
+      "needs": [],
+      "multiPart": true,
+      "options": [
+        {
+          "key": "style",
+          "label": "Style",
+          "type": "segmented",
+          "default": "pill",
+          "choices": [
+            {
+              "value": "pill",
+              "label": "Pill"
+            },
+            {
+              "value": "compact",
+              "label": "Compact"
+            },
+            {
+              "value": "icon",
+              "label": "Icon only"
+            }
+          ]
+        },
+        {
+          "key": "iconColor",
+          "label": "Icon colour",
+          "type": "segmented",
+          "default": "accent",
+          "choices": [
+            {
+              "value": "accent",
+              "label": "Accent"
+            },
+            {
+              "value": "brand",
+              "label": "Brand"
+            },
+            {
+              "value": "text",
+              "label": "Text"
+            }
+          ]
+        },
+        {
+          "key": "runner",
+          "label": "Running border light",
+          "type": "toggle",
+          "default": true
+        }
+      ]
+    },
+    {
+      "type": "terminal",
+      "title": "Terminal",
+      "description": "A shell session that types out commands about you, with live placeholders, syntax colours and a tmux-style status bar.",
+      "category": "Identity",
+      "output": "svg",
+      "width": "full",
+      "scope": "profile",
+      "needs": [
+        "calendar"
+      ],
+      "multiPart": false,
+      "options": [
+        {
+          "key": "title",
+          "label": "Window title",
+          "type": "text",
+          "default": ""
+        },
+        {
+          "key": "prompt",
+          "label": "Prompt",
+          "type": "segmented",
+          "default": "arrow",
+          "choices": [
+            {
+              "value": "arrow",
+              "label": "➜"
+            },
+            {
+              "value": "chevron",
+              "label": "❯"
+            },
+            {
+              "value": "dollar",
+              "label": "$"
+            },
+            {
+              "value": "percent",
+              "label": "%"
+            },
+            {
+              "value": "gt",
+              "label": ">"
+            }
+          ]
+        },
+        {
+          "key": "cwd",
+          "label": "Directory",
+          "type": "text",
+          "default": "~",
+          "max": 24
+        },
+        {
+          "key": "commands",
+          "label": "Commands",
+          "type": "list",
+          "default": [
+            {
+              "cmd": "whoami",
+              "output": "{b}{name|lower}{/}{?{m} — {role|lower}?}{?{m} @ {a}{b}{company}?}"
+            },
+            {
+              "cmd": "cat profile.json",
+              "output": "{m}{ {a}\"login\"{m}: {s}\"{login}\"{m}{?, {a}\"based\"{m}: {s}\"{city}\"?}{?{m}, {a}\"pronouns\"{m}: {s}\"{pronouns}\"?}{?{m}, {a}\"age\"{m}: {n}{age}?}{m},\n{m}  {a}\"repos\"{m}: {n}{repos}{m}, {a}\"followers\"{m}: {n}{followers}{m}, {a}\"streak\"{m}: {n}{streak}{m}, {a}\"coffee\"{m}: {n}Infinity{m} }"
+            },
+            {
+              "cmd": "uptime",
+              "output": "{?{m}up {n}{b}{uptime_days}{/}{m} days  ·  ?}{?{t}{uptime_note}{m}  ·  ?}{m}{year} is {t}{year_pct}%{m} done"
+            },
+            {
+              "cmd": "ls ~/stack",
+              "output": "{stack}"
+            }
+          ],
+          "max": 8,
+          "item": [
+            {
+              "key": "cmd",
+              "label": "Command",
+              "type": "text",
+              "default": "echo hello",
+              "max": 80
+            },
+            {
+              "key": "output",
+              "label": "Output",
+              "type": "text",
+              "default": "hello, {name}!",
+              "help": "One line per row. Colours: {a}accent {m}muted {s}string {n}number {b}bold {/}reset. Placeholders: {name} {login} {city} {company} {role} {year} {age} {days_alive} {account_age} {followers} {stars} {repos} {streak} {year_pct} {stack}. Wrap text in {? … ?} to hide it when a placeholder is empty."
+            }
+          ]
+        },
+        {
+          "key": "stack",
+          "label": "Stack ({stack})",
+          "type": "tags",
+          "default": [
+            "typescript",
+            "react",
+            "node",
+            "python",
+            "go",
+            "docker",
+            "k8s",
+            "postgres",
+            "aws"
+          ],
+          "max": 24
+        },
+        {
+          "key": "chrome",
+          "label": "Window chrome",
+          "type": "toggle",
+          "default": true
+        },
+        {
+          "key": "statusBar",
+          "label": "Status bar",
+          "type": "toggle",
+          "default": true
+        },
+        {
+          "key": "tab",
+          "label": "Status tab",
+          "type": "text",
+          "default": "[{login}] 0:zsh*",
+          "when": {
+            "key": "statusBar",
+            "is": [
+              true
+            ]
+          }
+        },
+        {
+          "key": "status",
+          "label": "Status text",
+          "type": "text",
+          "default": "git:main  ·  {followers} followers  ·  {clock}",
+          "help": "Supports the same placeholders, plus {clock}, {time}, {date} and {tz}.",
+          "when": {
+            "key": "statusBar",
+            "is": [
+              true
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "type": "stack",
+      "title": "Tech stack orbit",
+      "description": "Your tools as a little solar system: up to three rings of brand icons orbiting a centre emblem.",
+      "category": "Identity",
+      "output": "svg",
+      "width": "full",
+      "scope": "any",
+      "needs": [],
+      "multiPart": false,
+      "options": [
+        {
+          "key": "label",
+          "label": "Label",
+          "type": "text",
+          "default": "tech stack · orbit"
+        },
+        {
+          "key": "emblem",
+          "label": "Centre emblem",
+          "type": "icon",
+          "default": "github"
+        },
+        {
+          "key": "legend",
+          "label": "Ring legend",
+          "type": "toggle",
+          "default": true,
+          "help": "Lists each ring's tools beside the orbit."
+        },
+        {
+          "key": "rings",
+          "label": "Rings",
+          "type": "list",
+          "default": [
+            {
+              "label": "Languages",
+              "icons": [
+                "typescript",
+                "python",
+                "go"
+              ]
+            },
+            {
+              "label": "Frameworks",
+              "icons": [
+                "react",
+                "nextjs",
+                "nodejs",
+                "tailwindcss"
+              ]
+            },
+            {
+              "label": "Infra & data",
+              "icons": [
+                "docker",
+                "kubernetes",
+                "aws",
+                "postgresql",
+                "githubactions"
+              ]
+            }
+          ],
+          "max": 3,
+          "item": [
+            {
+              "key": "label",
+              "label": "Ring name",
+              "type": "text",
+              "default": "Tools",
+              "max": 32
+            },
+            {
+              "key": "icons",
+              "label": "Icons",
+              "type": "tags",
+              "default": [
+                "git",
+                "linux"
+              ],
+              "help": "Icon ids such as typescript, react, docker. Inner rings hold fewer icons than outer ones.",
+              "max": 16
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "about",
+      "title": "About card",
+      "description": "A typographic introduction: monogram, name and pronouns, your roles, a short bio and chips for where you work and live.",
+      "category": "Identity",
+      "output": "svg",
+      "width": "full",
+      "scope": "profile",
+      "needs": [],
+      "multiPart": false,
+      "options": [
+        {
+          "key": "label",
+          "label": "Label",
+          "type": "text",
+          "default": "about me"
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "text",
+          "default": ""
+        },
+        {
+          "key": "pronouns",
+          "label": "Pronouns",
+          "type": "text",
+          "default": "",
+          "max": 24
+        },
+        {
+          "key": "roles",
+          "label": "Roles",
+          "type": "tags",
+          "default": [],
+          "max": 4
+        },
+        {
+          "key": "bio",
+          "label": "Bio",
+          "type": "text",
+          "default": "",
+          "help": "Up to five lines; a blank line starts a new paragraph. Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions} {project} {repo} {tagline} {version} {license} {forks} {contributors} {npm} {pypi} {crate} {owner}"
+        },
+        {
+          "key": "layout",
+          "label": "Layout",
+          "type": "segmented",
+          "default": "left",
+          "choices": [
+            {
+              "value": "left",
+              "label": "Left-aligned"
+            },
+            {
+              "value": "center",
+              "label": "Centered"
+            }
+          ]
+        },
+        {
+          "key": "monogram",
+          "label": "Monogram",
+          "type": "toggle",
+          "default": true,
+          "help": "Your initials in an accent disc."
+        },
+        {
+          "key": "chips",
+          "label": "Company & location chips",
+          "type": "toggle",
+          "default": true
+        },
+        {
+          "key": "extraChips",
+          "label": "Extra chips",
+          "type": "tags",
+          "default": [
+            "Open to collaborations"
+          ],
+          "when": {
+            "key": "chips",
+            "is": [
+              true
+            ]
+          },
+          "max": 3
+        }
+      ]
+    },
+    {
+      "type": "facts",
+      "title": "Quick facts",
+      "description": "A tidy key-value list of things worth knowing about you, revealed row by row, in one or two columns.",
+      "category": "Identity",
+      "output": "svg",
+      "width": "full",
+      "scope": "any",
+      "needs": [],
+      "multiPart": false,
+      "options": [
+        {
+          "key": "label",
+          "label": "Title",
+          "type": "text",
+          "default": "quick facts"
+        },
+        {
+          "key": "columns",
+          "label": "Columns",
+          "type": "segmented",
+          "default": "2",
+          "choices": [
+            {
+              "value": "1",
+              "label": "One"
+            },
+            {
+              "value": "2",
+              "label": "Two"
+            }
+          ]
+        },
+        {
+          "key": "leaders",
+          "label": "Dotted leaders",
+          "type": "toggle",
+          "default": true,
+          "help": "A dotted line between each key and its value."
+        },
+        {
+          "key": "iconColor",
+          "label": "Icon colour",
+          "type": "segmented",
+          "default": "accent",
+          "choices": [
+            {
+              "value": "accent",
+              "label": "Accent"
+            },
+            {
+              "value": "brand",
+              "label": "Brand"
+            },
+            {
+              "value": "muted",
+              "label": "Muted"
+            }
+          ]
+        },
+        {
+          "key": "items",
+          "label": "Facts",
+          "type": "list",
+          "default": [
+            {
+              "icon": "pin",
+              "key": "Based in",
+              "value": "{city}"
+            },
+            {
+              "icon": "briefcase",
+              "key": "Working on",
+              "value": "Developer tooling"
+            },
+            {
+              "icon": "code",
+              "key": "Daily drivers",
+              "value": "TypeScript, Rust, Go"
+            },
+            {
+              "icon": "book",
+              "key": "Learning",
+              "value": "Distributed systems"
+            },
+            {
+              "icon": "coffee",
+              "key": "Fuelled by",
+              "value": "Flat whites"
+            },
+            {
+              "icon": "sparkle",
+              "key": "Ask me about",
+              "value": "Design systems, CLIs"
+            }
+          ],
+          "max": 12,
+          "item": [
+            {
+              "key": "icon",
+              "label": "Icon",
+              "type": "icon",
+              "default": "sparkle",
+              "help": "A brand icon, or a line glyph such as pin, briefcase, code, book, heart, rocket, globe."
+            },
+            {
+              "key": "key",
+              "label": "Key",
+              "type": "text",
+              "default": "Fun fact"
+            },
+            {
+              "key": "value",
+              "label": "Value",
+              "type": "text",
+              "default": "",
+              "help": "Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions} {project} {repo} {tagline} {version} {license} {forks} {contributors} {npm} {pypi} {crate} {owner}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "badges",
+      "title": "Badges",
+      "description": "A row of shields-style badges drawn right in the image, no third-party service, wrapping neatly across lines.",
+      "category": "Identity",
+      "output": "svg",
+      "width": "full",
+      "scope": "any",
+      "needs": [],
+      "multiPart": false,
+      "options": [
+        {
+          "key": "style",
+          "label": "Style",
+          "type": "segmented",
+          "default": "flat",
+          "choices": [
+            {
+              "value": "flat",
+              "label": "Flat"
+            },
+            {
+              "value": "pill",
+              "label": "Pill"
+            },
+            {
+              "value": "outline",
+              "label": "Outline"
+            }
+          ]
+        },
+        {
+          "key": "colors",
+          "label": "Value colour",
+          "type": "segmented",
+          "default": "accent",
+          "help": "Brand uses each icon's own colour; a per-badge colour always wins.",
+          "choices": [
+            {
+              "value": "accent",
+              "label": "Accent"
+            },
+            {
+              "value": "brand",
+              "label": "Brand"
+            }
+          ]
+        },
+        {
+          "key": "caps",
+          "label": "Uppercase labels",
+          "type": "toggle",
+          "default": true
+        },
+        {
+          "key": "align",
+          "label": "Alignment",
+          "type": "segmented",
+          "default": "center",
+          "choices": [
+            {
+              "value": "left",
+              "label": "Left"
+            },
+            {
+              "value": "center",
+              "label": "Center"
+            }
+          ]
+        },
+        {
+          "key": "shine",
+          "label": "Shine sweep",
+          "type": "toggle",
+          "default": true
+        },
+        {
+          "key": "items",
+          "label": "Badges",
+          "type": "list",
+          "default": [
+            {
+              "icon": "typescript",
+              "label": "TypeScript",
+              "value": "daily",
+              "color": ""
+            },
+            {
+              "icon": "rust",
+              "label": "Rust",
+              "value": "learning",
+              "color": ""
+            },
+            {
+              "icon": "react",
+              "label": "React",
+              "value": "since 2017",
+              "color": ""
+            },
+            {
+              "icon": "docker",
+              "label": "Docker",
+              "value": "shipping",
+              "color": ""
+            },
+            {
+              "icon": "users",
+              "label": "Followers",
+              "value": "{followers}",
+              "color": ""
+            },
+            {
+              "icon": "star",
+              "label": "Stars",
+              "value": "{stars}",
+              "color": ""
+            },
+            {
+              "icon": "flame",
+              "label": "Streak",
+              "value": "{streak} days",
+              "color": ""
+            }
+          ],
+          "max": 24,
+          "item": [
+            {
+              "key": "icon",
+              "label": "Icon",
+              "type": "icon",
+              "default": "code",
+              "help": "Brand icon or line glyph; leave empty for none."
+            },
+            {
+              "key": "label",
+              "label": "Label",
+              "type": "text",
+              "default": "Label",
+              "max": 32
+            },
+            {
+              "key": "value",
+              "label": "Value",
+              "type": "text",
+              "default": "value",
+              "help": "Optional. Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions} {project} {repo} {tagline} {version} {license} {forks} {contributors} {npm} {pypi} {crate} {owner}",
+              "max": 32
+            },
+            {
+              "key": "color",
+              "label": "Colour",
+              "type": "color",
+              "default": "",
+              "help": "Empty uses the accent."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "skills",
+      "title": "Skill meters",
+      "description": "Your strongest tools as filling bars, segmented blocks or radial gauges, each with its icon and level.",
+      "category": "Identity",
+      "output": "svg",
+      "width": "full",
+      "scope": "profile",
+      "needs": [],
+      "multiPart": false,
+      "options": [
+        {
+          "key": "label",
+          "label": "Title",
+          "type": "text",
+          "default": "toolbox"
+        },
+        {
+          "key": "style",
+          "label": "Style",
+          "type": "segmented",
+          "default": "bars",
+          "choices": [
+            {
+              "value": "bars",
+              "label": "Bars"
+            },
+            {
+              "value": "blocks",
+              "label": "Blocks"
+            },
+            {
+              "value": "gauges",
+              "label": "Gauges"
+            }
+          ]
+        },
+        {
+          "key": "columns",
+          "label": "Columns",
+          "type": "segmented",
+          "default": "2",
+          "when": {
+            "key": "style",
+            "is": [
+              "bars",
+              "blocks"
+            ]
+          },
+          "choices": [
+            {
+              "value": "1",
+              "label": "1"
+            },
+            {
+              "value": "2",
+              "label": "2"
+            },
+            {
+              "value": "3",
+              "label": "3"
+            }
+          ]
+        },
+        {
+          "key": "gauges",
+          "label": "Gauges per row",
+          "type": "segmented",
+          "default": "6",
+          "when": {
+            "key": "style",
+            "is": [
+              "gauges"
+            ]
+          },
+          "choices": [
+            {
+              "value": "3",
+              "label": "3"
+            },
+            {
+              "value": "4",
+              "label": "4"
+            },
+            {
+              "value": "5",
+              "label": "5"
+            },
+            {
+              "value": "6",
+              "label": "6"
+            }
+          ]
+        },
+        {
+          "key": "values",
+          "label": "Show levels",
+          "type": "toggle",
+          "default": true
+        },
+        {
+          "key": "iconColor",
+          "label": "Icon colour",
+          "type": "segmented",
+          "default": "brand",
+          "choices": [
+            {
+              "value": "brand",
+              "label": "Brand"
+            },
+            {
+              "value": "accent",
+              "label": "Accent"
+            },
+            {
+              "value": "text",
+              "label": "Text"
+            }
+          ]
+        },
+        {
+          "key": "items",
+          "label": "Skills",
+          "type": "list",
+          "default": [
+            {
+              "name": "TypeScript",
+              "icon": "typescript",
+              "level": 92
+            },
+            {
+              "name": "React",
+              "icon": "react",
+              "level": 86
+            },
+            {
+              "name": "Rust",
+              "icon": "rust",
+              "level": 68
+            },
+            {
+              "name": "Go",
+              "icon": "go",
+              "level": 74
+            },
+            {
+              "name": "PostgreSQL",
+              "icon": "postgresql",
+              "level": 80
+            },
+            {
+              "name": "Docker",
+              "icon": "docker",
+              "level": 77
+            }
+          ],
+          "max": 18,
+          "item": [
+            {
+              "key": "name",
+              "label": "Name",
+              "type": "text",
+              "default": "New skill",
+              "max": 32
+            },
+            {
+              "key": "icon",
+              "label": "Icon",
+              "type": "icon",
+              "default": "code"
+            },
+            {
+              "key": "level",
+              "label": "Level",
+              "type": "number",
+              "default": 60,
+              "min": 0,
+              "max": 100
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "timeline",
+      "title": "Timeline",
+      "description": "Experience and education on a vertical rail whose nodes light up one after another, with a live pulse on what you do now.",
+      "category": "Identity",
+      "output": "svg",
+      "width": "full",
+      "scope": "profile",
+      "needs": [],
+      "multiPart": false,
+      "options": [
+        {
+          "key": "label",
+          "label": "Title",
+          "type": "text",
+          "default": "experience"
+        },
+        {
+          "key": "now",
+          "label": "Live pulse on the first entry",
+          "type": "toggle",
+          "default": true,
+          "help": "Marks the top entry as what you are doing now."
+        },
+        {
+          "key": "descriptions",
+          "label": "Descriptions",
+          "type": "toggle",
+          "default": true
+        },
+        {
+          "key": "items",
+          "label": "Entries",
+          "type": "list",
+          "default": [
+            {
+              "period": "2023 — now",
+              "title": "Senior Software Engineer",
+              "place": "Northwind Labs",
+              "description": "Leading the developer platform team: build tooling, CI pipelines and a design system used by forty engineers."
+            },
+            {
+              "period": "2020 — 2023",
+              "title": "Full-stack Developer",
+              "place": "Lumen & Co.",
+              "description": "Shipped a realtime collaborative editor and halved page load times across the product."
+            },
+            {
+              "period": "2016 — 2020",
+              "title": "BSc Computer Science",
+              "place": "State University",
+              "description": "Distributed systems, compilers and far too many hackathons."
+            }
+          ],
+          "max": 8,
+          "item": [
+            {
+              "key": "period",
+              "label": "Period",
+              "type": "text",
+              "default": "2024",
+              "max": 28
+            },
+            {
+              "key": "title",
+              "label": "Title",
+              "type": "text",
+              "default": "Role or degree"
+            },
+            {
+              "key": "place",
+              "label": "Place",
+              "type": "text",
+              "default": ""
+            },
+            {
+              "key": "description",
+              "label": "Description",
+              "type": "text",
+              "default": "",
+              "max": 280
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "contact",
+      "title": "Contact card",
+      "description": "A “let's work together” card with your availability, a short pitch and up to three call-to-action buttons.",
+      "category": "Identity",
+      "output": "svg",
+      "width": "full",
+      "scope": "any",
+      "needs": [],
+      "multiPart": false,
+      "options": [
+        {
+          "key": "status",
+          "label": "Availability",
+          "type": "segmented",
+          "default": "open",
+          "choices": [
+            {
+              "value": "open",
+              "label": "Open to work"
+            },
+            {
+              "value": "busy",
+              "label": "Busy"
+            },
+            {
+              "value": "away",
+              "label": "Not available"
+            }
+          ]
+        },
+        {
+          "key": "statusText",
+          "label": "Status text",
+          "type": "text",
+          "default": "",
+          "max": 48
+        },
+        {
+          "key": "headline",
+          "label": "Headline",
+          "type": "text",
+          "default": "Let's build something together",
+          "help": "Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions} {project} {repo} {tagline} {version} {license} {forks} {contributors} {npm} {pypi} {crate} {owner}",
+          "max": 80
+        },
+        {
+          "key": "text",
+          "label": "Text",
+          "type": "text",
+          "default": "I'm taking on a few freelance and open-source collaborations this season. Drop me a line and I'll usually reply within a day.",
+          "max": 300
+        },
+        {
+          "key": "ctas",
+          "label": "Buttons",
+          "type": "list",
+          "default": [
+            {
+              "label": "Email me",
+              "icon": "mail"
+            },
+            {
+              "label": "Book a call",
+              "icon": "calendar"
+            },
+            {
+              "label": "LinkedIn",
+              "icon": "linkedin"
+            }
+          ],
+          "help": "Buttons are drawn into the image; the whole card links to the URL below.",
+          "max": 3,
+          "item": [
+            {
+              "key": "label",
+              "label": "Label",
+              "type": "text",
+              "default": "Say hello",
+              "max": 28
+            },
+            {
+              "key": "icon",
+              "label": "Icon",
+              "type": "icon",
+              "default": "mail"
+            }
+          ]
+        },
+        {
+          "key": "url",
+          "label": "Link",
+          "type": "text",
+          "default": "",
+          "help": "mailto:, a booking page or any URL."
+        },
+        {
+          "key": "emblem",
+          "label": "Emblem",
+          "type": "icon",
+          "default": "mail",
+          "help": "Shown inside the signal on the right."
+        },
+        {
+          "key": "signal",
+          "label": "Signal emblem",
+          "type": "toggle",
+          "default": true
+        }
+      ]
+    },
+    {
+      "type": "clock",
+      "title": "Local time",
+      "description": "A live clock for your time zone that keeps ticking after the build, with your city, UTC offset and today's daylight band.",
+      "category": "Identity",
+      "output": "svg",
+      "width": "half",
+      "scope": "any",
+      "needs": [],
+      "multiPart": false,
+      "options": [
+        {
+          "key": "label",
+          "label": "Label",
+          "type": "text",
+          "default": "local time"
+        },
+        {
+          "key": "style",
+          "label": "Style",
+          "type": "segmented",
+          "default": "analogue",
+          "choices": [
+            {
+              "value": "analogue",
+              "label": "Analogue"
+            },
+            {
+              "value": "digital",
+              "label": "Digital"
+            }
+          ]
+        },
+        {
+          "key": "seconds",
+          "label": "Seconds",
+          "type": "toggle",
+          "default": true
+        },
+        {
+          "key": "hour12",
+          "label": "12-hour clock",
+          "type": "toggle",
+          "default": false,
+          "when": {
+            "key": "style",
+            "is": [
+              "digital"
+            ]
+          }
+        },
+        {
+          "key": "daylight",
+          "label": "Daylight band",
+          "type": "toggle",
+          "default": true,
+          "help": "Approximate sunrise and sunset from your profile location."
+        }
+      ]
+    },
+    {
+      "type": "shields",
+      "title": "Shields",
+      "description": "Shield-style badges for version, licence, build status, stars, downloads and more, each its own image linking to the right page.",
+      "category": "Identity",
+      "output": "svg",
+      "width": "full",
+      "scope": "project",
+      "needs": [
+        "project",
+        "releases",
+        "downloads"
+      ],
+      "multiPart": true,
+      "options": [
+        {
+          "key": "badges",
+          "label": "Badges",
+          "type": "checklist",
+          "default": [
+            "version",
+            "license",
+            "ci",
+            "stars",
+            "downloads",
+            "contributors"
+          ],
+          "choices": [
+            {
+              "value": "version",
+              "label": "Version"
+            },
+            {
+              "value": "license",
+              "label": "Licence"
+            },
+            {
+              "value": "ci",
+              "label": "Build status"
+            },
+            {
+              "value": "stars",
+              "label": "Stars"
+            },
+            {
+              "value": "forks",
+              "label": "Forks"
+            },
+            {
+              "value": "downloads",
+              "label": "Weekly downloads"
+            },
+            {
+              "value": "contributors",
+              "label": "Contributors"
+            },
+            {
+              "value": "issues",
+              "label": "Open issues"
+            },
+            {
+              "value": "prs",
+              "label": "Open pull requests"
+            },
+            {
+              "value": "commit",
+              "label": "Last commit"
+            },
+            {
+              "value": "release",
+              "label": "Last release"
+            },
+            {
+              "value": "topics",
+              "label": "Topics (one badge each)"
+            }
+          ]
+        },
+        {
+          "key": "style",
+          "label": "Style",
+          "type": "segmented",
+          "default": "rounded",
+          "choices": [
+            {
+              "value": "flat",
+              "label": "Flat"
+            },
+            {
+              "value": "rounded",
+              "label": "Rounded"
+            },
+            {
+              "value": "outline",
+              "label": "Outline"
+            },
+            {
+              "value": "plastic",
+              "label": "FOR THE BADGE"
+            }
+          ]
+        },
+        {
+          "key": "color",
+          "label": "Value colour",
+          "type": "segmented",
+          "default": "accent",
+          "help": "Build status always uses green, amber or red.",
+          "choices": [
+            {
+              "value": "accent",
+              "label": "Accent"
+            },
+            {
+              "value": "neutral",
+              "label": "Neutral"
+            }
+          ]
+        },
+        {
+          "key": "icons",
+          "label": "Icons",
+          "type": "toggle",
+          "default": true
+        },
+        {
+          "key": "custom",
+          "label": "Custom badges",
+          "type": "list",
+          "default": [],
+          "max": 8,
+          "item": [
+            {
+              "key": "label",
+              "label": "Label",
+              "type": "text",
+              "default": "chat",
+              "help": "Placeholders like {version} work here."
+            },
+            {
+              "key": "value",
+              "label": "Value",
+              "type": "text",
+              "default": "discord"
+            },
+            {
+              "key": "color",
+              "label": "Colour",
+              "type": "color",
+              "default": ""
+            },
+            {
+              "key": "icon",
+              "label": "Icon",
+              "type": "icon",
+              "default": ""
+            },
+            {
+              "key": "link",
+              "label": "Link",
+              "type": "text",
+              "default": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "contributors",
+      "title": "Contributor wall",
+      "description": "Everyone who has committed to the project as a wall of avatars that pop in one by one, top contributors first.",
+      "category": "Identity",
+      "output": "svg",
+      "width": "full",
+      "scope": "project",
+      "needs": [
+        "project",
+        "contributors"
+      ],
+      "multiPart": false,
+      "options": [
+        {
+          "key": "label",
+          "label": "Label",
+          "type": "text",
+          "default": "contributors"
+        },
+        {
+          "key": "max",
+          "label": "Avatars",
+          "type": "number",
+          "default": 30,
+          "min": 12,
+          "max": 60
+        },
+        {
+          "key": "size",
+          "label": "Size",
+          "type": "segmented",
+          "default": "md",
+          "choices": [
+            {
+              "value": "sm",
+              "label": "S"
+            },
+            {
+              "value": "md",
+              "label": "M"
+            },
+            {
+              "value": "lg",
+              "label": "L"
+            }
+          ]
+        },
+        {
+          "key": "names",
+          "label": "Names",
+          "type": "toggle",
+          "default": true,
+          "help": "Login under each avatar."
+        },
+        {
+          "key": "shape",
+          "label": "Shape",
+          "type": "segmented",
+          "default": "circle",
+          "choices": [
+            {
+              "value": "circle",
+              "label": "Circle"
+            },
+            {
+              "value": "rounded",
+              "label": "Rounded square"
+            }
+          ]
+        },
+        {
+          "key": "sort",
+          "label": "Order",
+          "type": "segmented",
+          "default": "contributions",
+          "choices": [
+            {
+              "value": "contributions",
+              "label": "Most commits"
+            },
+            {
+              "value": "alpha",
+              "label": "A–Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "support",
+      "title": "Support & sponsor",
+      "description": "A warm call to action for sponsors: headline, a short pitch, up to three drawn buttons (GitHub Sponsors, Ko-fi, Open Collective, …) and a beating heart.",
+      "category": "Identity",
+      "output": "svg",
+      "width": "full",
+      "scope": "any",
+      "needs": [],
+      "multiPart": false,
+      "options": [
+        {
+          "key": "label",
+          "label": "Label",
+          "type": "text",
+          "default": "support"
+        },
+        {
+          "key": "headline",
+          "label": "Headline",
+          "type": "text",
+          "default": "",
+          "help": "Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions} {project} {repo} {tagline} {version} {license} {forks} {contributors} {npm} {pypi} {crate} {owner}",
+          "max": 80
+        },
+        {
+          "key": "text",
+          "label": "Text",
+          "type": "text",
+          "default": "",
+          "max": 300
+        },
+        {
+          "key": "buttons",
+          "label": "Buttons",
+          "type": "list",
+          "default": [
+            {
+              "kind": "sponsors",
+              "label": "Sponsor",
+              "url": ""
+            },
+            {
+              "kind": "opencollective",
+              "label": "Open Collective",
+              "url": ""
+            },
+            {
+              "kind": "kofi",
+              "label": "Buy a coffee",
+              "url": ""
+            }
+          ],
+          "help": "Drawn into the image; the card links to the first button's URL. URLs default to your account on each platform ({owner} is the repository owner).",
+          "max": 3,
+          "item": [
+            {
+              "key": "kind",
+              "label": "Platform",
+              "type": "select",
+              "default": "custom",
+              "choices": [
+                {
+                  "value": "sponsors",
+                  "label": "GitHub Sponsors"
+                },
+                {
+                  "value": "kofi",
+                  "label": "Ko-fi"
+                },
+                {
+                  "value": "bmc",
+                  "label": "Buy Me a Coffee"
+                },
+                {
+                  "value": "opencollective",
+                  "label": "Open Collective"
+                },
+                {
+                  "value": "patreon",
+                  "label": "Patreon"
+                },
+                {
+                  "value": "paypal",
+                  "label": "PayPal"
+                },
+                {
+                  "value": "custom",
+                  "label": "Custom"
+                }
+              ]
+            },
+            {
+              "key": "label",
+              "label": "Label",
+              "type": "text",
+              "default": "Support",
+              "max": 28
+            },
+            {
+              "key": "url",
+              "label": "URL",
+              "type": "text",
+              "default": ""
+            },
+            {
+              "key": "icon",
+              "label": "Icon",
+              "type": "icon",
+              "default": "heart",
+              "when": {
+                "key": "kind",
+                "is": [
+                  "custom"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "key": "backers",
+          "label": "Backers line",
+          "type": "text",
+          "default": "Thank you to everyone who already chips in.",
+          "help": "A short line under the buttons, e.g. how many people back the work.",
+          "max": 90
+        },
+        {
+          "key": "emblem",
+          "label": "Heart emblem",
+          "type": "toggle",
+          "default": true
+        }
+      ]
+    },
+    {
+      "type": "stats",
+      "title": "Stats board",
+      "description": "Rolling odometer counters for your key numbers, with an optional year-progress ring.",
+      "category": "Stats",
+      "output": "svg",
+      "width": "full",
+      "scope": "profile",
+      "needs": [
+        "calendar"
+      ],
+      "multiPart": false,
+      "options": [
+        {
+          "key": "label",
+          "label": "Label",
+          "type": "text",
+          "default": "stats · live from github"
+        },
+        {
+          "key": "tiles",
+          "label": "Tiles",
+          "type": "checklist",
+          "default": [
+            "year",
+            "allTime",
+            "current",
+            "longest",
+            "stars",
+            "followers"
+          ],
+          "help": "Up to 6 with the ring, 8 without.",
+          "choices": [
+            {
+              "value": "year",
+              "label": "Contributions this year"
+            },
+            {
+              "value": "allTime",
+              "label": "All-time contributions"
+            },
+            {
+              "value": "lastYear",
+              "label": "Contributions, last 12 months"
+            },
+            {
+              "value": "current",
+              "label": "Current streak"
+            },
+            {
+              "value": "longest",
+              "label": "Longest streak"
+            },
+            {
+              "value": "prs",
+              "label": "Pull requests"
+            },
+            {
+              "value": "stars",
+              "label": "Stars earned"
+            },
+            {
+              "value": "reviews",
+              "label": "Code reviews"
+            },
+            {
+              "value": "issues",
+              "label": "Issues opened"
+            },
+            {
+              "value": "commits",
+              "label": "Commits (last year)"
+            },
+            {
+              "value": "followers",
+              "label": "Followers"
+            },
+            {
+              "value": "repos",
+              "label": "Repositories"
+            },
+            {
+              "value": "active",
+              "label": "Active days"
+            },
+            {
+              "value": "best",
+              "label": "Best day"
+            }
+          ],
+          "max": 8
+        },
+        {
+          "key": "ring",
+          "label": "Year-progress ring",
+          "type": "toggle",
+          "default": true
+        }
+      ]
+    },
+    {
+      "type": "languages",
+      "title": "Top languages",
+      "description": "Your most used languages by bytes of code, as an animated donut, bar list or stacked bar.",
+      "category": "Stats",
+      "output": "svg",
+      "width": "half",
+      "scope": "any",
+      "needs": [
+        "languages"
+      ],
+      "multiPart": false,
+      "options": [
+        {
+          "key": "label",
+          "label": "Label",
+          "type": "text",
+          "default": "languages"
+        },
+        {
+          "key": "style",
+          "label": "Style",
+          "type": "segmented",
+          "default": "donut",
+          "choices": [
+            {
+              "value": "donut",
+              "label": "Donut"
+            },
+            {
+              "value": "bars",
+              "label": "Bars"
+            },
+            {
+              "value": "stacked",
+              "label": "Stacked"
+            }
+          ]
+        },
+        {
+          "key": "max",
+          "label": "Languages shown",
+          "type": "number",
+          "default": 5,
+          "help": "The rest are grouped as Other.",
+          "min": 3,
+          "max": 10
+        },
+        {
+          "key": "hide",
+          "label": "Hide languages",
+          "type": "tags",
+          "default": [],
+          "max": 20
+        }
+      ]
+    },
+    {
+      "type": "trophies",
+      "title": "Achievements",
+      "description": "Hexagonal trophies that unlock in three tiers as your streaks, stars and years on GitHub grow.",
+      "category": "Stats",
+      "output": "svg",
+      "width": "half",
+      "scope": "profile",
+      "needs": [
+        "calendar",
+        "repos",
+        "languages",
+        "hours"
+      ],
+      "multiPart": false,
+      "options": [
+        {
+          "key": "label",
+          "label": "Label",
+          "type": "text",
+          "default": "achievements"
+        },
+        {
+          "key": "trophies",
+          "label": "Trophies",
+          "type": "checklist",
+          "default": [
+            "streak",
+            "month",
+            "polyglot",
+            "veteran",
+            "shipper",
+            "stars",
+            "chronotype",
+            "consistent"
+          ],
+          "choices": [
+            {
+              "value": "streak",
+              "label": "Streaker · longest streak"
+            },
+            {
+              "value": "month",
+              "label": "Centurion · busiest month"
+            },
+            {
+              "value": "polyglot",
+              "label": "Polyglot · languages used"
+            },
+            {
+              "value": "veteran",
+              "label": "Veteran · years on GitHub"
+            },
+            {
+              "value": "shipper",
+              "label": "Shipper · repositories"
+            },
+            {
+              "value": "stars",
+              "label": "Stargazer · stars earned"
+            },
+            {
+              "value": "chronotype",
+              "label": "Night owl / early bird"
+            },
+            {
+              "value": "consistent",
+              "label": "Consistent · active days"
+            },
+            {
+              "value": "reviewer",
+              "label": "Reviewer · code reviews"
+            },
+            {
+              "value": "collaborator",
+              "label": "Collaborator · pull requests"
+            },
+            {
+              "value": "popular",
+              "label": "Popular · followers"
+            },
+            {
+              "value": "bughunter",
+              "label": "Bug hunter · issues opened"
+            }
+          ],
+          "max": 12
+        },
+        {
+          "key": "columns",
+          "label": "Columns",
+          "type": "segmented",
+          "default": "4",
+          "choices": [
+            {
+              "value": "3",
+              "label": "3"
+            },
+            {
+              "value": "4",
+              "label": "4"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "streak",
+      "title": "Streak card",
+      "description": "Current streak in a burning ring, flanked by your longest run and total contributions, each with its date range.",
+      "category": "Stats",
+      "output": "svg",
+      "width": "full",
+      "scope": "profile",
+      "needs": [
+        "calendar"
+      ],
+      "multiPart": false,
+      "options": [
+        {
+          "key": "label",
+          "label": "Label",
+          "type": "text",
+          "default": "streak · last 12 months"
+        },
+        {
+          "key": "total",
+          "label": "Total contributions",
+          "type": "segmented",
+          "default": "lastYear",
+          "choices": [
+            {
+              "value": "lastYear",
+              "label": "12 months"
+            },
+            {
+              "value": "year",
+              "label": "This year"
+            },
+            {
+              "value": "allTime",
+              "label": "All time"
+            }
+          ]
+        },
+        {
+          "key": "ranges",
+          "label": "Date ranges",
+          "type": "toggle",
+          "default": true,
+          "help": "Show when each streak started and ended."
+        },
+        {
+          "key": "ring",
+          "label": "Record ring",
+          "type": "toggle",
+          "default": true,
+          "help": "The ring fills as your current streak approaches your longest."
+        },
+        {
+          "key": "embers",
+          "label": "Rising embers",
+          "type": "toggle",
+          "default": true
+        }
+      ]
+    },
+    {
+      "type": "donut",
+      "title": "Language donut",
+      "description": "Your languages as a donut that draws itself in, with the top language in the centre and a percentage legend.",
+      "category": "Stats",
+      "output": "svg",
+      "width": "half",
+      "scope": "any",
+      "needs": [
+        "languages"
+      ],
+      "multiPart": false,
+      "options": [
+        {
+          "key": "label",
+          "label": "Label",
+          "type": "text",
+          "default": "languages"
+        },
+        {
+          "key": "slices",
+          "label": "Max slices",
+          "type": "number",
+          "default": 6,
+          "help": "Smaller languages are grouped as Other.",
+          "min": 3,
+          "max": 8
+        },
+        {
+          "key": "percentages",
+          "label": "Show percentages",
+          "type": "toggle",
+          "default": true
+        },
+        {
+          "key": "centre",
+          "label": "Centre",
+          "type": "segmented",
+          "default": "top",
+          "choices": [
+            {
+              "value": "top",
+              "label": "Top language"
+            },
+            {
+              "value": "count",
+              "label": "Language count"
+            },
+            {
+              "value": "none",
+              "label": "Empty"
+            }
+          ]
+        },
+        {
+          "key": "hide",
+          "label": "Hide languages",
+          "type": "tags",
+          "default": [],
+          "max": 20
+        }
+      ]
+    },
+    {
+      "type": "year",
+      "title": "Year in review",
+      "description": "Your year, wrapped: total contributions, busiest month, best day, favourite weekday and more, over a monthly bar chart.",
+      "category": "Stats",
+      "output": "svg",
+      "width": "full",
+      "scope": "profile",
+      "needs": [
+        "calendar",
+        "repos",
+        "languages"
+      ],
+      "multiPart": false,
+      "options": [
+        {
+          "key": "label",
+          "label": "Label",
+          "type": "text",
+          "default": "year in review"
+        },
+        {
+          "key": "period",
+          "label": "Period",
+          "type": "segmented",
+          "default": "year",
+          "choices": [
+            {
+              "value": "year",
+              "label": "Calendar year"
+            },
+            {
+              "value": "rolling",
+              "label": "Last 12 months"
+            }
+          ]
+        },
+        {
+          "key": "facts",
+          "label": "Highlights",
+          "type": "checklist",
+          "default": [
+            "month",
+            "day",
+            "weekday",
+            "language",
+            "repos",
+            "active"
+          ],
+          "help": "Up to six, shown in a 3 × 2 grid.",
+          "choices": [
+            {
+              "value": "month",
+              "label": "Busiest month"
+            },
+            {
+              "value": "day",
+              "label": "Best day"
+            },
+            {
+              "value": "weekday",
+              "label": "Favourite weekday"
+            },
+            {
+              "value": "language",
+              "label": "Top language"
+            },
+            {
+              "value": "repos",
+              "label": "New repositories"
+            },
+            {
+              "value": "active",
+              "label": "Active days"
+            },
+            {
+              "value": "streak",
+              "label": "Longest streak"
+            },
+            {
+              "value": "stars",
+              "label": "Stars on new repos"
+            }
+          ],
+          "max": 6
+        },
+        {
+          "key": "chart",
+          "label": "Monthly chart",
+          "type": "toggle",
+          "default": true
+        },
+        {
+          "key": "pace",
+          "label": "Pace & comparison",
+          "type": "toggle",
+          "default": true,
+          "help": "Projected total and change against last year."
+        }
+      ]
+    },
+    {
+      "type": "followers",
+      "title": "Follower milestone",
+      "description": "Your follower count on a rolling counter with a progress bar towards the next milestone.",
+      "category": "Stats",
+      "output": "svg",
+      "width": "half",
+      "scope": "profile",
+      "needs": [],
+      "multiPart": false,
+      "options": [
+        {
+          "key": "label",
+          "label": "Label",
+          "type": "text",
+          "default": "followers"
+        },
+        {
+          "key": "target",
+          "label": "Next milestone",
+          "type": "segmented",
+          "default": "auto",
+          "choices": [
+            {
+              "value": "auto",
+              "label": "Automatic"
+            },
+            {
+              "value": "manual",
+              "label": "Custom goal"
+            }
+          ]
+        },
+        {
+          "key": "goal",
+          "label": "Goal",
+          "type": "number",
+          "default": 1000,
+          "when": {
+            "key": "target",
+            "is": [
+              "manual"
+            ]
+          },
+          "min": 1,
+          "max": 1000000
+        },
+        {
+          "key": "following",
+          "label": "Following count",
+          "type": "toggle",
+          "default": true
+        },
+        {
+          "key": "ladder",
+          "label": "Milestone ladder",
+          "type": "toggle",
+          "default": true,
+          "help": "Small markers for the milestones around you."
+        }
+      ]
+    },
+    {
+      "type": "repo-stats",
+      "title": "Repository stats",
+      "description": "Rolling counters for stars, forks, issues, pull requests and contributors, each with a tiny trend, plus an issue-health ring.",
+      "category": "Stats",
+      "output": "svg",
+      "width": "full",
+      "scope": "project",
+      "needs": [
+        "project",
+        "stars",
+        "contributors"
+      ],
+      "multiPart": false,
+      "options": [
+        {
+          "key": "label",
+          "label": "Label",
+          "type": "text",
+          "default": "repository · live from github"
+        },
+        {
+          "key": "tiles",
+          "label": "Tiles",
+          "type": "checklist",
+          "default": [
+            "stars",
+            "forks",
+            "contributors",
+            "commits",
+            "prs",
+            "issues"
+          ],
+          "help": "Up to 6 with the ring, 8 without.",
+          "choices": [
+            {
+              "value": "stars",
+              "label": "Stars"
+            },
+            {
+              "value": "forks",
+              "label": "Forks"
+            },
+            {
+              "value": "watchers",
+              "label": "Watchers"
+            },
+            {
+              "value": "issues",
+              "label": "Open issues"
+            },
+            {
+              "value": "prs",
+              "label": "Merged pull requests"
+            },
+            {
+              "value": "contributors",
+              "label": "Contributors"
+            },
+            {
+              "value": "commits",
+              "label": "Commits, last 12 months"
+            },
+            {
+              "value": "downloads",
+              "label": "Weekly downloads"
+            }
+          ],
+          "max": 8
+        },
+        {
+          "key": "ring",
+          "label": "Health ring",
+          "type": "toggle",
+          "default": true,
+          "help": "Share of issues closed, with pull requests merged as an inner ring."
+        }
+      ]
+    },
+    {
+      "type": "repo-health",
+      "title": "Repository vitals",
+      "description": "A compact health check: build status with a live pulse, last commit, latest release, issue and pull request balance, and the licence.",
+      "category": "Stats",
+      "output": "svg",
+      "width": "half",
+      "scope": "project",
+      "needs": [
+        "project",
+        "releases"
+      ],
+      "multiPart": false,
+      "options": [
+        {
+          "key": "label",
+          "label": "Label",
+          "type": "text",
+          "default": "repo vitals"
+        },
+        {
+          "key": "license",
+          "label": "Licence row",
+          "type": "toggle",
+          "default": true
+        }
+      ]
+    },
+    {
+      "type": "downloads",
+      "title": "Package downloads",
+      "description": "Weekly, monthly or all-time downloads from npm, PyPI or crates.io on a rolling counter, with a year-long sparkline and the month-on-month trend.",
+      "category": "Stats",
+      "output": "svg",
+      "width": "half",
+      "scope": "project",
+      "needs": [
+        "project",
+        "downloads"
+      ],
+      "multiPart": false,
+      "options": [
+        {
+          "key": "label",
+          "label": "Label",
+          "type": "text",
+          "default": "downloads"
+        },
+        {
+          "key": "period",
+          "label": "Count",
+          "type": "segmented",
+          "default": "week",
+          "choices": [
+            {
+              "value": "week",
+              "label": "Weekly"
+            },
+            {
+              "value": "month",
+              "label": "Monthly"
+            },
+            {
+              "value": "total",
+              "label": "All time"
+            }
+          ]
+        },
+        {
+          "key": "registry",
+          "label": "Registry",
+          "type": "segmented",
+          "default": "auto",
+          "help": "Package names come from the project settings.",
+          "choices": [
+            {
+              "value": "auto",
+              "label": "Automatic"
+            },
+            {
+              "value": "npm",
+              "label": "npm"
+            },
+            {
+              "value": "pypi",
+              "label": "PyPI"
+            },
+            {
+              "value": "crates",
+              "label": "crates.io"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "contrib",
+      "title": "Contribution graph",
+      "description": "Your last 12 months as an animated heatmap with a scanning beam, best-day callout and weekly totals.",
+      "category": "Activity",
+      "output": "svg",
+      "width": "full",
+      "scope": "profile",
+      "needs": [
+        "calendar"
+      ],
+      "multiPart": false,
+      "options": [
+        {
+          "key": "label",
+          "label": "Label",
+          "type": "text",
+          "default": "contributions · last 12 months"
+        },
+        {
+          "key": "shape",
+          "label": "Cell shape",
+          "type": "segmented",
+          "default": "rounded",
+          "choices": [
+            {
+              "value": "rounded",
+              "label": "Rounded"
+            },
+            {
+              "value": "square",
+              "label": "Square"
+            },
+            {
+              "value": "circle",
+              "label": "Dots"
+            }
+          ]
+        },
+        {
+          "key": "weekly",
+          "label": "Weekly totals",
+          "type": "toggle",
+          "default": true
+        },
+        {
+          "key": "callout",
+          "label": "Best-day callout",
+          "type": "toggle",
+          "default": true
+        },
+        {
+          "key": "beam",
+          "label": "Scanning beam",
+          "type": "toggle",
+          "default": true
+        },
+        {
+          "key": "legend",
+          "label": "Legend",
+          "type": "toggle",
+          "default": true
+        }
+      ]
+    },
+    {
+      "type": "pulse",
+      "title": "Heartbeat",
+      "description": "Your recent contributions drawn as an ECG trace, one heartbeat per day, with a glowing pulse running along it.",
+      "category": "Activity",
+      "output": "svg",
+      "width": "full",
+      "scope": "profile",
+      "needs": [
+        "calendar"
+      ],
+      "multiPart": false,
+      "options": [
+        {
+          "key": "days",
+          "label": "Window",
+          "type": "segmented",
+          "default": "90",
+          "choices": [
+            {
+              "value": "30",
+              "label": "30 d"
+            },
+            {
+              "value": "60",
+              "label": "60 d"
+            },
+            {
+              "value": "90",
+              "label": "90 d"
+            },
+            {
+              "value": "180",
+              "label": "180 d"
+            }
+          ]
+        },
+        {
+          "key": "label",
+          "label": "Label",
+          "type": "text",
+          "default": "heartbeat · last {days} days",
+          "help": "{days} is replaced with the window length."
+        },
+        {
+          "key": "bpm",
+          "label": "BPM tile",
+          "type": "toggle",
+          "default": true,
+          "help": "Average contributions per week, shown as a heart rate."
+        }
+      ]
+    },
+    {
+      "type": "skyline",
+      "title": "3D skyline",
+      "description": "Your last 12 months as an isometric city of contribution towers, slowly turning in an animated GIF.",
+      "category": "Activity",
+      "output": "gif",
+      "width": "full",
+      "scope": "profile",
+      "needs": [
+        "calendar"
+      ],
+      "multiPart": false,
+      "options": [
+        {
+          "key": "label",
+          "label": "Label",
+          "type": "text",
+          "default": "3d skyline · last 12 months"
+        },
+        {
+          "key": "rotation",
+          "label": "Motion",
+          "type": "segmented",
+          "default": "spin",
+          "choices": [
+            {
+              "value": "spin",
+              "label": "Full spin"
+            },
+            {
+              "value": "sway",
+              "label": "Gentle sway"
+            }
+          ]
+        },
+        {
+          "key": "color",
+          "label": "Tower colours",
+          "type": "segmented",
+          "default": "heat",
+          "choices": [
+            {
+              "value": "heat",
+              "label": "Heat scale"
+            },
+            {
+              "value": "accent",
+              "label": "Accent"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "rhythm",
+      "title": "Coding rhythm",
+      "description": "A 24-hour radial clock of when you commit, with your chronotype and busiest weekday.",
+      "category": "Activity",
+      "output": "svg",
+      "width": "half",
+      "scope": "profile",
+      "needs": [
+        "hours",
+        "calendar"
+      ],
+      "multiPart": false,
+      "options": [
+        {
+          "key": "label",
+          "label": "Label",
+          "type": "text",
+          "default": "coding rhythm"
+        },
+        {
+          "key": "weekdays",
+          "label": "Weekday strip",
+          "type": "toggle",
+          "default": true,
+          "help": "Contributions per weekday next to the clock."
+        },
+        {
+          "key": "summary",
+          "label": "Summary line",
+          "type": "toggle",
+          "default": true,
+          "help": "Chronotype, peak hour and daily average."
+        }
+      ]
+    },
+    {
+      "type": "journey",
+      "title": "Journey timeline",
+      "description": "Your years on GitHub as a timeline: contributions per year above the axis, repositories you started below.",
+      "category": "Activity",
+      "output": "svg",
+      "width": "full",
+      "scope": "profile",
+      "needs": [
+        "calendar",
+        "repos"
+      ],
+      "multiPart": false,
+      "options": [
+        {
+          "key": "label",
+          "label": "Label",
+          "type": "text",
+          "default": "journey",
+          "help": "“since <first year>” is appended automatically."
+        },
+        {
+          "key": "mode",
+          "label": "Show",
+          "type": "segmented",
+          "default": "both",
+          "choices": [
+            {
+              "value": "both",
+              "label": "Both"
+            },
+            {
+              "value": "contributions",
+              "label": "Contributions"
+            },
+            {
+              "value": "repos",
+              "label": "Repos started"
+            }
+          ]
+        },
+        {
+          "key": "years",
+          "label": "Years",
+          "type": "number",
+          "default": 8,
+          "help": "Most recent years to show; older ones are left out.",
+          "min": 2,
+          "max": 15
+        }
+      ]
+    },
+    {
+      "type": "board",
+      "title": "Departure board",
+      "description": "Your latest public GitHub activity on a split-flap departure board that clatters into place.",
+      "category": "Activity",
+      "output": "svg",
+      "width": "full",
+      "scope": "profile",
+      "needs": [
+        "events"
+      ],
+      "multiPart": false,
+      "options": [
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "text",
+          "default": "departures · latest activity"
+        },
+        {
+          "key": "rows",
+          "label": "Rows",
+          "type": "number",
+          "default": 6,
+          "help": "Empty slots stay blank when there is less activity.",
+          "min": 3,
+          "max": 8
+        },
+        {
+          "key": "clock",
+          "label": "Clock and handle",
+          "type": "toggle",
+          "default": true,
+          "help": "Build time and your GitHub handle in the corner."
+        },
+        {
+          "key": "flaps",
+          "label": "Flap animation",
+          "type": "toggle",
+          "default": true,
+          "help": "Letters scramble and flip into place."
+        }
+      ]
+    },
+    {
+      "type": "area",
+      "title": "Contribution trend",
+      "description": "Weekly contributions as a smooth area chart that draws itself on, with your average and peak week marked.",
+      "category": "Activity",
+      "output": "svg",
+      "width": "full",
+      "scope": "profile",
+      "needs": [
+        "calendar"
+      ],
+      "multiPart": false,
+      "options": [
+        {
+          "key": "label",
+          "label": "Label",
+          "type": "text",
+          "default": "contribution trend"
+        },
+        {
+          "key": "weeks",
+          "label": "Range",
+          "type": "segmented",
+          "default": "26",
+          "choices": [
+            {
+              "value": "12",
+              "label": "12 weeks"
+            },
+            {
+              "value": "26",
+              "label": "26 weeks"
+            },
+            {
+              "value": "52",
+              "label": "52 weeks"
+            }
+          ]
+        },
+        {
+          "key": "smooth",
+          "label": "Smooth curve",
+          "type": "toggle",
+          "default": true
+        },
+        {
+          "key": "average",
+          "label": "Average line",
+          "type": "toggle",
+          "default": true
+        },
+        {
+          "key": "peak",
+          "label": "Peak marker",
+          "type": "toggle",
+          "default": true
+        },
+        {
+          "key": "points",
+          "label": "Week dots",
+          "type": "toggle",
+          "default": true,
+          "help": "Dots on each week (12 and 26 week ranges)."
+        }
+      ]
+    },
+    {
+      "type": "weekdays",
+      "title": "Weekday rhythm",
+      "description": "Contributions per day of the week as rising bars, with your busiest day lit up.",
+      "category": "Activity",
+      "output": "svg",
+      "width": "half",
+      "scope": "profile",
+      "needs": [
+        "calendar"
+      ],
+      "multiPart": false,
+      "options": [
+        {
+          "key": "label",
+          "label": "Label",
+          "type": "text",
+          "default": "weekday rhythm"
+        },
+        {
+          "key": "metric",
+          "label": "Show",
+          "type": "segmented",
+          "default": "total",
+          "choices": [
+            {
+              "value": "total",
+              "label": "Total"
+            },
+            {
+              "value": "average",
+              "label": "Average per day"
+            }
+          ]
+        },
+        {
+          "key": "start",
+          "label": "Week starts on",
+          "type": "segmented",
+          "default": "mon",
+          "choices": [
+            {
+              "value": "mon",
+              "label": "Monday"
+            },
+            {
+              "value": "sun",
+              "label": "Sunday"
+            }
+          ]
+        },
+        {
+          "key": "colour",
+          "label": "Bar colours",
+          "type": "segmented",
+          "default": "highlight",
+          "choices": [
+            {
+              "value": "highlight",
+              "label": "Highlight busiest"
+            },
+            {
+              "value": "heat",
+              "label": "Heat scale"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "harvest",
+      "title": "Contribution harvester",
+      "description": "A scanner drone glides over your contribution graph, harvesting every lit cell into a running tally before the grid regrows.",
+      "category": "Activity",
+      "output": "svg",
+      "width": "full",
+      "scope": "profile",
+      "needs": [
+        "calendar"
+      ],
+      "multiPart": false,
+      "options": [
+        {
+          "key": "label",
+          "label": "Label",
+          "type": "text",
+          "default": "contribution harvest"
+        },
+        {
+          "key": "speed",
+          "label": "Drone speed",
+          "type": "segmented",
+          "default": "calm",
+          "choices": [
+            {
+              "value": "calm",
+              "label": "Calm"
+            },
+            {
+              "value": "brisk",
+              "label": "Brisk"
+            }
+          ]
+        },
+        {
+          "key": "beam",
+          "label": "Scanner beam",
+          "type": "toggle",
+          "default": true
+        },
+        {
+          "key": "legend",
+          "label": "Legend & summary",
+          "type": "toggle",
+          "default": true
+        }
+      ]
+    },
+    {
+      "type": "star-history",
+      "title": "Star history",
+      "description": "Cumulative stars over time as a chart that draws itself on, with milestone flags and the stars gained this month.",
+      "category": "Activity",
+      "output": "svg",
+      "width": "full",
+      "scope": "project",
+      "needs": [
+        "project",
+        "stars"
+      ],
+      "multiPart": false,
+      "options": [
+        {
+          "key": "label",
+          "label": "Label",
+          "type": "text",
+          "default": "star history"
+        },
+        {
+          "key": "scale",
+          "label": "Scale",
+          "type": "segmented",
+          "default": "linear",
+          "choices": [
+            {
+              "value": "linear",
+              "label": "Linear"
+            },
+            {
+              "value": "log",
+              "label": "Log"
+            }
+          ]
+        },
+        {
+          "key": "milestones",
+          "label": "Milestone flags",
+          "type": "toggle",
+          "default": true,
+          "help": "Marks when the project crossed 100, 500, 1k, 5k … stars."
+        },
+        {
+          "key": "fill",
+          "label": "Area fill",
+          "type": "toggle",
+          "default": true
+        }
+      ]
+    },
+    {
+      "type": "commit-activity",
+      "title": "Commit activity",
+      "description": "A year of weekly commits as growing bars, a heat strip or a line, with the busiest week called out and the latest commit underneath.",
+      "category": "Activity",
+      "output": "svg",
+      "width": "full",
+      "scope": "project",
+      "needs": [
+        "project"
+      ],
+      "multiPart": false,
+      "options": [
+        {
+          "key": "label",
+          "label": "Label",
+          "type": "text",
+          "default": "commit activity"
+        },
+        {
+          "key": "style",
+          "label": "Style",
+          "type": "segmented",
+          "default": "bars",
+          "choices": [
+            {
+              "value": "bars",
+              "label": "Bars"
+            },
+            {
+              "value": "heat",
+              "label": "Heat strip"
+            },
+            {
+              "value": "line",
+              "label": "Line"
+            }
+          ]
+        },
+        {
+          "key": "last",
+          "label": "Latest commit",
+          "type": "toggle",
+          "default": true,
+          "help": "Message, short hash and time of the newest commit."
+        }
+      ]
+    },
+    {
+      "type": "now",
+      "title": "Now building",
+      "description": "Spotlights the project you are pushing to right now, with an animated git graph and the last 30 days of activity.",
+      "category": "Projects",
+      "output": "svg",
+      "width": "full",
+      "scope": "profile",
+      "needs": [
+        "repos",
+        "calendar"
+      ],
+      "multiPart": false,
+      "options": [
+        {
+          "key": "repo",
+          "label": "Repository",
+          "type": "text",
+          "default": "",
+          "help": "Leave empty to always show the repository you pushed to most recently."
+        },
+        {
+          "key": "label",
+          "label": "Headline label",
+          "type": "text",
+          "default": "now building"
+        },
+        {
+          "key": "sparkline",
+          "label": "Activity sparkline",
+          "type": "toggle",
+          "default": true,
+          "help": "Your contributions over the last 30 days."
+        },
+        {
+          "key": "progress",
+          "label": "Lifetime bar",
+          "type": "toggle",
+          "default": true,
+          "help": "How long the repository has existed, from first commit to now."
+        }
+      ]
+    },
+    {
+      "type": "project",
+      "title": "Project card",
+      "description": "One repository as a polished card with its description, language and stars, framed by a running accent light.",
+      "category": "Projects",
+      "output": "svg",
+      "width": "half",
+      "scope": "profile",
+      "needs": [
+        "repos"
+      ],
+      "multiPart": false,
+      "options": [
+        {
+          "key": "source",
+          "label": "Repository",
+          "type": "segmented",
+          "default": "pinned",
+          "choices": [
+            {
+              "value": "pinned",
+              "label": "Pinned"
+            },
+            {
+              "value": "starred",
+              "label": "Top starred"
+            },
+            {
+              "value": "named",
+              "label": "By name"
+            }
+          ]
+        },
+        {
+          "key": "index",
+          "label": "Position",
+          "type": "number",
+          "default": 1,
+          "help": "Which pinned repository, or rank by stars.",
+          "when": {
+            "key": "source",
+            "is": [
+              "pinned",
+              "starred"
+            ]
+          },
+          "min": 1,
+          "max": 6
+        },
+        {
+          "key": "repo",
+          "label": "Repository name",
+          "type": "text",
+          "default": "",
+          "when": {
+            "key": "source",
+            "is": [
+              "named"
+            ]
+          }
+        },
+        {
+          "key": "stats",
+          "label": "Language and stars",
+          "type": "toggle",
+          "default": true
+        },
+        {
+          "key": "accent",
+          "label": "Accent",
+          "type": "segmented",
+          "default": "runner",
+          "choices": [
+            {
+              "value": "runner",
+              "label": "Running light"
+            },
+            {
+              "value": "bar",
+              "label": "Top bar"
+            },
+            {
+              "value": "none",
+              "label": "None"
+            }
+          ]
+        },
+        {
+          "key": "number",
+          "label": "Big number",
+          "type": "toggle",
+          "default": true,
+          "help": "Watermark with the slot number.",
+          "when": {
+            "key": "source",
+            "is": [
+              "pinned",
+              "starred"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "type": "repos",
+      "title": "Top repositories",
+      "description": "Your best or most recently pushed repositories with descriptions, languages and rolling star counters.",
+      "category": "Projects",
+      "output": "svg",
+      "width": "full",
+      "scope": "profile",
+      "needs": [
+        "repos"
+      ],
+      "multiPart": false,
+      "options": [
+        {
+          "key": "label",
+          "label": "Label",
+          "type": "text",
+          "default": "top repositories"
+        },
+        {
+          "key": "source",
+          "label": "Source",
+          "type": "segmented",
+          "default": "repos",
+          "choices": [
+            {
+              "value": "repos",
+              "label": "All repositories"
+            },
+            {
+              "value": "pinned",
+              "label": "Pinned"
+            }
+          ]
+        },
+        {
+          "key": "sort",
+          "label": "Sort by",
+          "type": "segmented",
+          "default": "stars",
+          "choices": [
+            {
+              "value": "stars",
+              "label": "Stars"
+            },
+            {
+              "value": "pushed",
+              "label": "Recently pushed"
+            }
+          ]
+        },
+        {
+          "key": "count",
+          "label": "Repositories",
+          "type": "number",
+          "default": 5,
+          "min": 1,
+          "max": 8
+        },
+        {
+          "key": "layout",
+          "label": "Layout",
+          "type": "segmented",
+          "default": "list",
+          "choices": [
+            {
+              "value": "list",
+              "label": "List"
+            },
+            {
+              "value": "grid",
+              "label": "Two columns"
+            }
+          ]
+        },
+        {
+          "key": "descriptions",
+          "label": "Descriptions",
+          "type": "toggle",
+          "default": true
+        },
+        {
+          "key": "exclude",
+          "label": "Hide repositories",
+          "type": "tags",
+          "default": [],
+          "max": 20
+        },
+        {
+          "key": "hideProfile",
+          "label": "Hide profile README repo",
+          "type": "toggle",
+          "default": true,
+          "help": "Skips the repository named after your username."
+        }
+      ]
+    },
+    {
+      "type": "releases",
+      "title": "Latest releases",
+      "description": "A timeline of the versions you shipped most recently, with tag pills, repositories and how long ago each landed.",
+      "category": "Projects",
+      "output": "svg",
+      "width": "half",
+      "scope": "any",
+      "needs": [
+        "releases"
+      ],
+      "multiPart": false,
+      "options": [
+        {
+          "key": "label",
+          "label": "Label",
+          "type": "text",
+          "default": "latest releases"
+        },
+        {
+          "key": "count",
+          "label": "Releases",
+          "type": "number",
+          "default": 4,
+          "min": 1,
+          "max": 8
+        },
+        {
+          "key": "names",
+          "label": "Release titles",
+          "type": "toggle",
+          "default": true,
+          "help": "Show the release title under the repository when it differs from the tag."
+        },
+        {
+          "key": "time",
+          "label": "Dates",
+          "type": "segmented",
+          "default": "relative",
+          "choices": [
+            {
+              "value": "relative",
+              "label": "3 d ago"
+            },
+            {
+              "value": "absolute",
+              "label": "Mar 4, 2026"
+            }
+          ]
+        },
+        {
+          "key": "repos",
+          "label": "Only these repositories",
+          "type": "tags",
+          "default": [],
+          "help": "Leave empty to include every repository.",
+          "max": 20
+        }
+      ]
+    },
+    {
+      "type": "posts",
+      "title": "Latest posts",
+      "description": "The newest articles from your blog's RSS or Atom feed, with dates and short summaries, refreshed on every build.",
+      "category": "Projects",
+      "output": "svg",
+      "width": "full",
+      "scope": "any",
+      "needs": [
+        "feed"
+      ],
+      "multiPart": false,
+      "options": [
+        {
+          "key": "label",
+          "label": "Label",
+          "type": "text",
+          "default": "latest writing"
+        },
+        {
+          "key": "feed",
+          "label": "Feed URL",
+          "type": "text",
+          "default": "",
+          "help": "RSS or Atom; fetched by the GitHub Action on every build."
+        },
+        {
+          "key": "link",
+          "label": "Card link",
+          "type": "text",
+          "default": "",
+          "help": "Images can only link as a whole, so the card opens this page."
+        },
+        {
+          "key": "count",
+          "label": "Posts",
+          "type": "number",
+          "default": 4,
+          "min": 1,
+          "max": 8
+        },
+        {
+          "key": "dates",
+          "label": "Dates",
+          "type": "segmented",
+          "default": "badge",
+          "choices": [
+            {
+              "value": "badge",
+              "label": "Calendar badge"
+            },
+            {
+              "value": "relative",
+              "label": "3 d ago"
+            },
+            {
+              "value": "off",
+              "label": "Hidden"
+            }
+          ]
+        },
+        {
+          "key": "summaries",
+          "label": "Summaries",
+          "type": "toggle",
+          "default": true
+        }
+      ]
+    },
+    {
+      "type": "changelog",
+      "title": "Changelog",
+      "description": "Your latest releases on a timeline: version pills, dates, a line or two of release notes and a pulsing marker on the newest one.",
+      "category": "Projects",
+      "output": "svg",
+      "width": "full",
+      "scope": "project",
+      "needs": [
+        "project",
+        "releases"
+      ],
+      "multiPart": false,
+      "options": [
+        {
+          "key": "label",
+          "label": "Title",
+          "type": "text",
+          "default": "changelog"
+        },
+        {
+          "key": "count",
+          "label": "Releases",
+          "type": "number",
+          "default": 4,
+          "min": 1,
+          "max": 8
+        },
+        {
+          "key": "lines",
+          "label": "Release notes",
+          "type": "segmented",
+          "default": "2",
+          "choices": [
+            {
+              "value": "0",
+              "label": "None"
+            },
+            {
+              "value": "1",
+              "label": "1 line"
+            },
+            {
+              "value": "2",
+              "label": "2 lines"
+            }
+          ]
+        },
+        {
+          "key": "only",
+          "label": "Show",
+          "type": "segmented",
+          "default": "all",
+          "choices": [
+            {
+              "value": "all",
+              "label": "Every release"
+            },
+            {
+              "value": "minor",
+              "label": "Major + minor"
+            },
+            {
+              "value": "major",
+              "label": "Major only"
+            }
+          ]
+        },
+        {
+          "key": "kinds",
+          "label": "Release kind tags",
+          "type": "toggle",
+          "default": true,
+          "help": "Marks each version as major, minor or patch."
+        }
+      ]
+    },
+    {
+      "type": "roadmap",
+      "title": "Roadmap",
+      "description": "Milestones as progress rows with status chips, issue counts and due dates, from GitHub milestones or a list you write.",
+      "category": "Projects",
+      "output": "svg",
+      "width": "full",
+      "scope": "project",
+      "needs": [
+        "project"
+      ],
+      "multiPart": false,
+      "options": [
+        {
+          "key": "label",
+          "label": "Title",
+          "type": "text",
+          "default": "roadmap"
+        },
+        {
+          "key": "source",
+          "label": "Source",
+          "type": "segmented",
+          "default": "auto",
+          "help": "Automatic uses the repository's open milestones when there are any, otherwise your list.",
+          "choices": [
+            {
+              "value": "auto",
+              "label": "Automatic"
+            },
+            {
+              "value": "github",
+              "label": "GitHub milestones"
+            },
+            {
+              "value": "manual",
+              "label": "My list"
+            }
+          ]
+        },
+        {
+          "key": "hideDone",
+          "label": "Hide finished milestones",
+          "type": "toggle",
+          "default": false,
+          "when": {
+            "key": "source",
+            "is": [
+              "auto",
+              "github"
+            ]
+          }
+        },
+        {
+          "key": "items",
+          "label": "Roadmap items",
+          "type": "list",
+          "default": [
+            {
+              "title": "v1.0: stable API",
+              "progress": 100,
+              "status": "done",
+              "note": "Frozen public API, migration guide and codemods."
+            },
+            {
+              "title": "Plugin system",
+              "progress": 65,
+              "status": "progress",
+              "note": "Lifecycle hooks, typed options and a plugin registry."
+            },
+            {
+              "title": "Windows & ARM builds",
+              "progress": 30,
+              "status": "progress",
+              "note": "Native binaries for every platform in CI."
+            },
+            {
+              "title": "Web playground",
+              "progress": 0,
+              "status": "planned",
+              "note": "Try it in the browser, share snippets by URL."
+            }
+          ],
+          "when": {
+            "key": "source",
+            "is": [
+              "auto",
+              "manual"
+            ]
+          },
+          "max": 6,
+          "item": [
+            {
+              "key": "title",
+              "label": "Title",
+              "type": "text",
+              "default": "Next big thing",
+              "help": "Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions} {project} {repo} {tagline} {version} {license} {forks} {contributors} {npm} {pypi} {crate} {owner}",
+              "max": 60
+            },
+            {
+              "key": "progress",
+              "label": "Progress",
+              "type": "number",
+              "default": 0,
+              "min": 0,
+              "max": 100
+            },
+            {
+              "key": "status",
+              "label": "Status",
+              "type": "segmented",
+              "default": "planned",
+              "choices": [
+                {
+                  "value": "done",
+                  "label": "Done"
+                },
+                {
+                  "value": "progress",
+                  "label": "In progress"
+                },
+                {
+                  "value": "planned",
+                  "label": "Planned"
+                }
+              ]
+            },
+            {
+              "key": "note",
+              "label": "Note",
+              "type": "text",
+              "default": "",
+              "max": 120
+            },
+            {
+              "key": "due",
+              "label": "When (optional)",
+              "type": "text",
+              "max": 24
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "today",
+      "title": "Today",
+      "description": "Today at a glance: the date, the moon phase, local weather, the year so far and a quote of the day.",
+      "category": "Content",
+      "output": "svg",
+      "width": "half",
+      "scope": "any",
+      "needs": [
+        "weather"
+      ],
+      "multiPart": false,
+      "options": [
+        {
+          "key": "label",
+          "label": "Label",
+          "type": "text",
+          "default": "today",
+          "help": "Your city from the profile is appended."
+        },
+        {
+          "key": "weather",
+          "label": "Weather",
+          "type": "toggle",
+          "default": true,
+          "help": "Current conditions for the location in your profile."
+        },
+        {
+          "key": "unit",
+          "label": "Temperature",
+          "type": "segmented",
+          "default": "c",
+          "when": {
+            "key": "weather",
+            "is": [
+              true
+            ]
+          },
+          "choices": [
+            {
+              "value": "c",
+              "label": "°C"
+            },
+            {
+              "value": "f",
+              "label": "°F"
+            }
+          ]
+        },
+        {
+          "key": "moon",
+          "label": "Moon phase",
+          "type": "toggle",
+          "default": true
+        },
+        {
+          "key": "quote",
+          "label": "Quote of the day",
+          "type": "toggle",
+          "default": true,
+          "help": "A different quote from the list each day."
+        },
+        {
+          "key": "quotes",
+          "label": "Quotes",
+          "type": "list",
+          "default": [
+            {
+              "text": "Simplicity is prerequisite for reliability.",
+              "author": "Edsger W. Dijkstra"
+            },
+            {
+              "text": "Make it work, make it right, make it fast.",
+              "author": "Kent Beck"
+            },
+            {
+              "text": "Talk is cheap. Show me the code.",
+              "author": "Linus Torvalds"
+            },
+            {
+              "text": "First, solve the problem. Then, write the code.",
+              "author": "John Johnson"
+            },
+            {
+              "text": "Premature optimization is the root of all evil.",
+              "author": "Donald Knuth"
+            },
+            {
+              "text": "Any fool can write code that a computer can understand. Good programmers write code that humans can understand.",
+              "author": "Martin Fowler"
+            },
+            {
+              "text": "Programs must be written for people to read, and only incidentally for machines to execute.",
+              "author": "Harold Abelson"
+            },
+            {
+              "text": "The best error message is the one that never shows up.",
+              "author": "Thomas Fuchs"
+            },
+            {
+              "text": "Deleted code is debugged code.",
+              "author": "Jeff Sickel"
+            },
+            {
+              "text": "Code never lies, comments sometimes do.",
+              "author": "Ron Jeffries"
+            },
+            {
+              "text": "Simple things should be simple, complex things should be possible.",
+              "author": "Alan Kay"
+            },
+            {
+              "text": "The most disastrous thing that you can ever learn is your first programming language.",
+              "author": "Alan Kay"
+            }
+          ],
+          "when": {
+            "key": "quote",
+            "is": [
+              true
+            ]
+          },
+          "max": 60,
+          "item": [
+            {
+              "key": "text",
+              "label": "Quote",
+              "type": "text",
+              "default": "",
+              "max": 160
+            },
+            {
+              "key": "author",
+              "label": "Author",
+              "type": "text",
+              "default": "",
+              "max": 60
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "quote",
+      "title": "Quote",
+      "description": "A large typographic quote with attribution; add several and it cross-fades through them on a loop.",
+      "category": "Content",
+      "output": "svg",
+      "width": "full",
+      "scope": "any",
+      "needs": [],
+      "multiPart": false,
+      "options": [
+        {
+          "key": "label",
+          "label": "Label",
+          "type": "text",
+          "default": "words to build by"
+        },
+        {
+          "key": "marks",
+          "label": "Quote mark",
+          "type": "segmented",
+          "default": "serif",
+          "choices": [
+            {
+              "value": "serif",
+              "label": "Marks"
+            },
+            {
+              "value": "bar",
+              "label": "Accent bar"
+            },
+            {
+              "value": "none",
+              "label": "None"
+            }
+          ]
+        },
+        {
+          "key": "rotate",
+          "label": "Rotate through quotes",
+          "type": "toggle",
+          "default": true,
+          "help": "Cross-fades through every quote in the list; off shows only the first."
+        },
+        {
+          "key": "seconds",
+          "label": "Time per quote",
+          "type": "number",
+          "default": 7,
+          "when": {
+            "key": "rotate",
+            "is": [
+              true
+            ]
+          },
+          "min": 3,
+          "max": 20
+        },
+        {
+          "key": "progress",
+          "label": "Progress ticks",
+          "type": "toggle",
+          "default": true,
+          "when": {
+            "key": "rotate",
+            "is": [
+              true
+            ]
+          }
+        },
+        {
+          "key": "quotes",
+          "label": "Quotes",
+          "type": "list",
+          "default": [
+            {
+              "text": "Simplicity is prerequisite for reliability.",
+              "author": "Edsger W. Dijkstra",
+              "source": ""
+            },
+            {
+              "text": "Programs must be written for people to read, and only incidentally for machines to execute.",
+              "author": "Harold Abelson",
+              "source": "SICP"
+            },
+            {
+              "text": "Make it work, make it right, make it fast.",
+              "author": "Kent Beck",
+              "source": ""
+            }
+          ],
+          "max": 8,
+          "item": [
+            {
+              "key": "text",
+              "label": "Quote",
+              "type": "text",
+              "default": "",
+              "help": "Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions} {project} {repo} {tagline} {version} {license} {forks} {contributors} {npm} {pypi} {crate} {owner}",
+              "max": 240
+            },
+            {
+              "key": "author",
+              "label": "Author",
+              "type": "text",
+              "default": ""
+            },
+            {
+              "key": "source",
+              "label": "Source",
+              "type": "text",
+              "default": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "markdown",
+      "title": "Markdown text",
+      "description": "Free-form Markdown or HTML written straight into your README, with live placeholders like {name} and {followers}.",
+      "category": "Content",
+      "output": "markdown",
+      "width": "full",
+      "scope": "any",
+      "needs": [],
+      "multiPart": false,
+      "options": [
+        {
+          "key": "text",
+          "label": "Markdown",
+          "type": "text",
+          "default": "Hi, I'm **{name}**. I build calm, fast software and the tools around it.\nCurrently exploring local-first apps and typed APIs. Say hello any time!",
+          "help": "Emitted verbatim into the README; the row's alignment applies. Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions} {project} {repo} {tagline} {version} {license} {forks} {contributors} {npm} {pypi} {crate} {owner}",
+          "max": 5000
+        }
+      ]
+    },
+    {
+      "type": "install",
+      "title": "Install command",
+      "description": "A terminal that types your install command, cycling through package-manager tabs, with a copy button and an optional quick-start line.",
+      "category": "Content",
+      "output": "svg",
+      "width": "full",
+      "scope": "project",
+      "needs": [],
+      "multiPart": false,
+      "options": [
+        {
+          "key": "managers",
+          "label": "Package managers",
+          "type": "checklist",
+          "default": [
+            "npm",
+            "pnpm",
+            "yarn",
+            "bun"
+          ],
+          "help": "One tab each, typed in turn. Package names come from the project settings and fall back to the repository name.",
+          "choices": [
+            {
+              "value": "npm",
+              "label": "npm"
+            },
+            {
+              "value": "pnpm",
+              "label": "pnpm"
+            },
+            {
+              "value": "yarn",
+              "label": "Yarn"
+            },
+            {
+              "value": "bun",
+              "label": "Bun"
+            },
+            {
+              "value": "pip",
+              "label": "pip"
+            },
+            {
+              "value": "uv",
+              "label": "uv"
+            },
+            {
+              "value": "cargo",
+              "label": "Cargo"
+            },
+            {
+              "value": "brew",
+              "label": "Homebrew"
+            },
+            {
+              "value": "go",
+              "label": "Go"
+            },
+            {
+              "value": "docker",
+              "label": "Docker"
+            },
+            {
+              "value": "custom",
+              "label": "Custom"
+            }
+          ],
+          "max": 6
+        },
+        {
+          "key": "quickStart",
+          "label": "Quick-start line",
+          "type": "toggle",
+          "default": true,
+          "help": "A follow-up command such as `npx {npm} init`."
+        },
+        {
+          "key": "quickStartCmd",
+          "label": "Quick-start command",
+          "type": "text",
+          "default": "",
+          "help": "Same command on every tab. Placeholders: {npm} {pypi} {crate} {bin} {repo}.",
+          "when": {
+            "key": "quickStart",
+            "is": [
+              true
+            ]
+          }
+        },
+        {
+          "key": "custom",
+          "label": "Custom commands",
+          "type": "list",
+          "default": [],
+          "help": "Shown as extra tabs when Custom is ticked. An entry labelled like a ticked manager (npm, pip, …) replaces that tab's command.",
+          "max": 6,
+          "item": [
+            {
+              "key": "label",
+              "label": "Tab label",
+              "type": "text",
+              "default": "curl",
+              "max": 18
+            },
+            {
+              "key": "cmd",
+              "label": "Command",
+              "type": "text",
+              "default": "curl -fsSL https://example.com/install.sh | sh",
+              "max": 120
+            },
+            {
+              "key": "then",
+              "label": "Then (optional)",
+              "type": "text",
+              "default": "",
+              "max": 120
+            }
+          ]
+        },
+        {
+          "key": "statusBar",
+          "label": "Status bar",
+          "type": "toggle",
+          "default": true
+        }
+      ]
+    },
+    {
+      "type": "code",
+      "title": "Code snippet",
+      "description": "A syntax-highlighted code card with a file tab, line numbers, highlighted lines and a line-by-line reveal: perfect for a usage example.",
+      "category": "Content",
+      "output": "svg",
+      "width": "full",
+      "scope": "project",
+      "needs": [],
+      "multiPart": false,
+      "options": [
+        {
+          "key": "code",
+          "label": "Code",
+          "type": "text",
+          "default": "import { createClient } from \"{npm}\";\n\nconst client = createClient({\n  apiKey: process.env.API_KEY,\n  retries: 3, // back off politely on 429s\n});\n\nconst result = await client.run(\"hello, world\");\nconsole.log(result.output);",
+          "help": "Placeholders: {npm} {pypi} {crate} {bin} {repo} {project} {version}. Up to 36 rows are shown.",
+          "max": 4000
+        },
+        {
+          "key": "language",
+          "label": "Language",
+          "type": "select",
+          "default": "auto",
+          "choices": [
+            {
+              "value": "auto",
+              "label": "Detect from file name"
+            },
+            {
+              "value": "ts",
+              "label": "TypeScript / JavaScript"
+            },
+            {
+              "value": "python",
+              "label": "Python"
+            },
+            {
+              "value": "rust",
+              "label": "Rust"
+            },
+            {
+              "value": "go",
+              "label": "Go"
+            },
+            {
+              "value": "shell",
+              "label": "Shell"
+            },
+            {
+              "value": "json",
+              "label": "JSON"
+            },
+            {
+              "value": "yaml",
+              "label": "YAML"
+            },
+            {
+              "value": "plain",
+              "label": "Plain text"
+            }
+          ]
+        },
+        {
+          "key": "filename",
+          "label": "File name",
+          "type": "text",
+          "default": "example.ts",
+          "max": 60
+        },
+        {
+          "key": "lineNumbers",
+          "label": "Line numbers",
+          "type": "toggle",
+          "default": true
+        },
+        {
+          "key": "highlight",
+          "label": "Highlight lines",
+          "type": "text",
+          "default": "8",
+          "help": "Line numbers or ranges to emphasise.",
+          "max": 40
+        },
+        {
+          "key": "reveal",
+          "label": "Line-by-line reveal",
+          "type": "toggle",
+          "default": true
+        },
+        {
+          "key": "overflow",
+          "label": "Long lines",
+          "type": "segmented",
+          "default": "wrap",
+          "choices": [
+            {
+              "value": "wrap",
+              "label": "Wrap"
+            },
+            {
+              "value": "clip",
+              "label": "Clip"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "features",
+      "title": "Feature grid",
+      "description": "Your project's highlights as a two- or three-column grid of icon tiles, titles and short descriptions, revealed one by one.",
+      "category": "Content",
+      "output": "svg",
+      "width": "full",
+      "scope": "project",
+      "needs": [],
+      "multiPart": false,
+      "options": [
+        {
+          "key": "label",
+          "label": "Title",
+          "type": "text",
+          "default": "why {project}",
+          "help": "Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions} {project} {repo} {tagline} {version} {license} {forks} {contributors} {npm} {pypi} {crate} {owner}"
+        },
+        {
+          "key": "columns",
+          "label": "Columns",
+          "type": "segmented",
+          "default": "3",
+          "choices": [
+            {
+              "value": "2",
+              "label": "Two"
+            },
+            {
+              "value": "3",
+              "label": "Three"
+            }
+          ]
+        },
+        {
+          "key": "style",
+          "label": "Style",
+          "type": "segmented",
+          "default": "cards",
+          "choices": [
+            {
+              "value": "cards",
+              "label": "Cards"
+            },
+            {
+              "value": "plain",
+              "label": "Plain"
+            }
+          ]
+        },
+        {
+          "key": "numbered",
+          "label": "Numbered",
+          "type": "toggle",
+          "default": false,
+          "help": "Adds 01, 02, … to each feature."
+        },
+        {
+          "key": "items",
+          "label": "Features",
+          "type": "list",
+          "default": [
+            {
+              "icon": "bolt",
+              "title": "Blazing fast",
+              "text": "Incremental builds finish in milliseconds, even in monorepos with thousands of files."
+            },
+            {
+              "icon": "sparkle",
+              "title": "Zero config",
+              "text": "Sensible defaults out of the box. Reach for a config file only when you need one."
+            },
+            {
+              "icon": "code",
+              "title": "Fully typed",
+              "text": "First-class TypeScript types and autocompletion for every option and plugin hook."
+            },
+            {
+              "icon": "terminal",
+              "title": "Friendly CLI",
+              "text": "Readable errors, coloured diffs and a watch mode that stays out of your way."
+            },
+            {
+              "icon": "globe",
+              "title": "Runs anywhere",
+              "text": "Node, Deno, Bun and the browser, with no native dependencies or install scripts."
+            },
+            {
+              "icon": "users",
+              "title": "Plugin ecosystem",
+              "text": "A growing set of community plugins for frameworks, design tools and CI."
+            }
+          ],
+          "max": 9,
+          "item": [
+            {
+              "key": "icon",
+              "label": "Icon",
+              "type": "icon",
+              "default": "sparkle",
+              "help": "A line glyph (bolt, sparkle, code, globe, …) or a brand icon."
+            },
+            {
+              "key": "title",
+              "label": "Title",
+              "type": "text",
+              "default": "New feature",
+              "max": 48
+            },
+            {
+              "key": "text",
+              "label": "Description",
+              "type": "text",
+              "default": "",
+              "max": 180
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "toc",
+      "title": "Table of contents",
+      "description": "A markdown table of contents with links to your README's sections, numbered or bulleted, with optional sub-entries.",
+      "category": "Content",
+      "output": "markdown",
+      "width": "full",
+      "scope": "any",
+      "needs": [],
+      "multiPart": false,
+      "options": [
+        {
+          "key": "title",
+          "label": "Heading",
+          "type": "text",
+          "default": "## Contents",
+          "help": "Markdown, e.g. `## Contents` or `**On this page**`. Leave empty for just the list.",
+          "max": 80
+        },
+        {
+          "key": "numbered",
+          "label": "Numbered",
+          "type": "toggle",
+          "default": false
+        },
+        {
+          "key": "entries",
+          "label": "Entries",
+          "type": "list",
+          "default": [
+            {
+              "title": "Installation",
+              "anchor": "",
+              "level": "1"
+            },
+            {
+              "title": "Usage",
+              "anchor": "",
+              "level": "1"
+            },
+            {
+              "title": "Features",
+              "anchor": "",
+              "level": "1"
+            },
+            {
+              "title": "Roadmap",
+              "anchor": "",
+              "level": "1"
+            },
+            {
+              "title": "Contributing",
+              "anchor": "",
+              "level": "1"
+            },
+            {
+              "title": "License",
+              "anchor": "",
+              "level": "1"
+            }
+          ],
+          "help": "Anchors default to GitHub's heading slug, so `## Getting started` becomes #getting-started.",
+          "max": 30,
+          "item": [
+            {
+              "key": "title",
+              "label": "Title",
+              "type": "text",
+              "default": "New section",
+              "help": "Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions} {project} {repo} {tagline} {version} {license} {forks} {contributors} {npm} {pypi} {crate} {owner}",
+              "max": 80
+            },
+            {
+              "key": "anchor",
+              "label": "Anchor",
+              "type": "text",
+              "default": "",
+              "max": 80
+            },
+            {
+              "key": "level",
+              "label": "Level",
+              "type": "segmented",
+              "default": "1",
+              "choices": [
+                {
+                  "value": "1",
+                  "label": "Section"
+                },
+                {
+                  "value": "2",
+                  "label": "Sub-section"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "divider",
+      "title": "Divider",
+      "description": "A thin animated separator between sections: comet, pulse, wave, dashes or a fading line.",
+      "category": "Decoration",
+      "output": "svg",
+      "width": "full",
+      "scope": "any",
+      "needs": [],
+      "multiPart": false,
+      "options": [
+        {
+          "key": "style",
+          "label": "Style",
+          "type": "select",
+          "default": "comet",
+          "choices": [
+            {
+              "value": "comet",
+              "label": "Comet trail"
+            },
+            {
+              "value": "pulse",
+              "label": "Heartbeat pulse"
+            },
+            {
+              "value": "wave",
+              "label": "Sine wave"
+            },
+            {
+              "value": "dashes",
+              "label": "Marching dashes"
+            },
+            {
+              "value": "line",
+              "label": "Fading hairline"
+            }
+          ]
+        },
+        {
+          "key": "ornament",
+          "label": "Centre ornament",
+          "type": "toggle",
+          "default": true
+        }
+      ]
+    },
+    {
+      "type": "footer",
+      "title": "Footer",
+      "description": "Rolling waves, a date barcode and a build stamp that proves the profile is alive.",
+      "category": "Decoration",
+      "output": "svg",
+      "width": "full",
+      "scope": "any",
+      "needs": [],
+      "multiPart": false,
+      "options": [
+        {
+          "key": "message",
+          "label": "Message",
+          "type": "text",
+          "default": "rebuilt every night by readme studio"
+        },
+        {
+          "key": "stamp",
+          "label": "Build stamp",
+          "type": "toggle",
+          "default": true,
+          "help": "Date, time, run number and data source."
+        },
+        {
+          "key": "barcode",
+          "label": "Date barcode",
+          "type": "toggle",
+          "default": true
+        },
+        {
+          "key": "waves",
+          "label": "Waves",
+          "type": "toggle",
+          "default": true
+        }
+      ]
+    },
+    {
+      "type": "heading",
+      "title": "Section heading",
+      "description": "A slim section title with an eyebrow label and an animated hairline, for giving your README a clear structure.",
+      "category": "Decoration",
+      "output": "svg",
+      "width": "full",
+      "scope": "any",
+      "needs": [],
+      "multiPart": false,
+      "options": [
+        {
+          "key": "eyebrow",
+          "label": "Eyebrow",
+          "type": "text",
+          "default": "01 · selected work",
+          "max": 48
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "text",
+          "default": "Featured projects",
+          "help": "Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions} {project} {repo} {tagline} {version} {license} {forks} {contributors} {npm} {pypi} {crate} {owner}",
+          "max": 60
+        },
+        {
+          "key": "icon",
+          "label": "Icon",
+          "type": "icon",
+          "default": "",
+          "help": "Optional; a brand icon or a line glyph (rocket, code, book, star…)."
+        },
+        {
+          "key": "align",
+          "label": "Alignment",
+          "type": "segmented",
+          "default": "left",
+          "choices": [
+            {
+              "value": "left",
+              "label": "Left"
+            },
+            {
+              "value": "center",
+              "label": "Center"
+            }
+          ]
+        },
+        {
+          "key": "line",
+          "label": "Hairline",
+          "type": "toggle",
+          "default": true
+        },
+        {
+          "key": "card",
+          "label": "Card background",
+          "type": "toggle",
+          "default": false,
+          "help": "Off blends the heading into the page."
+        }
+      ]
+    }
+  ]
+}

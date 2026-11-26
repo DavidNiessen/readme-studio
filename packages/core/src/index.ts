@@ -19,3 +19,5 @@ export * from "./data/live";
 export * from "./data/colors";
 export { glyphs, type GlyphName } from "./widgets/parts";
 export * from "./data/project";
+export * from "./catalog";
+export * from "./jsonschema";
