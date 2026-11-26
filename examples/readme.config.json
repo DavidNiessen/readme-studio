@@ -1,6 +1,7 @@
 {
   "$schema": "https://readme.niessen.dev/schema.json",
   "version": 1,
+  "kind": "profile",
   "profile": {
     "login": "octocat",
     "name": "Mona Octocat",
@@ -40,6 +41,18 @@
       }
     ]
   },
+  "project": {
+    "repo": "octocat/aurora",
+    "name": "",
+    "tagline": "A tiny, fast design-token compiler for multi-brand UI kits.",
+    "logo": "",
+    "homepage": "",
+    "packages": {
+      "npm": "",
+      "pypi": "",
+      "crates": ""
+    }
+  },
   "theme": {
     "preset": "crimson",
     "overrides": {},
@@ -53,7 +66,7 @@
   },
   "layout": [
     {
-      "id": "rpm8q44f1",
+      "id": "r6pyw67g1",
       "align": "center",
       "blocks": [
         {
@@ -73,7 +86,7 @@
       ]
     },
     {
-      "id": "rpm8q4y22",
+      "id": "r6pyw74l2",
       "align": "center",
       "blocks": [
         {
@@ -88,7 +101,7 @@
       ]
     },
     {
-      "id": "rpm8q6ri3",
+      "id": "r6pywfn3",
       "align": "center",
       "blocks": [
         {
@@ -102,7 +115,7 @@
       ]
     },
     {
-      "id": "rpm8q5sf4",
+      "id": "r6pyw3v74",
       "align": "center",
       "blocks": [
         {
@@ -150,7 +163,7 @@
       ]
     },
     {
-      "id": "rpm8q3j45",
+      "id": "r6pyw1uf5",
       "align": "center",
       "blocks": [
         {
@@ -172,7 +185,7 @@
       ]
     },
     {
-      "id": "rpm8q1916",
+      "id": "r6pyw1q76",
       "align": "center",
       "blocks": [
         {
@@ -190,7 +203,7 @@
       ]
     },
     {
-      "id": "rpm8q2707",
+      "id": "r6pyw7on7",
       "align": "center",
       "blocks": [
         {
@@ -205,7 +218,7 @@
       ]
     },
     {
-      "id": "rpm8q4jo8",
+      "id": "r6pyw1288",
       "align": "center",
       "blocks": [
         {
@@ -220,7 +233,7 @@
       ]
     },
     {
-      "id": "rpm8q5g69",
+      "id": "r6pyxw89",
       "align": "center",
       "blocks": [
         {
@@ -234,7 +247,7 @@
       ]
     },
     {
-      "id": "rpm8q2dca",
+      "id": "r6pyx4c8a",
       "align": "center",
       "blocks": [
         {
@@ -250,7 +263,7 @@
       ]
     },
     {
-      "id": "rpm8q775b",
+      "id": "r6pyx4ysb",
       "align": "center",
       "blocks": [
         {
@@ -294,7 +307,7 @@
       ]
     },
     {
-      "id": "rpm8q4rcc",
+      "id": "r6pyx1cgc",
       "align": "center",
       "blocks": [
         {
@@ -319,7 +332,7 @@
       ]
     },
     {
-      "id": "rpm8q2swd",
+      "id": "r6pyx45wd",
       "align": "center",
       "blocks": [
         {
@@ -334,7 +347,7 @@
       ]
     },
     {
-      "id": "rpm8q5cde",
+      "id": "r6pyx65ue",
       "align": "center",
       "blocks": [
         {
@@ -350,7 +363,7 @@
       ]
     },
     {
-      "id": "rpm8q50vf",
+      "id": "r6pyx71vf",
       "align": "center",
       "blocks": [
         {
@@ -380,7 +393,7 @@
       ]
     },
     {
-      "id": "rpm8q7dhg",
+      "id": "r6pyx2l2g",
       "align": "center",
       "blocks": [
         {
@@ -410,7 +423,7 @@
       ]
     },
     {
-      "id": "rpm8q42eh",
+      "id": "r6pyx317h",
       "align": "center",
       "blocks": [
         {
@@ -495,7 +508,7 @@
       ]
     },
     {
-      "id": "rpm8q34qi",
+      "id": "r6pyx35qi",
       "align": "center",
       "blocks": [
         {
@@ -509,7 +522,7 @@
       ]
     },
     {
-      "id": "rpm8qg2j",
+      "id": "r6pyx2vpj",
       "align": "center",
       "blocks": [
         {

@@ -212,6 +212,7 @@
                   "enum": [
                     "hero",
                     "banner",
+                    "project-hero",
                     "socials",
                     "terminal",
                     "stack",
@@ -222,6 +223,9 @@
                     "timeline",
                     "contact",
                     "clock",
+                    "shields",
+                    "contributors",
+                    "support",
                     "stats",
                     "languages",
                     "trophies",
@@ -229,6 +233,9 @@
                     "donut",
                     "year",
                     "followers",
+                    "repo-stats",
+                    "repo-health",
+                    "downloads",
                     "contrib",
                     "pulse",
                     "skyline",
@@ -238,14 +245,22 @@
                     "area",
                     "weekdays",
                     "harvest",
+                    "star-history",
+                    "commit-activity",
                     "now",
                     "project",
                     "repos",
                     "releases",
                     "posts",
+                    "changelog",
+                    "roadmap",
                     "today",
                     "quote",
                     "markdown",
+                    "install",
+                    "code",
+                    "features",
+                    "toc",
                     "divider",
                     "footer",
                     "heading"
@@ -335,7 +350,7 @@
                         "properties": {
                           "headline": {
                             "title": "Headline",
-                            "description": "Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions}",
+                            "description": "Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions} {project} {repo} {tagline} {version} {license} {forks} {contributors} {npm} {pypi} {crate} {owner}",
                             "type": "string"
                           },
                           "subline": {
@@ -374,6 +389,79 @@
                           "corners": {
                             "title": "Corner marks",
                             "description": "Small registration ticks in the corners.",
+                            "type": "boolean"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "type": {
+                        "const": "project-hero"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "options": {
+                        "type": "object",
+                        "description": "Your project's name drawn on, its tagline, version, install command and headline numbers over an ambient glow.",
+                        "properties": {
+                          "title": {
+                            "title": "Headline",
+                            "type": "string"
+                          },
+                          "align": {
+                            "title": "Alignment",
+                            "enum": [
+                              "left",
+                              "center"
+                            ]
+                          },
+                          "version": {
+                            "title": "Version pill",
+                            "description": "Latest release tag next to the name.",
+                            "type": "boolean"
+                          },
+                          "install": {
+                            "title": "Install command",
+                            "description": "Shown in a code pill under the tagline. Leave empty to hide. Placeholders: {npm} {repo} {project} {version}",
+                            "type": "string"
+                          },
+                          "stats": {
+                            "title": "Headline numbers",
+                            "type": "boolean"
+                          },
+                          "third": {
+                            "title": "Third number",
+                            "enum": [
+                              "license",
+                              "downloads",
+                              "contributors"
+                            ]
+                          },
+                          "emblem": {
+                            "title": "Emblem icon",
+                            "description": "Defaults to the project logo; without one a monogram tile is drawn.",
+                            "type": "string"
+                          },
+                          "emblemStyle": {
+                            "title": "Emblem style",
+                            "enum": [
+                              "orbit",
+                              "plain",
+                              "none"
+                            ]
+                          },
+                          "scanline": {
+                            "title": "Scanline sweep",
+                            "type": "boolean"
+                          },
+                          "glow": {
+                            "title": "Ambient glow",
                             "type": "boolean"
                           }
                         }
@@ -587,7 +675,7 @@
                           },
                           "bio": {
                             "title": "Bio",
-                            "description": "Up to five lines; a blank line starts a new paragraph. Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions}",
+                            "description": "Up to five lines; a blank line starts a new paragraph. Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions} {project} {repo} {tagline} {version} {license} {forks} {contributors} {npm} {pypi} {crate} {owner}",
                             "type": "string"
                           },
                           "layout": {
@@ -673,7 +761,7 @@
                                 },
                                 "value": {
                                   "title": "Value",
-                                  "description": "Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions}",
+                                  "description": "Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions} {project} {repo} {tagline} {version} {license} {forks} {contributors} {npm} {pypi} {crate} {owner}",
                                   "type": "string"
                                 }
                               }
@@ -746,7 +834,7 @@
                                 },
                                 "value": {
                                   "title": "Value",
-                                  "description": "Optional. Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions}",
+                                  "description": "Optional. Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions} {project} {repo} {tagline} {version} {license} {forks} {contributors} {npm} {pypi} {crate} {owner}",
                                   "type": "string"
                                 },
                                 "color": {
@@ -938,7 +1026,7 @@
                           },
                           "headline": {
                             "title": "Headline",
-                            "description": "Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions}",
+                            "description": "Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions} {project} {repo} {tagline} {version} {license} {forks} {contributors} {npm} {pypi} {crate} {owner}",
                             "type": "string"
                           },
                           "text": {
@@ -1018,6 +1106,235 @@
                           "daylight": {
                             "title": "Daylight band",
                             "description": "Approximate sunrise and sunset from your profile location.",
+                            "type": "boolean"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "type": {
+                        "const": "shields"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "options": {
+                        "type": "object",
+                        "description": "Shield-style badges for version, licence, build status, stars, downloads and more, each its own image linking to the right page.",
+                        "properties": {
+                          "badges": {
+                            "title": "Badges",
+                            "type": "array",
+                            "items": {
+                              "enum": [
+                                "version",
+                                "license",
+                                "ci",
+                                "stars",
+                                "forks",
+                                "downloads",
+                                "contributors",
+                                "issues",
+                                "prs",
+                                "commit",
+                                "release",
+                                "topics"
+                              ]
+                            }
+                          },
+                          "style": {
+                            "title": "Style",
+                            "enum": [
+                              "flat",
+                              "rounded",
+                              "outline",
+                              "plastic"
+                            ]
+                          },
+                          "color": {
+                            "title": "Value colour",
+                            "description": "Build status always uses green, amber or red.",
+                            "enum": [
+                              "accent",
+                              "neutral"
+                            ]
+                          },
+                          "icons": {
+                            "title": "Icons",
+                            "type": "boolean"
+                          },
+                          "custom": {
+                            "title": "Custom badges",
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "label": {
+                                  "title": "Label",
+                                  "description": "Placeholders like {version} work here.",
+                                  "type": "string"
+                                },
+                                "value": {
+                                  "title": "Value",
+                                  "type": "string"
+                                },
+                                "color": {
+                                  "title": "Colour",
+                                  "anyOf": [
+                                    {
+                                      "type": "string",
+                                      "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+                                    },
+                                    {
+                                      "const": ""
+                                    }
+                                  ]
+                                },
+                                "icon": {
+                                  "title": "Icon",
+                                  "type": "string"
+                                },
+                                "link": {
+                                  "title": "Link",
+                                  "type": "string"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "type": {
+                        "const": "contributors"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "options": {
+                        "type": "object",
+                        "description": "Everyone who has committed to the project as a wall of avatars that pop in one by one, top contributors first.",
+                        "properties": {
+                          "label": {
+                            "title": "Label",
+                            "type": "string"
+                          },
+                          "max": {
+                            "title": "Avatars",
+                            "type": "number",
+                            "minimum": 12,
+                            "maximum": 60
+                          },
+                          "size": {
+                            "title": "Size",
+                            "enum": [
+                              "sm",
+                              "md",
+                              "lg"
+                            ]
+                          },
+                          "names": {
+                            "title": "Names",
+                            "description": "Login under each avatar.",
+                            "type": "boolean"
+                          },
+                          "shape": {
+                            "title": "Shape",
+                            "enum": [
+                              "circle",
+                              "rounded"
+                            ]
+                          },
+                          "sort": {
+                            "title": "Order",
+                            "enum": [
+                              "contributions",
+                              "alpha"
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "type": {
+                        "const": "support"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "options": {
+                        "type": "object",
+                        "description": "A warm call to action for sponsors: headline, a short pitch, up to three drawn buttons (GitHub Sponsors, Ko-fi, Open Collective, …) and a beating heart.",
+                        "properties": {
+                          "label": {
+                            "title": "Label",
+                            "type": "string"
+                          },
+                          "headline": {
+                            "title": "Headline",
+                            "description": "Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions} {project} {repo} {tagline} {version} {license} {forks} {contributors} {npm} {pypi} {crate} {owner}",
+                            "type": "string"
+                          },
+                          "text": {
+                            "title": "Text",
+                            "type": "string"
+                          },
+                          "buttons": {
+                            "title": "Buttons",
+                            "description": "Drawn into the image; the card links to the first button's URL. URLs default to your account on each platform ({owner} is the repository owner).",
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "kind": {
+                                  "title": "Platform",
+                                  "enum": [
+                                    "sponsors",
+                                    "kofi",
+                                    "bmc",
+                                    "opencollective",
+                                    "patreon",
+                                    "paypal",
+                                    "custom"
+                                  ]
+                                },
+                                "label": {
+                                  "title": "Label",
+                                  "type": "string"
+                                },
+                                "url": {
+                                  "title": "URL",
+                                  "type": "string"
+                                },
+                                "icon": {
+                                  "title": "Icon",
+                                  "type": "string"
+                                }
+                              }
+                            }
+                          },
+                          "backers": {
+                            "title": "Backers line",
+                            "description": "A short line under the buttons, e.g. how many people back the work.",
+                            "type": "string"
+                          },
+                          "emblem": {
+                            "title": "Heart emblem",
                             "type": "boolean"
                           }
                         }
@@ -1359,6 +1676,119 @@
                             "title": "Milestone ladder",
                             "description": "Small markers for the milestones around you.",
                             "type": "boolean"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "type": {
+                        "const": "repo-stats"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "options": {
+                        "type": "object",
+                        "description": "Rolling counters for stars, forks, issues, pull requests and contributors, each with a tiny trend, plus an issue-health ring.",
+                        "properties": {
+                          "label": {
+                            "title": "Label",
+                            "type": "string"
+                          },
+                          "tiles": {
+                            "title": "Tiles",
+                            "description": "Up to 6 with the ring, 8 without.",
+                            "type": "array",
+                            "items": {
+                              "enum": [
+                                "stars",
+                                "forks",
+                                "watchers",
+                                "issues",
+                                "prs",
+                                "contributors",
+                                "commits",
+                                "downloads"
+                              ]
+                            }
+                          },
+                          "ring": {
+                            "title": "Health ring",
+                            "description": "Share of issues closed, with pull requests merged as an inner ring.",
+                            "type": "boolean"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "type": {
+                        "const": "repo-health"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "options": {
+                        "type": "object",
+                        "description": "A compact health check: build status with a live pulse, last commit, latest release, issue and pull request balance, and the licence.",
+                        "properties": {
+                          "label": {
+                            "title": "Label",
+                            "type": "string"
+                          },
+                          "license": {
+                            "title": "Licence row",
+                            "type": "boolean"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "type": {
+                        "const": "downloads"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "options": {
+                        "type": "object",
+                        "description": "Weekly, monthly or all-time downloads from npm, PyPI or crates.io on a rolling counter, with a year-long sparkline and the month-on-month trend.",
+                        "properties": {
+                          "label": {
+                            "title": "Label",
+                            "type": "string"
+                          },
+                          "period": {
+                            "title": "Count",
+                            "enum": [
+                              "week",
+                              "month",
+                              "total"
+                            ]
+                          },
+                          "registry": {
+                            "title": "Registry",
+                            "description": "Package names come from the project settings.",
+                            "enum": [
+                              "auto",
+                              "npm",
+                              "pypi",
+                              "crates"
+                            ]
                           }
                         }
                       }
@@ -1733,6 +2163,81 @@
                   "if": {
                     "properties": {
                       "type": {
+                        "const": "star-history"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "options": {
+                        "type": "object",
+                        "description": "Cumulative stars over time as a chart that draws itself on, with milestone flags and the stars gained this month.",
+                        "properties": {
+                          "label": {
+                            "title": "Label",
+                            "type": "string"
+                          },
+                          "scale": {
+                            "title": "Scale",
+                            "enum": [
+                              "linear",
+                              "log"
+                            ]
+                          },
+                          "milestones": {
+                            "title": "Milestone flags",
+                            "description": "Marks when the project crossed 100, 500, 1k, 5k … stars.",
+                            "type": "boolean"
+                          },
+                          "fill": {
+                            "title": "Area fill",
+                            "type": "boolean"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "type": {
+                        "const": "commit-activity"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "options": {
+                        "type": "object",
+                        "description": "A year of weekly commits as growing bars, a heat strip or a line, with the busiest week called out and the latest commit underneath.",
+                        "properties": {
+                          "label": {
+                            "title": "Label",
+                            "type": "string"
+                          },
+                          "style": {
+                            "title": "Style",
+                            "enum": [
+                              "bars",
+                              "heat",
+                              "line"
+                            ]
+                          },
+                          "last": {
+                            "title": "Latest commit",
+                            "description": "Message, short hash and time of the newest commit.",
+                            "type": "boolean"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "type": {
                         "const": "now"
                       }
                     }
@@ -1992,6 +2497,128 @@
                   "if": {
                     "properties": {
                       "type": {
+                        "const": "changelog"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "options": {
+                        "type": "object",
+                        "description": "Your latest releases on a timeline: version pills, dates, a line or two of release notes and a pulsing marker on the newest one.",
+                        "properties": {
+                          "label": {
+                            "title": "Title",
+                            "type": "string"
+                          },
+                          "count": {
+                            "title": "Releases",
+                            "type": "number",
+                            "minimum": 1,
+                            "maximum": 8
+                          },
+                          "lines": {
+                            "title": "Release notes",
+                            "enum": [
+                              "0",
+                              "1",
+                              "2"
+                            ]
+                          },
+                          "only": {
+                            "title": "Show",
+                            "enum": [
+                              "all",
+                              "minor",
+                              "major"
+                            ]
+                          },
+                          "kinds": {
+                            "title": "Release kind tags",
+                            "description": "Marks each version as major, minor or patch.",
+                            "type": "boolean"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "type": {
+                        "const": "roadmap"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "options": {
+                        "type": "object",
+                        "description": "Milestones as progress rows with status chips, issue counts and due dates, from GitHub milestones or a list you write.",
+                        "properties": {
+                          "label": {
+                            "title": "Title",
+                            "type": "string"
+                          },
+                          "source": {
+                            "title": "Source",
+                            "description": "Automatic uses the repository's open milestones when there are any, otherwise your list.",
+                            "enum": [
+                              "auto",
+                              "github",
+                              "manual"
+                            ]
+                          },
+                          "hideDone": {
+                            "title": "Hide finished milestones",
+                            "type": "boolean"
+                          },
+                          "items": {
+                            "title": "Roadmap items",
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "title": {
+                                  "title": "Title",
+                                  "description": "Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions} {project} {repo} {tagline} {version} {license} {forks} {contributors} {npm} {pypi} {crate} {owner}",
+                                  "type": "string"
+                                },
+                                "progress": {
+                                  "title": "Progress",
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 100
+                                },
+                                "status": {
+                                  "title": "Status",
+                                  "enum": [
+                                    "done",
+                                    "progress",
+                                    "planned"
+                                  ]
+                                },
+                                "note": {
+                                  "title": "Note",
+                                  "type": "string"
+                                },
+                                "due": {
+                                  "title": "When (optional)",
+                                  "type": "string"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "type": {
                         "const": "today"
                       }
                     }
@@ -2099,7 +2726,7 @@
                               "properties": {
                                 "text": {
                                   "title": "Quote",
-                                  "description": "Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions}",
+                                  "description": "Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions} {project} {repo} {tagline} {version} {license} {forks} {contributors} {npm} {pypi} {crate} {owner}",
                                   "type": "string"
                                 },
                                 "author": {
@@ -2134,8 +2761,264 @@
                         "properties": {
                           "text": {
                             "title": "Markdown",
-                            "description": "Emitted verbatim into the README; the row's alignment applies. Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions}",
+                            "description": "Emitted verbatim into the README; the row's alignment applies. Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions} {project} {repo} {tagline} {version} {license} {forks} {contributors} {npm} {pypi} {crate} {owner}",
                             "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "type": {
+                        "const": "install"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "options": {
+                        "type": "object",
+                        "description": "A terminal that types your install command, cycling through package-manager tabs, with a copy button and an optional quick-start line.",
+                        "properties": {
+                          "managers": {
+                            "title": "Package managers",
+                            "description": "One tab each, typed in turn. Package names come from the project settings and fall back to the repository name.",
+                            "type": "array",
+                            "items": {
+                              "enum": [
+                                "npm",
+                                "pnpm",
+                                "yarn",
+                                "bun",
+                                "pip",
+                                "uv",
+                                "cargo",
+                                "brew",
+                                "go",
+                                "docker",
+                                "custom"
+                              ]
+                            }
+                          },
+                          "quickStart": {
+                            "title": "Quick-start line",
+                            "description": "A follow-up command such as `npx {npm} init`.",
+                            "type": "boolean"
+                          },
+                          "quickStartCmd": {
+                            "title": "Quick-start command",
+                            "description": "Same command on every tab. Placeholders: {npm} {pypi} {crate} {bin} {repo}.",
+                            "type": "string"
+                          },
+                          "custom": {
+                            "title": "Custom commands",
+                            "description": "Shown as extra tabs when Custom is ticked. An entry labelled like a ticked manager (npm, pip, …) replaces that tab's command.",
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "label": {
+                                  "title": "Tab label",
+                                  "type": "string"
+                                },
+                                "cmd": {
+                                  "title": "Command",
+                                  "type": "string"
+                                },
+                                "then": {
+                                  "title": "Then (optional)",
+                                  "type": "string"
+                                }
+                              }
+                            }
+                          },
+                          "statusBar": {
+                            "title": "Status bar",
+                            "type": "boolean"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "type": {
+                        "const": "code"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "options": {
+                        "type": "object",
+                        "description": "A syntax-highlighted code card with a file tab, line numbers, highlighted lines and a line-by-line reveal: perfect for a usage example.",
+                        "properties": {
+                          "code": {
+                            "title": "Code",
+                            "description": "Placeholders: {npm} {pypi} {crate} {bin} {repo} {project} {version}. Up to 36 rows are shown.",
+                            "type": "string"
+                          },
+                          "language": {
+                            "title": "Language",
+                            "enum": [
+                              "auto",
+                              "ts",
+                              "python",
+                              "rust",
+                              "go",
+                              "shell",
+                              "json",
+                              "yaml",
+                              "plain"
+                            ]
+                          },
+                          "filename": {
+                            "title": "File name",
+                            "type": "string"
+                          },
+                          "lineNumbers": {
+                            "title": "Line numbers",
+                            "type": "boolean"
+                          },
+                          "highlight": {
+                            "title": "Highlight lines",
+                            "description": "Line numbers or ranges to emphasise.",
+                            "type": "string"
+                          },
+                          "reveal": {
+                            "title": "Line-by-line reveal",
+                            "type": "boolean"
+                          },
+                          "overflow": {
+                            "title": "Long lines",
+                            "enum": [
+                              "wrap",
+                              "clip"
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "type": {
+                        "const": "features"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "options": {
+                        "type": "object",
+                        "description": "Your project's highlights as a two- or three-column grid of icon tiles, titles and short descriptions, revealed one by one.",
+                        "properties": {
+                          "label": {
+                            "title": "Title",
+                            "description": "Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions} {project} {repo} {tagline} {version} {license} {forks} {contributors} {npm} {pypi} {crate} {owner}",
+                            "type": "string"
+                          },
+                          "columns": {
+                            "title": "Columns",
+                            "enum": [
+                              "2",
+                              "3"
+                            ]
+                          },
+                          "style": {
+                            "title": "Style",
+                            "enum": [
+                              "cards",
+                              "plain"
+                            ]
+                          },
+                          "numbered": {
+                            "title": "Numbered",
+                            "description": "Adds 01, 02, … to each feature.",
+                            "type": "boolean"
+                          },
+                          "items": {
+                            "title": "Features",
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "icon": {
+                                  "title": "Icon",
+                                  "description": "A line glyph (bolt, sparkle, code, globe, …) or a brand icon.",
+                                  "type": "string"
+                                },
+                                "title": {
+                                  "title": "Title",
+                                  "type": "string"
+                                },
+                                "text": {
+                                  "title": "Description",
+                                  "type": "string"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "type": {
+                        "const": "toc"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "options": {
+                        "type": "object",
+                        "description": "A markdown table of contents with links to your README's sections, numbered or bulleted, with optional sub-entries.",
+                        "properties": {
+                          "title": {
+                            "title": "Heading",
+                            "description": "Markdown, e.g. `## Contents` or `**On this page**`. Leave empty for just the list.",
+                            "type": "string"
+                          },
+                          "numbered": {
+                            "title": "Numbered",
+                            "type": "boolean"
+                          },
+                          "entries": {
+                            "title": "Entries",
+                            "description": "Anchors default to GitHub's heading slug, so `## Getting started` becomes #getting-started.",
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "title": {
+                                  "title": "Title",
+                                  "description": "Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions} {project} {repo} {tagline} {version} {license} {forks} {contributors} {npm} {pypi} {crate} {owner}",
+                                  "type": "string"
+                                },
+                                "anchor": {
+                                  "title": "Anchor",
+                                  "type": "string"
+                                },
+                                "level": {
+                                  "title": "Level",
+                                  "enum": [
+                                    "1",
+                                    "2"
+                                  ]
+                                }
+                              }
+                            }
                           }
                         }
                       }
@@ -2231,7 +3114,7 @@
                           },
                           "title": {
                             "title": "Title",
-                            "description": "Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions}",
+                            "description": "Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions} {project} {repo} {tagline} {version} {license} {forks} {contributors} {npm} {pypi} {crate} {owner}",
                             "type": "string"
                           },
                           "icon": {

@@ -423,11 +423,11 @@ function heatFrom(card2, accent, glow, mode) {
   if (mode === "dark") return [mix(card2, "#ffffff", 0.04), mix(card2, accent, 0.3), mix(card2, accent, 0.55), mix(card2, accent, 0.82), glow];
   return ["#ebedf0", mix("#ffffff", accent, 0.28), mix("#ffffff", accent, 0.58), accent, adjust(accent, { l: -0.14 })];
 }
-function deriveFromAccent(accent, mode, tint) {
+function deriveFromAccent(accent, mode, tint2) {
   const a = isHex(accent) ? accent : "#dc2626";
   const ah = toHsl(a);
-  const nh = tint?.h ?? ah.h;
-  const ns = tint?.s ?? Math.min(0.1, ah.s * 0.12);
+  const nh = tint2?.h ?? ah.h;
+  const ns = tint2?.s ?? Math.min(0.1, ah.s * 0.12);
   const n = (l, s = ns) => fromHsl({ h: nh, s, l });
   if (mode === "dark") {
     const card3 = n(0.09);
@@ -461,9 +461,9 @@ function deriveFromAccent(accent, mode, tint) {
     heat: heatFrom(card2, a, a, "light")
   };
 }
-function preset(id, name, description, dark, light, tint) {
-  const d = { ...deriveFromAccent(dark.accent, "dark", tint), ...dark };
-  const l = { ...deriveFromAccent(light.accent, "light", tint), ...light };
+function preset(id, name, description, dark, light, tint2) {
+  const d = { ...deriveFromAccent(dark.accent, "dark", tint2), ...dark };
+  const l = { ...deriveFromAccent(light.accent, "light", tint2), ...light };
   if (!dark.heat) d.heat = heatFrom(d.card, d.accent, d.glow, "dark");
   if (!light.heat) l.heat = heatFrom(l.card, l.accent, l.glow, "light");
   return { id, name, description, dark: d, light: l };
@@ -987,11 +987,11 @@ function fitSize(t, text, size, max, min = size * 0.5, o = {}) {
   return s;
 }
 function wrapText(t, text, size, max, maxLines, o = {}) {
-  const words = text.split(/\s+/).filter(Boolean);
+  const words2 = text.split(/\s+/).filter(Boolean);
   const lines = [];
   let cur = "";
-  for (let i = 0; i < words.length; i++) {
-    const w = words[i];
+  for (let i = 0; i < words2.length; i++) {
+    const w = words2[i];
     const next = cur ? `${cur} ${w}` : w;
     if (textWidth(t, next, size, o) <= max) {
       cur = next;
@@ -1003,8 +1003,8 @@ function wrapText(t, text, size, max, maxLines, o = {}) {
   }
   if (cur && lines.length < maxLines) lines.push(cur);
   const used = lines.join(" ").split(/\s+/).filter(Boolean).length;
-  if (used < words.length && lines.length) {
-    lines[lines.length - 1] = fitText(t, `${lines[lines.length - 1]} ${words.slice(used).join(" ")}`, size, max, o);
+  if (used < words2.length && lines.length) {
+    lines[lines.length - 1] = fitText(t, `${lines[lines.length - 1]} ${words2.slice(used).join(" ")}`, size, max, o);
   }
   return lines.map((l) => fitText(t, l, size, max, o));
 }
@@ -1101,6 +1101,7 @@ var contrib = defineWidget({
   type: "contrib",
   title: "Contribution graph",
   description: "Your last 12 months as an animated heatmap with a scanning beam, best-day callout and weekly totals.",
+  scope: "profile",
   category: "Activity",
   kind: "svg",
   width: "full",
@@ -1138,7 +1139,7 @@ var contrib = defineWidget({
     const GY = o.callout ? 84 : 62;
     const gridW = weeks.length * STEP;
     const by = GY + 7 * STEP + 44;
-    const H11 = (o.weekly ? by : GY + 7 * STEP) + (o.legend || o.weekly ? 46 : 24);
+    const H13 = (o.weekly ? by : GY + 7 * STEP) + (o.legend || o.weekly ? 46 : 24);
     const rx = o.shape === "square" ? 1 : o.shape === "circle" ? CELL / 2 : 2.5;
     const cells2 = [];
     let bestPos = null;
@@ -1171,11 +1172,11 @@ var contrib = defineWidget({
     ].map(([r, l]) => `<text x="${GX - 10}" y="${GY + r * STEP + 9}" font-size="10" text-anchor="end" class="m">${l}</text>`).join("");
     const weekly = weeks.map((w) => w.reduce((a, d) => a + d.count, 0));
     const wMax = Math.max(1, ...weekly);
-    const bars = o.weekly ? weekly.map((v, c) => {
+    const bars2 = o.weekly ? weekly.map((v, c) => {
       const h = Math.max(1.5, v / wMax * 34);
       return `<rect x="${GX + c * STEP}" y="${(by - h).toFixed(1)}" width="${CELL}" height="${h.toFixed(1)}" rx="2" fill="${v === wMax ? t.accent : t.subtle}" style="transform-origin:bottom;transform-box:fill-box;animation:grow .6s cubic-bezier(.2,.7,.2,1) ${(1.2 + c * 0.012).toFixed(2)}s both"/>`;
     }).join("") : "";
-    const legend = o.legend ? `<text x="${W - 140}" y="${H11 - 18.5}" font-size="10.5" text-anchor="end" class="m">less</text>${t.heat.map((c, i) => `<rect x="${W - 132 + i * 14}" y="${H11 - 28}" width="${CELL}" height="${CELL}" rx="${rx}" fill="${c}"/>`).join("")}<text x="${W - 58}" y="${H11 - 18.5}" font-size="10.5" class="m">more</text>` : "";
+    const legend = o.legend ? `<text x="${W - 140}" y="${H13 - 18.5}" font-size="10.5" text-anchor="end" class="m">less</text>${t.heat.map((c, i) => `<rect x="${W - 132 + i * 14}" y="${H13 - 28}" width="${CELL}" height="${CELL}" rx="${rx}" fill="${c}"/>`).join("")}<text x="${W - 58}" y="${H13 - 18.5}" font-size="10.5" class="m">more</text>` : "";
     let callout = "";
     if (o.callout && bestPos && best) {
       const [bx, bY] = bestPos;
@@ -1197,7 +1198,7 @@ var contrib = defineWidget({
     const defs = `<linearGradient id="beamG" x1="0" x2="1"><stop offset="0" stop-color="${t.glow}" stop-opacity="0"/><stop offset=".9" stop-color="${t.glow}" stop-opacity="${t.name === "dark" ? 0.35 : 0.25}"/><stop offset="1" stop-color="${t.name === "dark" ? "#fff" : t.glow}" stop-opacity=".9"/></linearGradient>
 <clipPath id="gridClip"><rect x="${GX - 4}" y="${GY - 4}" width="${gridW + 8}" height="${7 * STEP + 8}"/></clipPath>`;
     const total = groupDigits(ctx.data.lastYearTotal);
-    const body = `${card(t, { width: W, height: H11 })}
+    const body = `${card(t, { width: W, height: H13 })}
 ${o.label ? label(t, 24, 30, o.label) : ""}
 <text x="${W - 24}" y="30" font-size="12" text-anchor="end" class="m fade"><tspan class="t b" font-size="14">${total}</tspan> in the last year \xB7 <tspan class="t b" font-size="14">${ctx.d.active}</tspan> active days</text>
 ${months.join("")}
@@ -1206,11 +1207,11 @@ ${cells2.join("")}
 ${o.beam ? `<g clip-path="url(#gridClip)"><g class="beam loop loop-only"><rect x="${GX - 60}" y="${GY - 4}" width="60" height="${7 * STEP + 8}" fill="url(#beamG)"/></g></g>` : ""}
 ${callout}
 ${o.weekly ? `<path d="M${GX} ${by + 0.5}H${GX + gridW - 3}" stroke="${t.border}"/>
-${bars}
+${bars2}
 <text x="${GX - 10}" y="${by - 2}" font-size="10" text-anchor="end" class="m">wk</text>
-<text x="${GX}" y="${H11 - 18}" font-size="10.5" class="m">weekly totals \xB7 peak <tspan class="a b">${wMax}</tspan></text>` : ""}
+<text x="${GX}" y="${H13 - 18}" font-size="10.5" class="m">weekly totals \xB7 peak <tspan class="a b">${wMax}</tspan></text>` : ""}
 ${legend}`;
-    return svg({ width: W, height: H11, theme: t, title: "animated contribution graph", css, defs, body });
+    return svg({ width: W, height: H13, theme: t, title: "animated contribution graph", css, defs, body });
   }
 });
 
@@ -1242,8 +1243,8 @@ var divider = defineWidget({
   alt: () => "divider",
   render(ctx, o) {
     const t = ctx.theme;
-    const H11 = o.style === "wave" || o.style === "pulse" ? 40 : 28;
-    const mid = H11 / 2;
+    const H13 = o.style === "wave" || o.style === "pulse" ? 40 : 28;
+    const mid = H13 / 2;
     const defs = `<linearGradient id="cometG" x1="0" x2="1"><stop offset="0" stop-color="${t.accent}" stop-opacity="0"/><stop offset=".85" stop-color="${t.glow}"/><stop offset="1" stop-color="${t.name === "dark" ? "#fff" : t.glow}"/></linearGradient>
 <linearGradient id="lineG" x1="0" x2="1"><stop offset="0" stop-color="${t.border}" stop-opacity="0"/><stop offset=".5" stop-color="${t.subtle}"/><stop offset="1" stop-color="${t.border}" stop-opacity="0"/></linearGradient>
 <linearGradient id="fadeA" x1="0" x2="1"><stop offset="0" stop-color="${t.accent}" stop-opacity="0"/><stop offset=".5" stop-color="${t.accent}"/><stop offset="1" stop-color="${t.accent}" stop-opacity="0"/></linearGradient>`;
@@ -1280,7 +1281,7 @@ var divider = defineWidget({
       const x = W2 / 2 - 16 + i * 16;
       return `<rect class="tick loop" style="animation-delay:${i * 0.3}s" x="${x - 3}" y="${mid - 3}" width="6" height="6" rx="1.5" transform="rotate(45 ${x} ${mid})" fill="${i === 1 ? t.accent : t.subtle}"/>`;
     }).join("")}` : "";
-    return svg({ width: W2, height: H11, theme: t, title: "divider", css, defs, body: line + ornament, fonts: false });
+    return svg({ width: W2, height: H13, theme: t, title: "divider", css, defs, body: line + ornament, fonts: false });
   }
 });
 
@@ -1311,11 +1312,11 @@ var footer = defineWidget({
     const t = ctx.theme;
     const n = ctx.now;
     const stamp = `${n.year}-${pad2(n.month)}-${pad2(n.day)}`;
-    const bars = [];
+    const bars2 = [];
     let x = 24;
     for (let i = 0; x < 214; i++) {
       const w = 1 + Math.floor(hash01(stamp, i) * 3);
-      if (i % 2 === 0) bars.push(`<rect x="${x}" y="22" width="${w}" height="34" fill="${t.text}"/>`);
+      if (i % 2 === 0) bars2.push(`<rect x="${x}" y="22" width="${w}" height="34" fill="${t.text}"/>`);
       x += w + 1;
     }
     const css = `.w1{animation:wv 7s linear infinite}.w2{animation:wv 11s linear infinite reverse}.w3{animation:wv 15s linear infinite}
@@ -1333,7 +1334,7 @@ ${o.waves ? `<path class="w3 loop" d="${wave(6, 120, 96, W3 + 240)}" fill="${t.a
 <path class="w1 loop" d="${wave(5, 120, 112, W3 + 240)}" fill="${t.accent}" opacity=".35"/>` : ""}
 </g>
 ${cardStroke(t, W3, H)}
-${o.barcode ? `<g class="fade">${bars.join("")}</g><text x="24" y="70" font-size="9.5" letter-spacing="2" class="m">${stamp.replace(/-/g, " ")}</text>` : ""}
+${o.barcode ? `<g class="fade">${bars2.join("")}</g><text x="24" y="70" font-size="9.5" letter-spacing="2" class="m">${stamp.replace(/-/g, " ")}</text>` : ""}
 <g class="in" style="animation-delay:.3s">
 <text x="${right}" y="${o.stamp ? 34 : 44}" font-size="13" text-anchor="${anchor}" class="t b">${esc(fitText(t, o.message, 13, maxW, { bold: true }))}</text>
 ${o.stamp ? `<text x="${right}" y="54" font-size="11" text-anchor="${anchor}" class="m">${esc(fitText(t, `last build ${stamp} ${pad2(n.hour)}:${pad2(n.minute)} ${tz}${run} \xB7 ${ctx.data.source} data`, 11, maxW))}</text>` : ""}
@@ -1511,9 +1512,9 @@ function icon(id) {
   const d = iconData[id] ?? iconData[key] ?? iconData.code;
   return toIcon(iconData[id] ? id : iconData[key] ? key : "code", d);
 }
-function iconSvg(id, x, y, size, fill, extra = "") {
+function iconSvg(id, x, y, size, fill2, extra = "") {
   const i = icon(id);
-  const color = fill && fill !== "brand" ? fill : i.color ?? "#8b8b8f";
+  const color = fill2 && fill2 !== "brand" ? fill2 : i.color ?? "#8b8b8f";
   return `<svg x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${size}" height="${size}" viewBox="${i.viewBox}" color="${color}" ${extra}>${i.inner}</svg>`;
 }
 
@@ -1559,6 +1560,7 @@ var hero = defineWidget({
   type: "hero",
   title: "Hero banner",
   description: "Your name drawn on stroke by stroke, a typewriter cycling through your roles and an orbiting emblem.",
+  scope: "profile",
   category: "Header",
   kind: "svg",
   width: "full",
@@ -1723,9 +1725,9 @@ var socials = defineWidget({
     const index = Math.max(0, links.findIndex((l, i) => keyOf(i, l.icon) === key));
     const link = links[index] ?? { icon: "website", label: "Link", url: "", handle: "" };
     const style = o.style;
-    const W38 = style === "icon" ? H3 : style === "compact" ? 150 : 200;
+    const W51 = style === "icon" ? H3 : style === "compact" ? 150 : 200;
     const r = Math.min(14, t.radius + 2);
-    const perim = 2 * (W38 - 2 + H3 - 2);
+    const perim = 2 * (W51 - 2 + H3 - 2);
     const d0 = index * 0.25;
     const css = `
 .run{stroke-dasharray:60 ${perim - 60};animation:runB 4s linear ${index * -1.3}s infinite}
@@ -1736,26 +1738,26 @@ var socials = defineWidget({
 .arrow{animation:arr 2.2s ease-in-out infinite}
 @keyframes arr{0%,100%{transform:translate(0,0)}50%{transform:translate(2px,-2px)}}`;
     const color = iconColor(t, link.icon, o.iconColor);
-    const frame = `<clipPath id="pc"><rect x="1" y="1" width="${W38 - 2}" height="${H3 - 2}" rx="${r}"/></clipPath>
-<rect x="1" y="1" width="${W38 - 2}" height="${H3 - 2}" rx="${r}" fill="${surfaceFill(t)}" stroke="${t.border}"/>
-${o.runner ? `<rect class="run loop loop-only" x="1" y="1" width="${W38 - 2}" height="${H3 - 2}" rx="${r}" stroke="url(#accentGrad)" stroke-width="1.5" stroke-linecap="round"/>` : ""}
+    const frame = `<clipPath id="pc"><rect x="1" y="1" width="${W51 - 2}" height="${H3 - 2}" rx="${r}"/></clipPath>
+<rect x="1" y="1" width="${W51 - 2}" height="${H3 - 2}" rx="${r}" fill="${surfaceFill(t)}" stroke="${t.border}"/>
+${o.runner ? `<rect class="run loop loop-only" x="1" y="1" width="${W51 - 2}" height="${H3 - 2}" rx="${r}" stroke="url(#accentGrad)" stroke-width="1.5" stroke-linecap="round"/>` : ""}
 <g clip-path="url(#pc)"><rect class="sh loop loop-only" x="0" y="0" width="80" height="${H3}" fill="url(#shine)" transform="skewX(-20)"/></g>`;
     let inner;
     if (style === "icon") {
       inner = `<g class="bob loop">${iconSvg(link.icon, 15, 15, 22, color)}</g>`;
     } else {
       const textX = 66;
-      const maxW = W38 - textX - (style === "pill" ? 30 : 12);
+      const maxW = W51 - textX - (style === "pill" ? 30 : 12);
       const title = fitText(t, link.label || icon(link.icon).title, 13.5, maxW, { bold: true });
       const sub = fitText(t, link.handle || link.url.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, ""), 10.5, maxW);
       inner = `<rect x="12" y="10" width="44" height="32" rx="${Math.max(4, r - 5)}" fill="${t.raised}" stroke="${t.border}"/>
 <g class="bob loop">${iconSvg(link.icon, 25, 17, 18, color)}</g>
 <text x="${textX}" y="${sub ? 24 : 30.5}" font-size="13.5" class="t b">${esc(title)}</text>
 ${sub ? `<text x="${textX}" y="39" font-size="10.5" class="m">${esc(sub)}</text>` : ""}
-${style === "pill" ? `<g class="arrow loop"><path d="M${W38 - 24} 30l8-8M${W38 - 22} 22h6v6" stroke="${t.muted}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></g>` : ""}`;
+${style === "pill" ? `<g class="arrow loop"><path d="M${W51 - 24} 30l8-8M${W51 - 22} 22h6v6" stroke="${t.muted}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></g>` : ""}`;
     }
     const body = `<g class="in" style="animation-delay:${d0}s">${frame}${inner}</g>`;
-    return svg({ width: W38, height: H3, theme: t, title: link.label || link.icon, css, body });
+    return svg({ width: W51, height: H3, theme: t, title: link.label || link.icon, css, body });
   }
 });
 
@@ -1886,6 +1888,7 @@ var stats = defineWidget({
   type: "stats",
   title: "Stats board",
   description: "Rolling odometer counters for your key numbers, with an optional year-progress ring.",
+  scope: "profile",
   category: "Stats",
   kind: "svg",
   width: "full",
@@ -1908,14 +1911,14 @@ var stats = defineWidget({
     const keys = (Array.isArray(o.tiles) ? o.tiles : []).slice(0, 12);
     const tiles = keys.map((k) => statTile(ctx, k)).filter((x) => x !== null).slice(0, max);
     const cols = ring ? 3 : Math.min(4, Math.max(1, tiles.length));
-    const rows2 = Math.max(1, Math.ceil(tiles.length / cols));
+    const rows3 = Math.max(1, Math.ceil(tiles.length / cols));
     const gx = 24;
     const gy = o.label ? 50 : 24;
     const gap = 12;
     const areaW = ring ? 582 : W5 - 48;
     const tw = (areaW - gap * (cols - 1)) / cols;
     const th = 88;
-    const H11 = Math.max(ring ? 250 : 0, gy + rows2 * th + (rows2 - 1) * gap + 24);
+    const H13 = Math.max(ring ? 250 : 0, gy + rows3 * th + (rows3 - 1) * gap + 24);
     const tileMarkup = tiles.map((tile, i) => {
       const col = i % cols;
       const row = Math.floor(i / cols);
@@ -1938,7 +1941,7 @@ ${tile.extra ? tile.extra(x, y, tw, th) : ""}
     if (ring) {
       const yp = yearProgress(ctx.now);
       const cx = 708;
-      const cy = H11 / 2 + 17;
+      const cy = H13 / 2 + 17;
       const r = 66;
       const C = 2 * Math.PI * r;
       const ticks = Array.from({ length: 52 }, (_, i) => {
@@ -1968,11 +1971,11 @@ ${odometer(t, pct2, { x: cx - 8, y: cy + 8, fontSize: 26, anchor: "middle", dela
 <text x="${cx}" y="${cy - 22}" font-size="10.5" letter-spacing="1.5" text-anchor="middle" class="a b">${ctx.now.year}</text>
 </g>`;
     }
-    const body = `${card(t, { width: W5, height: H11 })}
+    const body = `${card(t, { width: W5, height: H13 })}
 ${o.label ? label(t, 24, 30, o.label) : ""}
 ${tileMarkup}
 ${ringMarkup}`;
-    return svg({ width: W5, height: H11, theme: t, title: "GitHub stats", css, defs, body });
+    return svg({ width: W5, height: H13, theme: t, title: "GitHub stats", css, defs, body });
   }
 });
 
@@ -2017,7 +2020,7 @@ var languages = defineWidget({
     const max = Math.max(3, Math.min(10, Math.round(Number(o.max) || 5)));
     const top = all.slice(0, max);
     const rest = all.slice(max).reduce((a, l) => a + l.bytes, 0);
-    const rows2 = [
+    const rows3 = [
       ...top.map((l, i) => ({ name: l.name, color: l.color || fallback[i % fallback.length], bytes: l.bytes, pct: l.bytes / total * 100 })),
       ...rest > 0 ? [{ name: "Other", color: t.subtle, bytes: rest, pct: rest / total * 100 }] : []
     ];
@@ -2026,21 +2029,21 @@ var languages = defineWidget({
     const y0 = lbl ? 56 : 28;
     const right = W6 - 24;
     const pctText = (p) => `${num(p, 1)}%`;
-    const lead = rows2[0];
-    let H11 = 0;
+    const lead = rows3[0];
+    let H13 = 0;
     let content = "";
     let css = "";
     if (style === "donut") {
-      const rowH = rows2.length <= 6 ? 34 : 26;
-      H11 = Math.max(300, y0 + 26 + rows2.length * rowH + 40);
+      const rowH = rows3.length <= 6 ? 34 : 26;
+      H13 = Math.max(300, y0 + 26 + rows3.length * rowH + 40);
       const cx = 108;
-      const cy = Math.round((y0 + H11 - 36) / 2) + 4;
+      const cy = Math.round((y0 + H13 - 36) / 2) + 4;
       const r = 70;
       const C = 2 * Math.PI * r;
       let acc = 0;
-      const segs = rows2.map((l, i) => {
+      const segs = rows3.map((l, i) => {
         const frac = l.bytes / total;
-        const len = Math.max(0.5, frac * C - (rows2.length > 1 ? 3 : 0));
+        const len = Math.max(0.5, frac * C - (rows3.length > 1 ? 3 : 0));
         const start = acc;
         acc += frac * C;
         const d = 0.3 + i * 0.22;
@@ -2049,12 +2052,12 @@ var languages = defineWidget({
       css = `@keyframes seg{to{stroke-dasharray:var(--len) ${C.toFixed(1)}}}
 .spinring{transform-origin:${cx}px ${cy}px;animation:spin 20s linear infinite}`;
       const lx = 214;
-      const ly = cy - (rows2.length - 1) * rowH / 2 - (rowH === 34 ? 4 : 2);
-      const legend = rows2.map((l, i) => {
+      const ly = cy - (rows3.length - 1) * rowH / 2 - (rowH === 34 ? 4 : 2);
+      const legend = rows3.map((l, i) => {
         const y = ly + i * rowH;
         const pct2 = pctText(l.pct);
         const pw = textWidth(t, pct2, 12);
-        const bw = Math.max(3, l.pct / rows2[0].pct * (right - lx));
+        const bw = Math.max(3, l.pct / rows3[0].pct * (right - lx));
         const d = 0.5 + i * 0.12;
         return `<g class="in" style="animation-delay:${d.toFixed(2)}s">
 <rect x="${lx}" y="${y - 9}" width="8" height="8" rx="2" fill="${l.color}"/>
@@ -2070,16 +2073,16 @@ var languages = defineWidget({
 <g class="spinring loop"><circle cx="${cx}" cy="${cy}" r="${r + 17}" stroke="${t.subtle}" stroke-dasharray="2 9"/></g>
 ${segs}
 ${centre}
-${rows2.length ? legend : `<text x="${lx}" y="${cy - 4}" font-size="12" class="t b">No language data yet</text><text x="${lx}" y="${cy + 14}" font-size="11" class="m">${esc(fitText(t, "push some code to get started", 11, right - lx))}</text>`}`;
+${rows3.length ? legend : `<text x="${lx}" y="${cy - 4}" font-size="12" class="t b">No language data yet</text><text x="${lx}" y="${cy + 14}" font-size="11" class="m">${esc(fitText(t, "push some code to get started", 11, right - lx))}</text>`}`;
     } else if (style === "bars") {
-      const rowH = rows2.length <= 6 ? 40 : 34;
+      const rowH = rows3.length <= 6 ? 40 : 34;
       const first = y0 + 22;
-      H11 = Math.max(rows2.length ? 0 : 180, first + Math.max(1, rows2.length) * rowH + 30);
-      content = rows2.length ? rows2.map((l, i) => {
+      H13 = Math.max(rows3.length ? 0 : 180, first + Math.max(1, rows3.length) * rowH + 30);
+      content = rows3.length ? rows3.map((l, i) => {
         const y = first + i * rowH;
         const pct2 = pctText(l.pct);
         const pw = textWidth(t, pct2, 12, { bold: true });
-        const bw = Math.max(6, l.pct / rows2[0].pct * (right - 24));
+        const bw = Math.max(6, l.pct / rows3[0].pct * (right - 24));
         const d = 0.2 + i * 0.1;
         return `<g class="in" style="animation-delay:${d.toFixed(2)}s">
 <rect x="24" y="${y - 10}" width="8" height="8" rx="2" fill="${l.color}"/>
@@ -2092,10 +2095,10 @@ ${rows2.length ? legend : `<text x="${lx}" y="${cy - 4}" font-size="12" class="t
     } else {
       const barY = y0 + 4;
       const barH = 14;
-      const gap = rows2.length > 1 ? 2 : 0;
-      const span = right - 24 - gap * Math.max(0, rows2.length - 1);
+      const gap = rows3.length > 1 ? 2 : 0;
+      const span = right - 24 - gap * Math.max(0, rows3.length - 1);
       let x = 24;
-      const segs = rows2.map((l, i) => {
+      const segs = rows3.map((l, i) => {
         const w = Math.max(1, l.bytes / total * span);
         const s = `<rect x="${x.toFixed(1)}" y="${barY}" width="${w.toFixed(1)}" height="${barH}" fill="${l.color}" style="transform-box:fill-box;transform-origin:left;animation:growX .6s ${EASE2} ${(0.3 + i * 0.12).toFixed(2)}s both"/>`;
         x += w + gap;
@@ -2103,8 +2106,8 @@ ${rows2.length ? legend : `<text x="${lx}" y="${cy - 4}" font-size="12" class="t
       }).join("");
       const colW = (right - 24) / 2;
       const gy = barY + barH + 32;
-      const gridRows = Math.ceil(rows2.length / 2);
-      const grid = rows2.map((l, i) => {
+      const gridRows = Math.ceil(rows3.length / 2);
+      const grid = rows3.map((l, i) => {
         const col = i % 2;
         const row = Math.floor(i / 2);
         const gx = 24 + col * colW;
@@ -2117,18 +2120,18 @@ ${rows2.length ? legend : `<text x="${lx}" y="${cy - 4}" font-size="12" class="t
 <text x="${gx + colW - 12}" y="${y}" font-size="11.5" text-anchor="end" class="m">${pct2}</text>
 </g>`;
       }).join("");
-      H11 = Math.max(rows2.length ? 0 : 150, gy + Math.max(1, gridRows) * 26 + 22);
+      H13 = Math.max(rows3.length ? 0 : 150, gy + Math.max(1, gridRows) * 26 + 22);
       content = `<clipPath id="stk"><rect x="24" y="${barY}" width="${right - 24}" height="${barH}" rx="${barH / 2}"/></clipPath>
 <rect x="24" y="${barY}" width="${right - 24}" height="${barH}" rx="${barH / 2}" fill="${t.raised}"/>
 <g clip-path="url(#stk)">${segs}</g>
-${rows2.length ? grid : `<text x="${W6 / 2}" y="${gy + 4}" font-size="12" text-anchor="middle" class="m">No language data yet</text>`}`;
+${rows3.length ? grid : `<text x="${W6 / 2}" y="${gy + 4}" font-size="12" text-anchor="middle" class="m">No language data yet</text>`}`;
     }
-    const note = rows2.length ? `by bytes across ${ctx.data.repoCount} owned repositor${ctx.data.repoCount === 1 ? "y" : "ies"}` : "";
-    const body = `${card(t, { width: W6, height: H11 })}
+    const note = !rows3.length ? "" : ctx.kind === "project" ? `by bytes of code in ${ctx.data.project?.fullName || ctx.project.repo}` : `by bytes across ${ctx.data.repoCount} owned repositor${ctx.data.repoCount === 1 ? "y" : "ies"}`;
+    const body = `${card(t, { width: W6, height: H13 })}
 ${lbl ? label(t, 24, 30, fitText(t, lbl.toUpperCase(), 12, W6 - 64, { bold: true, letterSpacing: 2 })) : ""}
 ${content}
-${note ? `<text x="24" y="${H11 - 18}" font-size="10" class="m">${esc(fitText(t, note, 10, W6 - 48))}</text>` : ""}`;
-    return svg({ width: W6, height: H11, theme: t, title: "most used languages", css, body });
+${note ? `<text x="24" y="${H13 - 18}" font-size="10" class="m">${esc(fitText(t, note, 10, W6 - 48))}</text>` : ""}`;
+    return svg({ width: W6, height: H13, theme: t, title: "most used languages", css, body });
   }
 });
 
@@ -2241,6 +2244,7 @@ var pulse = defineWidget({
   type: "pulse",
   title: "Heartbeat",
   description: "Your recent contributions drawn as an ECG trace, one heartbeat per day, with a glowing pulse running along it.",
+  scope: "profile",
   category: "Activity",
   kind: "svg",
   width: "full",
@@ -2396,12 +2400,12 @@ function scene(weeks, colors, angle, fit) {
         [[1, 2, 6, 5], shade(top, 0.8), [1, 0, 0]],
         [[3, 0, 4, 7], shade(top, 0.8), [-1, 0, 0]]
       ];
-      for (const [idx, fill, nrm] of quads) {
+      for (const [idx, fill2, nrm] of quads) {
         const nz = nrm[0] * sa + nrm[2] * ca;
         if (nrm[1] === 0 && nz > 0) continue;
         if (nrm[1] === 0 && h < 1) continue;
         const depth = idx.reduce((a, i) => a + p[i][2], 0) / 4;
-        faces.push({ d: depth, pts: idx.map((i) => `${p[i][0].toFixed(1)},${p[i][1].toFixed(1)}`).join(" "), fill });
+        faces.push({ d: depth, pts: idx.map((i) => `${p[i][0].toFixed(1)},${p[i][1].toFixed(1)}`).join(" "), fill: fill2 });
       }
     })
   );
@@ -2467,6 +2471,7 @@ var skyline = defineWidget({
   type: "skyline",
   title: "3D skyline",
   description: "Your last 12 months as an isometric city of contribution towers, slowly turning in an animated GIF.",
+  scope: "profile",
   category: "Activity",
   kind: "gif",
   width: "full",
@@ -2594,8 +2599,8 @@ var stack = defineWidget({
     const t = ctx.theme;
     const rs = rings(o);
     const showLegend = o.legend !== false && rs.length > 0;
-    const layout = LAYOUTS[Math.max(0, rs.length - 1)];
-    const RADII = layout.radii;
+    const layout2 = LAYOUTS[Math.max(0, rs.length - 1)];
+    const RADII = layout2.radii;
     const rMax = RADII[RADII.length - 1];
     const top = 18;
     const CY = top + rMax + CHIP;
@@ -2618,14 +2623,14 @@ ${lines.map((l, k) => `<text x="24" y="${y + 24 + k * 20}" font-size="15" class=
         });
       });
     }
-    const GAP2 = 34;
-    const legendH = blocks.reduce((a, b) => a + b.h, 0) + GAP2 * Math.max(0, blocks.length - 1);
+    const GAP3 = 34;
+    const legendH = blocks.reduce((a, b) => a + b.h, 0) + GAP3 * Math.max(0, blocks.length - 1);
     const areaTop = o.label ? 52 : 18;
-    const H11 = Math.max(orbitH, areaTop + legendH + 40, 220);
-    let ly = areaTop + Math.max(0, (H11 - 18 - areaTop - legendH) / 2) + 10;
+    const H13 = Math.max(orbitH, areaTop + legendH + 40, 220);
+    let ly = areaTop + Math.max(0, (H13 - 18 - areaTop - legendH) / 2) + 10;
     const legendParts = blocks.map((b) => {
       const out = b.draw(ly);
-      ly += b.h + GAP2;
+      ly += b.h + GAP3;
       return out;
     });
     const css = rs.map((_, i) => {
@@ -2653,7 +2658,7 @@ ${lines.map((l, k) => `<text x="24" y="${y + 24 + k * 20}" font-size="15" class=
     }).join("\n");
     const emblem = String(o.emblem || "github");
     const empty = rs.length ? "" : `<text x="${CX}" y="${CY + 64}" font-size="12" text-anchor="middle" class="m">no tools listed yet</text>`;
-    const body = `${card(t, { width: W9, height: H11 })}
+    const body = `${card(t, { width: W9, height: H13 })}
 ${o.label ? label(t, 24, 30, String(o.label)) : ""}
 ${legendParts.join("")}
 ${orbits}
@@ -2662,7 +2667,7 @@ ${orbits}
 <circle cx="${CX}" cy="${CY}" r="30" fill="${t.raised}" stroke="${t.border}"/>
 ${iconSvg(emblem, CX - 15, CY - 15, 30, chipColor(t, emblem))}
 ${empty}`;
-    return svg({ width: W9, height: H11, theme: t, title: "tech stack orbit", css, body });
+    return svg({ width: W9, height: H13, theme: t, title: "tech stack orbit", css, body });
   }
 });
 
@@ -2749,7 +2754,7 @@ function parseMarkup(src, vars, base = "t") {
   const segs = [];
   let cls = base;
   let bold = false;
-  const push = (s, c = cls, b = bold) => {
+  const push2 = (s, c = cls, b = bold) => {
     if (!s) return;
     const last = segs[segs.length - 1];
     if (last && last.cls === c && last.bold === b) last.text += s;
@@ -2757,7 +2762,7 @@ function parseMarkup(src, vars, base = "t") {
   };
   let at = 0;
   for (const m of text.matchAll(TOKEN)) {
-    push(text.slice(at, m.index));
+    push2(text.slice(at, m.index));
     at = (m.index ?? 0) + m[0].length;
     const tok = m[1];
     if (tok === "/") {
@@ -2767,12 +2772,12 @@ function parseMarkup(src, vars, base = "t") {
     else if (STYLE[tok]) cls = STYLE[tok];
     else {
       const v = lookup(vars, tok);
-      if (v === void 0) push(m[0]);
-      else if (typeof v === "string") push(v);
-      else v.forEach((s) => push(s.text, s.cls, s.bold || bold));
+      if (v === void 0) push2(m[0]);
+      else if (typeof v === "string") push2(v);
+      else v.forEach((s) => push2(s.text, s.cls, s.bold || bold));
     }
   }
-  push(text.slice(at));
+  push2(text.slice(at));
   return segs;
 }
 var segW = (t, s) => textWidth(t, s.text, FS, { bold: s.bold });
@@ -2865,6 +2870,7 @@ var terminal = defineWidget({
   type: "terminal",
   title: "Terminal",
   description: "A shell session that types out commands about you, with live placeholders, syntax colours and a tmux-style status bar.",
+  scope: "profile",
   category: "Identity",
   kind: "svg",
   width: "full",
@@ -2971,7 +2977,7 @@ ${typed}`);
     parts.push(
       `<g class="fade" style="animation-delay:${time.toFixed(2)}s">${last.svg}<rect x="${(X0 + last.w + 1).toFixed(1)}" y="${y - FS + 1}" width="${cursorW.toFixed(1)}" height="${FS + 3}" rx="1" fill="${t.accent}" class="blink loop"/></g>`
     );
-    const H11 = y + (statusBar ? STATUS + 22 : 26);
+    const H13 = y + (statusBar ? STATUS + 22 : 26);
     const r = t.radius;
     const host2 = (ctx.profile.location.city || "github").toLowerCase().replace(/\s+/g, "-");
     const titleText = o.title ? plain(String(o.title)) : `${ctx.profile.login.toLowerCase()}@${host2}: ${cwd || "~"} \u2014 zsh`;
@@ -2982,24 +2988,24 @@ ${typed}`);
 <text x="${W10 / 2}" y="22.5" text-anchor="middle" font-size="12" class="m">${esc(fitText(t, titleText, 12, W10 - 200))}</text>` : "";
     let statusMarkup = "";
     if (statusBar) {
-      const sy = H11 - STATUS;
+      const sy = H13 - STATUS;
       const tab = fitText(t, plain(String(o.tab ?? "")), 12, 320, { bold: true });
       const tabW = tab ? textWidth(t, tab, 12, { bold: true }) + 28 : 0;
       const right = fitText(t, plain(String(o.status ?? "")), 12, W10 - tabW - 48);
       statusMarkup = `<rect x="0" y="${sy}" width="${W10}" height="${STATUS}" fill="${barFill}"/>
 <path d="M0 ${sy - 0.5}H${W10}" stroke="${t.border}"/>
 <rect class="bar" x="0" y="${sy - 1}" width="${W10}" height="1.5" fill="url(#accentGrad)"/>
-${tab ? `<rect x="0" y="${sy + 0.5}" width="${tabW.toFixed(1)}" height="${STATUS}" fill="${t.accent}"/><text x="14" y="${H11 - 9.5}" font-size="12" class="b" fill="${onAccent(t)}">${esc(tab)}</text>` : ""}
-${right ? `<text x="${W10 - 16}" y="${H11 - 9.5}" font-size="12" class="m" text-anchor="end" xml:space="preserve">${esc(right)}</text>` : ""}`;
+${tab ? `<rect x="0" y="${sy + 0.5}" width="${tabW.toFixed(1)}" height="${STATUS}" fill="${t.accent}"/><text x="14" y="${H13 - 9.5}" font-size="12" class="b" fill="${onAccent(t)}">${esc(tab)}</text>` : ""}
+${right ? `<text x="${W10 - 16}" y="${H13 - 9.5}" font-size="12" class="m" text-anchor="end" xml:space="preserve">${esc(right)}</text>` : ""}`;
     }
     const css = `.str{fill:${t.accent2}}.num{fill:${t.glow}}
 .bar{transform-box:fill-box;transform-origin:left;animation:growX 1s cubic-bezier(.2,.7,.2,1) .2s both}`;
-    const defs = `<clipPath id="win"><rect x=".5" y=".5" width="${W10 - 1}" height="${H11 - 1}" rx="${r}"/></clipPath>`;
-    const body = `${card(t, { width: W10, height: H11 })}
+    const defs = `<clipPath id="win"><rect x=".5" y=".5" width="${W10 - 1}" height="${H13 - 1}" rx="${r}"/></clipPath>`;
+    const body = `${card(t, { width: W10, height: H13 })}
 <g clip-path="url(#win)">${chromeMarkup}${statusMarkup}</g>
-${cardStroke(t, W10, H11)}
+${cardStroke(t, W10, H13)}
 ${parts.join("\n")}`;
-    return svg({ width: W10, height: H11, theme: t, title: `terminal session for ${vars.name}`, css, defs, body });
+    return svg({ width: W10, height: H13, theme: t, title: `terminal session for ${vars.name}`, css, defs, body });
   }
 });
 
@@ -3084,7 +3090,7 @@ var REPO_IDEAS = [
   ["metronome", "Cron-as-code scheduler with retries and alerts"],
   ["dotfiles", "My terminal, editor and shell setup"]
 ];
-function mockData(now = /* @__PURE__ */ new Date(), login = "octocat", name = "Mona Lisa Octocat", timeZone = "UTC") {
+function mockData(now = /* @__PURE__ */ new Date(), login = "octocat", name = "Mona Lisa Octocat", timeZone = "UTC", repo) {
   const seed = hashSeed(login);
   const r = rng(seed);
   const weeks = mockWeeks(now, seed);
@@ -3181,7 +3187,92 @@ function mockData(now = /* @__PURE__ */ new Date(), login = "octocat", name = "M
     commitHours: hours,
     weather: { temperature: 3.4 + r() * 18, min: -1.2 + r() * 10, max: 6 + r() * 18, code: [0, 1, 2, 3, 61, 71][Math.floor(r() * 6)], isDay: true, wind: Math.round(4 + r() * 20) },
     releases: releases2,
-    feeds: { default: posts2 }
+    feeds: { default: posts2 },
+    project: mockProject(repo ?? `${login}/aurora`, now)
+  };
+}
+function mockProject(repo = "octocat/aurora", now = /* @__PURE__ */ new Date()) {
+  const [owner2, name = "aurora"] = repo.split("/");
+  const r = rng(hashSeed(repo));
+  const day = 864e5;
+  const created = new Date(now.getTime() - (420 + Math.floor(r() * 500)) * day);
+  const stars2 = 800 + Math.round(r() ** 1.4 * 9e3);
+  const points = 40;
+  const span = now.getTime() - created.getTime();
+  const starHistory2 = Array.from({ length: points }, (_, i) => {
+    const t2 = i / (points - 1);
+    const curve = 1 / (1 + Math.exp(-9 * (t2 - 0.42)));
+    const spike = t2 > 0.3 ? 0.18 : 0;
+    return { date: new Date(created.getTime() + span * t2).toISOString().slice(0, 10), stars: Math.round(stars2 * Math.min(1, curve * 0.82 + spike * (t2 > 0.3 ? 1 : 0))) };
+  });
+  starHistory2[points - 1].stars = stars2;
+  for (let i = 1; i < points; i++) starHistory2[i].stars = Math.max(starHistory2[i].stars, starHistory2[i - 1].stars);
+  const commitWeeks = Array.from({ length: 52 }, (_, i) => {
+    const base = 6 + Math.sin(i / 5) * 4 + r() * 10;
+    return Math.max(0, Math.round(i > 44 ? base * 1.8 : i % 13 === 0 ? base * 0.2 : base));
+  });
+  const handles = ["mona", "hubot", "octocat", "linus-t", "ada-l", "grace-h", "kat", "devon", "sam-r", "jun", "priya", "omar", "lea", "noah", "zoe", "ivan", "mei", "tariq"];
+  const contributors = handles.map((login, i) => ({ login, avatar: "", contributions: Math.max(1, Math.round(900 / (i + 1) ** 1.25 + r() * 10)) }));
+  const t = (d) => new Date(now.getTime() - d * day).toISOString();
+  const releases2 = [
+    ["v2.4.0", 3, "Faster incremental builds and a new watch mode."],
+    ["v2.3.1", 19, "Fixes a regression in nested token references."],
+    ["v2.3.0", 41, "Adds design-token aliases and CSS layer output."],
+    ["v2.2.0", 77, "Plugin API, typed config and Windows path fixes."],
+    ["v2.0.0", 160, "Rewritten core: 6\xD7 faster, zero dependencies."]
+  ].map(([tag, ago2]) => ({ repo: name, tag, name: "", url: `https://github.com/${repo}/releases/tag/${tag}`, publishedAt: t(ago2) }));
+  const releaseNotes = Object.fromEntries(
+    [
+      ["v2.4.0", "Faster incremental builds and a new watch mode."],
+      ["v2.3.1", "Fixes a regression in nested token references."],
+      ["v2.3.0", "Adds design-token aliases and CSS layer output."],
+      ["v2.2.0", "Plugin API, typed config and Windows path fixes."],
+      ["v2.0.0", "Rewritten core: 6\xD7 faster, zero dependencies."]
+    ]
+  );
+  const weekly = Array.from({ length: 52 }, (_, i) => Math.round((1800 + i * 160) * (0.85 + r() * 0.3)));
+  return {
+    owner: owner2,
+    name,
+    fullName: `${owner2}/${name}`,
+    description: "A tiny, fast design-token compiler for multi-brand UI kits.",
+    homepage: `https://${name}.dev`,
+    url: `https://github.com/${repo}`,
+    topics: ["design-tokens", "css", "typescript", "cli", "build-tool"],
+    license: "MIT",
+    defaultBranch: "main",
+    createdAt: created.toISOString(),
+    pushedAt: t(0.2),
+    stars: stars2,
+    forks: Math.round(stars2 * 0.07),
+    watchers: Math.round(stars2 * 0.02) + 4,
+    openIssues: 23 + Math.round(r() * 30),
+    closedIssues: 410 + Math.round(r() * 300),
+    openPulls: 6 + Math.round(r() * 8),
+    mergedPulls: 520 + Math.round(r() * 400),
+    size: 4200,
+    language: { name: "TypeScript", color: "#3178c6" },
+    languages: [
+      { name: "TypeScript", color: "#3178c6", bytes: 612e3 },
+      { name: "Rust", color: "#dea584", bytes: 188e3 },
+      { name: "CSS", color: "#663399", bytes: 42e3 },
+      { name: "JavaScript", color: "#f1e05a", bytes: 21e3 },
+      { name: "Shell", color: "#89e051", bytes: 6e3 }
+    ],
+    contributors,
+    contributorCount: 64,
+    commitWeeks,
+    lastCommit: { message: "perf: cache resolved aliases between builds", sha: "9f2c1ab", date: t(0.2), author: "mona" },
+    releases: releases2,
+    releaseNotes,
+    starHistory: starHistory2,
+    ci: { name: "ci", status: "passing", url: `https://github.com/${repo}/actions` },
+    milestones: [
+      { title: "v2.5: plugin marketplace", open: 7, closed: 15, dueOn: t(-30).slice(0, 10), url: `https://github.com/${repo}/milestone/7` },
+      { title: "v3.0: multi-platform output", open: 22, closed: 9, dueOn: t(-120).slice(0, 10), url: `https://github.com/${repo}/milestone/8` },
+      { title: "Docs overhaul", open: 3, closed: 27, dueOn: "", url: `https://github.com/${repo}/milestone/6` }
+    ],
+    downloads: [{ registry: "npm", name, lastWeek: weekly[51], lastMonth: weekly.slice(-4).reduce((a, b) => a + b, 0), total: weekly.reduce((a, b) => a + b, 0) * 3, weekly, version: "2.4.0" }]
   };
 }
 
@@ -3191,9 +3282,9 @@ var H6 = 300;
 var DAYS = Array.from({ length: 7 }, (_, i) => weekdayName(i + 1, true));
 function chronotype(hours) {
   const total = hours.reduce((a, b) => a + b, 0) || 1;
-  const sum = (a, b) => hours.slice(a, b).reduce((x, y) => x + y, 0) / total;
-  const night = sum(21, 24) + sum(0, 5);
-  const morning = sum(5, 11);
+  const sum2 = (a, b) => hours.slice(a, b).reduce((x, y) => x + y, 0) / total;
+  const night = sum2(21, 24) + sum2(0, 5);
+  const morning = sum2(5, 11);
   if (night > 0.3) return "night owl";
   if (morning > 0.35) return "early bird";
   return "day shift";
@@ -3205,6 +3296,7 @@ var rhythm = defineWidget({
   type: "rhythm",
   title: "Coding rhythm",
   description: "A 24-hour radial clock of when you commit, with your chronotype and busiest weekday.",
+  scope: "profile",
   category: "Activity",
   kind: "svg",
   width: "half",
@@ -3259,13 +3351,13 @@ var rhythm = defineWidget({
     const wTotal = wd.reduce((a, b) => a + b, 0);
     const wMax = Math.max(...wd);
     const best = wMax > 0 ? wd.indexOf(wMax) : -1;
-    let bars = "";
+    let bars2 = "";
     if (showDays) {
       const lx = 256;
       const lw = Math.max(...DAYS.map((d) => textWidth(t, d, 11, { bold: true })));
       const bx = lx + lw + 10;
       const bw = W11 - 26 - bx;
-      bars = wd.map((v, i) => {
+      bars2 = wd.map((v, i) => {
         const y = 74 + i * 26;
         const w = Math.max(3, wMax > 0 ? v / wMax * bw : 3);
         const on = i === best;
@@ -3289,7 +3381,7 @@ ${o.label ? label(t, 24, 30, fitLabel(t, String(o.label), W11 - 48)) : ""}
 ${clock2}
 ${ticks}
 ${center}
-${bars}
+${bars2}
 ${foot}`;
     return svg({ width: W11, height: H6, theme: t, title: "coding rhythm by hour of day and weekday", body });
   }
@@ -3330,6 +3422,7 @@ var board = defineWidget({
   type: "board",
   title: "Departure board",
   description: "Your latest public GitHub activity on a split-flap departure board that clatters into place.",
+  scope: "profile",
   category: "Activity",
   kind: "svg",
   width: "full",
@@ -3361,7 +3454,7 @@ var board = defineWidget({
       cx += w + COL_GAP;
     }
     const y0 = 86;
-    const H11 = y0 + nRows * ROW + 34;
+    const H13 = y0 + nRows * ROW + 34;
     const today2 = localParts(ctx.date, tz);
     const fs = fitSize(t, "O", 13, CW - 1.5, 9, { bold: true });
     const sizes = /* @__PURE__ */ new Map();
@@ -3439,13 +3532,13 @@ var board = defineWidget({
 ${withHandle ? `<text x="${(right - clockW - 16).toFixed(1)}" y="31" font-size="10.5" text-anchor="end" letter-spacing="1" class="m">${esc(handle)}</text>` : ""}</g>`;
     }
     const titleMax = W12 - 48 - (cornerW ? cornerW + 24 : 0);
-    const body = `${card(t, { width: W12, height: H11 })}
+    const body = `${card(t, { width: W12, height: H13 })}
 ${o.title ? label(t, 24, 30, fitLabel(t, String(o.title), titleMax)) : ""}
 ${corner}
 ${heads}
 ${out.join("")}
-<text x="${x0}" y="${H11 - 16}" font-size="10" class="m">public events \xB7 refreshed nightly</text>`;
-    return svg({ width: W12, height: H11, theme: t, title: "recent GitHub activity as a departure board", css, body });
+<text x="${x0}" y="${H13 - 16}" font-size="10" class="m">public events \xB7 refreshed nightly</text>`;
+    return svg({ width: W12, height: H13, theme: t, title: "recent GitHub activity as a departure board", css, body });
   }
 });
 
@@ -3455,6 +3548,7 @@ var journey = defineWidget({
   type: "journey",
   title: "Journey timeline",
   description: "Your years on GitHub as a timeline: contributions per year above the axis, repositories you started below.",
+  scope: "profile",
   category: "Activity",
   kind: "svg",
   width: "full",
@@ -3496,7 +3590,7 @@ var journey = defineWidget({
     const step = years.length > 1 ? (x1 - x0) / (years.length - 1) : 0;
     const colW = years.length > 1 ? Math.min(150, step - 10) : 220;
     const axisY = 150;
-    const H11 = showNames ? 270 : axisY + 62;
+    const H13 = showNames ? 270 : axisY + 62;
     const started = years.map(
       (y) => repos2.filter((r) => yearOf(r.createdAt) === y).sort((a, b) => b.stars - a.stars || a.createdAt.localeCompare(b.createdAt))
     );
@@ -3540,13 +3634,13 @@ ${more ? `<text x="${x.toFixed(1)}" y="${axisY + 82}" font-size="10" text-anchor
     const lineLen = x1 - x0;
     const css = `@keyframes ping{0%{transform:scale(1);opacity:1}100%{transform:scale(2.6);opacity:0}}
 .axis{stroke-dasharray:${lineLen};stroke-dashoffset:${lineLen};animation:draw ${(0.3 + Math.min(years.length * 0.22, 2.6)).toFixed(2)}s linear .2s forwards}`;
-    const body = `${card(t, { width: W13, height: H11 })}
+    const body = `${card(t, { width: W13, height: H13 })}
 ${head ? label(t, 24, 30, fitLabel(t, head, W13 - 48 - legendW - 24)) : ""}
 <text x="${W13 - 24}" y="30" font-size="12" text-anchor="end" class="m fade">${esc(fitText(t, legend, 12, legendW + 1))}</text>
 ${years.length > 1 ? `<path d="M${x0} ${axisY}H${x1}" stroke="${t.border}" stroke-width="2"/><path class="axis" d="M${x0} ${axisY}H${x1}" stroke="url(#accentGrad)" stroke-width="2"/>` : `<path d="M${W13 / 2 - 160} ${axisY}H${W13 / 2 + 160}" stroke="${t.border}" stroke-width="2" stroke-dasharray="2 6"/>`}
 ${empty}
 ${nodes}`;
-    return svg({ width: W13, height: H11, theme: t, title: "my GitHub journey, year by year", css, body });
+    return svg({ width: W13, height: H13, theme: t, title: "my GitHub journey, year by year", css, body });
   }
 });
 
@@ -3577,17 +3671,17 @@ function pickNowRepo(data13, login, wanted) {
   return latest ? { repo: latest, missing: false } : null;
 }
 function twoLines(t, text, size, first, second) {
-  const words = text.split(/\s+/).filter(Boolean);
+  const words2 = text.split(/\s+/).filter(Boolean);
   let i = 0;
   let line = "";
-  while (i < words.length) {
-    const next = line ? `${line} ${words[i]}` : words[i];
+  while (i < words2.length) {
+    const next = line ? `${line} ${words2[i]}` : words2[i];
     if (line && textWidth(t, next, size) > first) break;
     line = next;
     i++;
   }
   const out = [fitText(t, line, size, first)];
-  if (i < words.length) out.push(fitText(t, words.slice(i).join(" "), size, second));
+  if (i < words2.length) out.push(fitText(t, words2.slice(i).join(" "), size, second));
   return out;
 }
 function pseudoSha(seed) {
@@ -3599,6 +3693,7 @@ var nowBuilding = defineWidget({
   type: "now",
   title: "Now building",
   description: "Spotlights the project you are pushing to right now, with an animated git graph and the last 30 days of activity.",
+  scope: "profile",
   category: "Projects",
   kind: "svg",
   width: "full",
@@ -3744,6 +3839,7 @@ var project = defineWidget({
   type: "project",
   title: "Project card",
   description: "One repository as a polished card with its description, language and stars, framed by a running accent light.",
+  scope: "profile",
   category: "Projects",
   kind: "svg",
   width: "half",
@@ -3881,7 +3977,7 @@ function weatherLabel(kind) {
 }
 function weatherIcon(t, kind, x, y, isDay) {
   const sun = isDay ? `<g class="loop" style="transform-origin:${x}px ${y}px;animation:spin 12s linear infinite">${Array.from({ length: 8 }, (_, i) => `<line x1="${x}" y1="${y - 15}" x2="${x}" y2="${y - 19}" stroke="${t.glow}" stroke-width="2" stroke-linecap="round" transform="rotate(${i * 45} ${x} ${y})"/>`).join("")}</g><circle cx="${x}" cy="${y}" r="10" fill="${t.glow}"/>` : `<path d="M${x + 6} ${y - 12}a12 12 0 1 0 8 18a9.5 9.5 0 0 1-8-18z" fill="${t.text}"/>`;
-  const cloud = (cx, cy, fill) => `<g class="loop" style="animation:drift 6s ease-in-out infinite alternate"><path d="M${cx - 16} ${cy + 8}h30a8 8 0 0 0 0-16a11 11 0 0 0-21-3a8 8 0 0 0-9 19z" fill="${fill}"/></g>`;
+  const cloud = (cx, cy, fill2) => `<g class="loop" style="animation:drift 6s ease-in-out infinite alternate"><path d="M${cx - 16} ${cy + 8}h30a8 8 0 0 0 0-16a11 11 0 0 0-21-3a8 8 0 0 0-9 19z" fill="${fill2}"/></g>`;
   const drops = (n, snow) => Array.from({ length: n }, (_, i) => {
     const dx = x - 10 + i * 8;
     return snow ? `<circle cx="${dx}" cy="${y + 16}" r="1.8" fill="${t.text}" class="loop" style="animation:fall 1.8s linear ${(i * 0.4).toFixed(1)}s infinite"/>` : `<line x1="${dx}" y1="${y + 12}" x2="${dx - 2}" y2="${y + 18}" stroke="${t.accent}" stroke-width="1.6" stroke-linecap="round" class="loop" style="animation:fall .9s linear ${(i * 0.25).toFixed(2)}s infinite"/>`;
@@ -3970,7 +4066,7 @@ var today = defineWidget({
     const yp = yearProgress(n);
     const quotes = o.quote ? quotesOf(o.quotes) : [];
     const q = quotes.length ? quotes[(yp.dayOfYear + n.year) % quotes.length] : null;
-    const H11 = q ? 300 : 232;
+    const H13 = q ? 300 : 232;
     const city = ctx.profile.location.city;
     const day = String(n.day).padStart(2, "0");
     const daySize = 72;
@@ -4022,13 +4118,13 @@ ${name ? `<text x="${tx.toFixed(1)}" y="82" font-size="11" class="t b">${pct2}</
       const author = q.author ? `\u2014 ${q.author}` : "";
       quoteMarkup = `<path d="M24 226H${W16 - 24}" stroke="${t.border}" stroke-dasharray="2 4"/>
 ${lines.map((l, i) => `<text x="24" y="${250 + i * 17}" font-size="11.5" class="t fade" style="animation-delay:${(0.9 + i * 0.15).toFixed(2)}s">${esc(l)}</text>`).join("")}
-${author ? `<text x="${W16 - 24}" y="${H11 - 14}" font-size="10" text-anchor="end" class="a fade" style="animation-delay:1.3s">${esc(fitText(t, author, 10, W16 - 48))}</text>` : ""}`;
+${author ? `<text x="${W16 - 24}" y="${H13 - 14}" font-size="10" text-anchor="end" class="a fade" style="animation-delay:1.3s">${esc(fitText(t, author, 10, W16 - 48))}</text>` : ""}`;
     }
     const css = `@keyframes drift{from{transform:translateX(-3px)}to{transform:translateX(3px)}}
 @keyframes fall{from{transform:translateY(-4px);opacity:1}to{transform:translateY(8px);opacity:0}}
 .yp{transform-box:fill-box;transform-origin:left;animation:growX 1.6s ${EASE} .6s both}`;
     const head = o.label ? `${String(o.label)}${city ? ` \xB7 ${city}` : ""}` : "";
-    const body = `${card(t, { width: W16, height: H11 })}
+    const body = `${card(t, { width: W16, height: H13 })}
 ${head ? label(t, 24, 30, fitLabel(t, head, W16 - 48)) : ""}
 <g class="in" style="animation-delay:.15s">
 <text x="22" y="112" font-size="${daySize}" class="t b h" letter-spacing="-3">${day}</text>
@@ -4042,7 +4138,7 @@ ${mid}
 <rect x="24" y="206" width="${W16 - 48}" height="4" rx="2" fill="${t.raised}"/>
 <rect class="yp" x="24" y="206" width="${((W16 - 48) * yp.fraction).toFixed(1)}" height="4" rx="2" fill="url(#accentGrad)"/>
 ${quoteMarkup}`;
-    return svg({ width: W16, height: H11, theme: t, title: "today: date, moon, weather and quote", css, body });
+    return svg({ width: W16, height: H13, theme: t, title: "today: date, moon, weather and quote", css, body });
   }
 });
 
@@ -4133,6 +4229,7 @@ var trophies = defineWidget({
   type: "trophies",
   title: "Achievements",
   description: "Hexagonal trophies that unlock in three tiers as your streaks, stars and years on GitHub grow.",
+  scope: "profile",
   category: "Stats",
   kind: "svg",
   width: "half",
@@ -4161,14 +4258,14 @@ var trophies = defineWidget({
     const ids = (Array.isArray(o.trophies) ? o.trophies : []).filter((x) => typeof x === "string");
     const list = [...new Set(ids)].map((id) => trophy(ctx, id)).filter((x) => x !== null).slice(0, 12);
     const cols = String(o.columns) === "3" ? 3 : 4;
-    const rows2 = Math.max(1, Math.ceil(list.length / cols));
-    const H11 = list.length ? 196 + (rows2 - 1) * 104 : 170;
+    const rows3 = Math.max(1, Math.ceil(list.length / cols));
+    const H13 = list.length ? 196 + (rows3 - 1) * 104 : 170;
     const cellW = (W17 - 32) / cols;
     const unlocked = list.filter((x) => x.tier > 0).length;
     const items2 = list.map((tr, i) => {
       const col = i % cols;
       const row = Math.floor(i / cols);
-      const inRow = row === rows2 - 1 ? list.length - row * cols : cols;
+      const inRow = row === rows3 - 1 ? list.length - row * cols : cols;
       const offset = (cols - inRow) * cellW / 2;
       const cx = 16 + offset + cellW * (col + 0.5);
       const cy = 100 + row * 104;
@@ -4192,12 +4289,12 @@ ${on ? `<text x="${cx.toFixed(1)}" y="${cy + 20}" font-size="8.5" text-anchor="m
     const empty = list.length ? "" : `<g class="in" style="animation-delay:.2s">${glyph("trophy", W17 / 2 - 11, 70, 22, t.subtle)}
 <text x="${W17 / 2}" y="120" font-size="12" text-anchor="middle" class="m">No trophies selected yet.</text></g>`;
     const css = `@keyframes shine{0%{transform:translateX(0) skewX(-20deg)}40%,100%{transform:translateX(140px) skewX(-20deg)}}`;
-    const body = `${card(t, { width: W17, height: H11 })}
+    const body = `${card(t, { width: W17, height: H13 })}
 ${o.label ? label(t, 24, 30, fitLabel(t, String(o.label), W17 - 48 - (countW ? countW + 16 : 0))) : ""}
 ${count ? `<text x="${W17 - 24}" y="30" font-size="12" text-anchor="end" class="m fade" style="animation-delay:.2s">${count}</text>` : ""}
 ${items2}
 ${empty}`;
-    return svg({ width: W17, height: H11, theme: t, title: "GitHub achievements", css, body });
+    return svg({ width: W17, height: H13, theme: t, title: "GitHub achievements", css, body });
   }
 });
 
@@ -4273,7 +4370,18 @@ var PLACEHOLDERS = [
   { token: "{stars}", help: "stars earned" },
   { token: "{repos}", help: "repository count" },
   { token: "{streak}", help: "current streak in days" },
-  { token: "{contributions}", help: "contributions this year" }
+  { token: "{contributions}", help: "contributions this year" },
+  { token: "{project}", help: "project name" },
+  { token: "{repo}", help: "owner/repository" },
+  { token: "{tagline}", help: "project tagline" },
+  { token: "{version}", help: "latest release or package version" },
+  { token: "{license}", help: "project licence" },
+  { token: "{forks}", help: "repository forks" },
+  { token: "{contributors}", help: "contributor count" },
+  { token: "{npm}", help: "npm package name" },
+  { token: "{pypi}", help: "PyPI package name" },
+  { token: "{crate}", help: "crates.io crate name" },
+  { token: "{owner}", help: "repository owner" }
 ];
 var PLACEHOLDER_HELP = `Placeholders: ${PLACEHOLDERS.map((p) => p.token).join(" ")}`;
 function fillPlaceholders(text, ctx) {
@@ -4285,7 +4393,15 @@ function fillPlaceholders(text, ctx) {
     if (!derived && data13) derived = derive(data13);
     return derived ? String(derived.streaks.current) : "";
   };
+  const pd = data13?.project;
+  const pi = ctx.project;
+  const projectName2 = () => pi?.name?.trim() || pi?.repo?.split("/")[1] || pd?.name || "";
+  const version = () => {
+    const tag = pd?.releases?.[0]?.tag || pd?.downloads?.find((d) => d.version)?.version || "";
+    return tag ? tag.startsWith("v") ? tag : `v${tag}` : "";
+  };
   const stars2 = () => {
+    if (ctx.kind === "project" && pd) return groupDigits(pd.stars);
     if (!data13) return "";
     const s = data13.totals?.stars ?? (data13.repos ?? []).reduce((a, r) => a + (r.stars || 0), 0);
     return groupDigits(s);
@@ -4301,7 +4417,18 @@ function fillPlaceholders(text, ctx) {
     stars: stars2,
     repos: () => data13 ? groupDigits(data13.repoCount) : "",
     streak: streak2,
-    contributions: () => data13 ? groupDigits(data13.yearTotal) : ""
+    contributions: () => data13 ? groupDigits(data13.yearTotal) : "",
+    project: projectName2,
+    repo: () => pi?.repo || pd?.fullName || "",
+    tagline: () => pi?.tagline || pd?.description || "",
+    version,
+    license: () => pd?.license || "",
+    forks: () => pd ? groupDigits(pd.forks) : "",
+    contributors: () => pd ? groupDigits(pd.contributorCount) : "",
+    npm: () => pi?.packages?.npm || "",
+    pypi: () => pi?.packages?.pypi || "",
+    crate: () => pi?.packages?.crates || "",
+    owner: () => (pi?.repo || pd?.fullName || "").split("/")[0] || p?.login || ""
   };
   return text.replace(/\{\s*([a-zA-Z]+)\s*\}/g, (m, key) => {
     const f2 = values[key.toLowerCase()];
@@ -4336,6 +4463,7 @@ var about = defineWidget({
   type: "about",
   title: "About card",
   description: "A typographic introduction: monogram, name and pronouns, your roles, a short bio and chips for where you work and live.",
+  scope: "profile",
   category: "Identity",
   kind: "svg",
   width: "full",
@@ -4377,18 +4505,18 @@ var about = defineWidget({
   render(ctx, o) {
     const t = ctx.theme;
     const p = ctx.profile;
-    const fill = (s) => fillPlaceholders(s, ctx);
+    const fill2 = (s) => fillPlaceholders(s, ctx);
     const centered = pick(o.layout, ["left", "center"], "left") === "center";
-    const name = fill(str(o.name)) || p.name || p.login || "Hello, world";
-    const pronouns = fill(str(o.pronouns)) || p.pronouns || "";
-    const optRoles = strings(o.roles).map(fill).filter(Boolean);
+    const name = fill2(str(o.name)) || p.name || p.login || "Hello, world";
+    const pronouns = fill2(str(o.pronouns)) || p.pronouns || "";
+    const optRoles = strings(o.roles).map(fill2).filter(Boolean);
     const roles = optRoles.length ? optRoles : (p.roles ?? []).filter(Boolean);
-    const bio = fill(str(o.bio)) || p.bio || "";
+    const bio = fill2(str(o.bio)) || p.bio || "";
     const chips = [];
     if (o.chips !== false) {
       if (p.company) chips.push({ glyph: "briefcase", text: p.company });
       if (p.location?.city) chips.push({ glyph: "pin", text: p.location.city });
-      for (const c of strings(o.extraChips).slice(0, 3)) chips.push({ glyph: "sparkle", text: fill(c) });
+      for (const c of strings(o.extraChips).slice(0, 3)) chips.push({ glyph: "sparkle", text: fill2(c) });
     }
     const monogram = o.monogram !== false;
     const lbl = str(o.label);
@@ -4461,15 +4589,15 @@ var about = defineWidget({
       }).join("");
       if (fitChips.length) contentBottom = cy + 28;
     }
-    const H11 = Math.max(centered ? 0 : top + (monogram ? M : 0) + 30, contentBottom + 30);
-    let mono = "";
+    const H13 = Math.max(centered ? 0 : top + (monogram ? M : 0) + 30, contentBottom + 30);
+    let mono2 = "";
     const mx = centered ? W18 / 2 : 24 + M / 2;
     const my = top + M / 2;
     if (monogram) {
       const ini = initials(name) || "?";
       const iniSize = fitSize(t, ini, M * 0.36, M * 0.56, 12, { bold: true, heading: true });
       const r = M / 2;
-      mono = `<g class="fx" style="animation:pop .7s ${0.05}s both">
+      mono2 = `<g class="fx" style="animation:pop .7s ${0.05}s both">
 <circle cx="${mx}" cy="${my}" r="${r}" fill="url(#monoG)"/>
 <circle cx="${mx}" cy="${my}" r="${r - 0.5}" stroke="#fff" stroke-opacity="${t.name === "dark" ? 0.18 : 0.35}"/>
 <text x="${mx}" y="${n1(my + iniSize * 0.36)}" font-size="${n1(iniSize)}" text-anchor="middle" letter-spacing="1" class="b h" fill="${onAccent(t)}">${esc(ini)}</text>
@@ -4490,18 +4618,18 @@ var about = defineWidget({
 @keyframes blob{from{transform:translate(0,0)}to{transform:translate(-90px,30px)}}`;
     const defs = `<linearGradient id="monoG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${t.glow}"/><stop offset=".55" stop-color="${t.accent}"/><stop offset="1" stop-color="${accentDeep(t)}"/></linearGradient>
 <radialGradient id="aboutBlob"><stop offset="0" stop-color="${t.accent}" stop-opacity="${t.name === "dark" ? 0.16 : 0.08}"/><stop offset="1" stop-color="${t.accent}" stop-opacity="0"/></radialGradient>
-<clipPath id="aboutClip"><rect x=".5" y=".5" width="${W18 - 1}" height="${H11 - 1}" rx="${t.radius}"/></clipPath>`;
-    const body = `${card(t, { width: W18, height: H11 })}
+<clipPath id="aboutClip"><rect x=".5" y=".5" width="${W18 - 1}" height="${H13 - 1}" rx="${t.radius}"/></clipPath>`;
+    const body = `${card(t, { width: W18, height: H13 })}
 <g clip-path="url(#aboutClip)"><g class="blob loop"><circle cx="${W18 - 120}" cy="${40}" r="220" fill="url(#aboutBlob)"/></g></g>
-${cardStroke(t, W18, H11)}
-${lbl ? label(t, 24, 30, fill(lbl)) : ""}
-${mono}
+${cardStroke(t, W18, H13)}
+${lbl ? label(t, 24, 30, fill2(lbl)) : ""}
+${mono2}
 <text x="${n1(nameX)}" y="${nameY}" font-size="${n1(nameSize)}" letter-spacing="-0.5" class="t b h in" style="animation-delay:.12s">${esc(nameText)}</text>
 ${pron}
 ${rolesMarkup ? `<g class="in" style="animation-delay:.25s">${rolesMarkup}</g>` : ""}
 ${bioMarkup.map((m, i) => `<g class="in" style="animation-delay:${(0.35 + i * 0.06).toFixed(2)}s">${m}</g>`).join("")}
 ${chipsMarkup}`;
-    return svg({ width: W18, height: H11, theme: t, title: this.alt(ctx, o), css, defs, body });
+    return svg({ width: W18, height: H13, theme: t, title: this.alt(ctx, o), css, defs, body });
   }
 });
 
@@ -4594,7 +4722,7 @@ var badges = defineWidget({
   },
   render(ctx, o) {
     const t = ctx.theme;
-    const fill = (s) => fillPlaceholders(s, ctx);
+    const fill2 = (s) => fillPlaceholders(s, ctx);
     const style = pick(o.style, ["flat", "pill", "outline"], "flat");
     const caps = o.caps !== false;
     const center = pick(o.align, ["left", "center"], "center") === "center";
@@ -4604,8 +4732,8 @@ var badges = defineWidget({
     const pad = 10;
     let list = items(o.items).slice(0, 24).map((b) => {
       const id = str(b.icon);
-      let lab = fill(str(b.label));
-      let val = fill(str(b.value));
+      let lab = fill2(str(b.label));
+      let val = fill2(str(b.value));
       const id0 = str(b.icon);
       if (!lab && !hasMark(id0)) [lab, val] = [val, ""];
       const color = colorOr(b.color, brand && brandColor(t, id) || t.accent);
@@ -4623,25 +4751,25 @@ var badges = defineWidget({
       list = [{ icon: "tag", label: labelText, value: "", color: t.muted, w: lw, lw }];
     }
     const maxRow = W19 - 4;
-    const rows2 = [[]];
+    const rows3 = [[]];
     let rw = 0;
     for (const b of list) {
-      const cur = rows2[rows2.length - 1];
+      const cur = rows3[rows3.length - 1];
       const add = (cur.length ? GAP_X : 0) + Math.min(b.w, maxRow);
       if (cur.length && rw + add > maxRow) {
-        rows2.push([b]);
+        rows3.push([b]);
         rw = Math.min(b.w, maxRow);
       } else {
         cur.push(b);
         rw += add;
       }
     }
-    const H11 = rows2.length * BH + (rows2.length - 1) * GAP_Y + 4;
+    const H13 = rows3.length * BH + (rows3.length - 1) * GAP_Y + 4;
     const r = style === "pill" ? BH / 2 : style === "outline" ? Math.min(8, Math.max(3, t.radius / 2)) : Math.min(6, Math.max(3, t.radius / 3));
     const dark = t.name === "dark";
     const out = [];
     let k = 0;
-    rows2.forEach((row, ri) => {
+    rows3.forEach((row, ri) => {
       const total = row.reduce((a, b) => a + b.w, 0) + GAP_X * (row.length - 1);
       let x = center ? (W19 - total) / 2 : 2;
       const y = 2 + ri * (BH + GAP_Y);
@@ -4680,7 +4808,7 @@ var badges = defineWidget({
 @keyframes bpop{from{opacity:0;transform:translateY(6px) scale(.94)}to{opacity:1;transform:none}}
 .sh{animation:bsh ${n1(Math.max(6, list.length * 0.35 + 3))}s ease-in-out infinite}
 @keyframes bsh{0%{transform:translateX(-60px)}18%,100%{transform:translateX(${Math.round(Math.max(...list.map((b) => b.w)) + 60)}px)}}`;
-    return svg({ width: W19, height: H11, theme: t, title: this.alt(ctx, o), css, body: out.join("\n") });
+    return svg({ width: W19, height: H13, theme: t, title: this.alt(ctx, o), css, body: out.join("\n") });
   }
 });
 
@@ -4688,9 +4816,9 @@ var badges = defineWidget({
 var W20 = 840;
 var HEIGHTS = { compact: 150, regular: 200, tall: 260 };
 var SIZES = { compact: 44, regular: 58, tall: 72 };
-function star(cx, cy, r, fill) {
+function star(cx, cy, r, fill2) {
   const k = r * 0.22;
-  return `<path d="M${n1(cx)} ${n1(cy - r)}Q${n1(cx + k)} ${n1(cy - k)} ${n1(cx + r)} ${n1(cy)}Q${n1(cx + k)} ${n1(cy + k)} ${n1(cx)} ${n1(cy + r)}Q${n1(cx - k)} ${n1(cy + k)} ${n1(cx - r)} ${n1(cy)}Q${n1(cx - k)} ${n1(cy - k)} ${n1(cx)} ${n1(cy - r)}Z" fill="${fill}"/>`;
+  return `<path d="M${n1(cx)} ${n1(cy - r)}Q${n1(cx + k)} ${n1(cy - k)} ${n1(cx + r)} ${n1(cy)}Q${n1(cx + k)} ${n1(cy + k)} ${n1(cx)} ${n1(cy + r)}Q${n1(cx - k)} ${n1(cy + k)} ${n1(cx - r)} ${n1(cy)}Q${n1(cx - k)} ${n1(cy - k)} ${n1(cx)} ${n1(cy - r)}Z" fill="${fill2}"/>`;
 }
 var banner = defineWidget({
   type: "banner",
@@ -4748,13 +4876,13 @@ var banner = defineWidget({
   alt: (ctx, o) => [fillPlaceholders(str(o.headline), ctx), fillPlaceholders(str(o.subline), ctx)].filter(Boolean).join(" \u2014 ") || "Banner",
   render(ctx, o) {
     const t = ctx.theme;
-    const fill = (s) => fillPlaceholders(s, ctx);
+    const fill2 = (s) => fillPlaceholders(s, ctx);
     const hk = pick(o.height, ["compact", "regular", "tall"], "regular");
-    const H11 = HEIGHTS[hk];
+    const H13 = HEIGHTS[hk];
     let effect = pick(o.effect, ["gradient", "outline", "rise", "marquee", "none"], "gradient");
     const center = pick(o.align, ["left", "center"], "left") === "center";
-    const headline = fill(str(o.headline)) || fill(str(this.defaults.headline));
-    const subline = fill(str(o.subline));
+    const headline = fill2(str(o.headline)) || fill2(str(this.defaults.headline));
+    const subline = fill2(str(o.subline));
     const smil = t.motion === "full";
     if (effect === "marquee" && t.motion !== "full") effect = "gradient";
     const pad = 56;
@@ -4769,14 +4897,14 @@ var banner = defineWidget({
     } else if (effect === "marquee") {
       size = target;
     } else lines = [fitText(t, headline, size, maxW, hOpts)];
-    if (H11 === 150 && lines.length > 1) size = Math.min(size, 30);
+    if (H13 === 150 && lines.length > 1) size = Math.min(size, 30);
     const lh = size * 1.08;
     const subSize = hk === "compact" ? 14 : 16;
     const subLines = subline ? wrapText(t, subline, subSize, center ? 620 : maxW, hk === "compact" ? 1 : 2) : [];
     const subLh = subSize * 1.5;
     const capH = size * 0.74;
     const blockH = capH + (lines.length - 1) * lh + (subLines.length ? 22 + (subLines.length - 1) * subLh + subSize * 0.75 : 0);
-    const y0 = (H11 - blockH) / 2;
+    const y0 = (H13 - blockH) / 2;
     const base0 = y0 + capH;
     const anchor = center ? "middle" : "start";
     const x = center ? W20 / 2 : pad;
@@ -4784,10 +4912,10 @@ var banner = defineWidget({
 .blob{animation:blob 14s ease-in-out infinite alternate}
 @keyframes blob{from{transform:translate(0,0)}to{transform:translate(-160px,24px)}}
 .under{transform-box:fill-box;transform-origin:${center ? "center" : "left"};animation:growX 1s cubic-bezier(.2,.7,.2,1) 1s both}`;
-    let defs = `<clipPath id="bnClip"><rect x=".5" y=".5" width="${W20 - 1}" height="${H11 - 1}" rx="${t.radius}"/></clipPath>
+    let defs = `<clipPath id="bnClip"><rect x=".5" y=".5" width="${W20 - 1}" height="${H13 - 1}" rx="${t.radius}"/></clipPath>
 <radialGradient id="bnBlob"><stop offset="0" stop-color="${t.accent}" stop-opacity="${t.name === "dark" ? 0.28 : 0.14}"/><stop offset="1" stop-color="${t.accent}" stop-opacity="0"/></radialGradient>
 <linearGradient id="bnTex" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="${center ? 0 : 1}"/><stop offset=".5" stop-color="#fff"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
-<mask id="bnMask"><rect width="${W20}" height="${H11}" fill="url(#bnTex)"/></mask>`;
+<mask id="bnMask"><rect width="${W20}" height="${H13}" fill="url(#bnTex)"/></mask>`;
     const headText = (l, y, attrs, cls = "b h") => `<text x="${n1(x)}" y="${n1(y)}" font-size="${n1(size)}" text-anchor="${anchor}" letter-spacing="-1" class="${cls}" ${attrs}>${esc(l)}</text>`;
     let head = "";
     if (effect === "gradient") {
@@ -4831,7 +4959,7 @@ ${smil ? `<animateTransform attributeName="gradientTransform" type="translate" v
       const reps = Math.ceil(W20 * 2 / unit) + 1;
       const dur = Math.max(10, unit / 45);
       css += `.mq{animation:mq ${n1(dur)}s linear infinite}@keyframes mq{to{transform:translateX(-${n1(unit * 2)}px)}}`;
-      const y = subLines.length ? base0 : H11 / 2 + capH / 2;
+      const y = subLines.length ? base0 : H13 / 2 + capH / 2;
       const parts = [];
       for (let i = 0; i < reps * 2; i++) {
         const ix = i * unit;
@@ -4840,7 +4968,7 @@ ${smil ? `<animateTransform attributeName="gradientTransform" type="translate" v
           `<text x="${n1(ix)}" y="${n1(y)}" font-size="${size}" letter-spacing="-1" class="b h" ${outline ? `fill="none" stroke="${t.text}" stroke-width="1.1" stroke-opacity=".7"` : `fill="${t.text}"`}>${esc(item)}</text>${star(ix + iw + sepW / 2, y - capH / 2, size * 0.22, t.accent)}`
         );
       }
-      defs += `<linearGradient id="mqFade" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".08" stop-color="#fff"/><stop offset=".92" stop-color="#fff"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient><mask id="mqMask"><rect width="${W20}" height="${H11}" fill="url(#mqFade)"/></mask>`;
+      defs += `<linearGradient id="mqFade" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".08" stop-color="#fff"/><stop offset=".92" stop-color="#fff"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient><mask id="mqMask"><rect width="${W20}" height="${H13}" fill="url(#mqFade)"/></mask>`;
       head = `<g class="fade" style="animation-delay:.1s" mask="url(#mqMask)"><g class="mq loop">${parts.join("")}</g></g>`;
     } else {
       head = lines.map((l, i) => `<g class="in" style="animation-delay:${(0.1 + i * 0.12).toFixed(2)}s">${headText(l, base0 + i * lh, `fill="${t.text}"`)}</g>`).join("");
@@ -4852,19 +4980,19 @@ ${smil ? `<animateTransform attributeName="gradientTransform" type="translate" v
     const under = effect === "marquee" ? "" : `<rect class="under" x="${n1(center ? W20 / 2 - underW / 2 : pad + 2)}" y="${n1(y0 - 22)}" width="${n1(underW)}" height="3" rx="1.5" fill="url(#bnUnder)"/>`;
     defs += `<linearGradient id="bnUnder" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="${t.glow}"/><stop offset="1" stop-color="${accentDeep(t)}"/></linearGradient>`;
     const tick = (cx, cy, dx, dy) => `<path d="M${cx + dx * 10} ${cy}H${cx}V${cy + dy * 10}" stroke="${t.subtle}" stroke-width="1.2" fill="none"/>`;
-    const corners = o.corners !== false ? `<g class="fade" style="animation-delay:.4s">${tick(16, 16, 1, 1)}${tick(W20 - 16, 16, -1, 1)}${tick(16, H11 - 16, 1, -1)}${tick(W20 - 16, H11 - 16, -1, -1)}</g>` : "";
+    const corners = o.corners !== false ? `<g class="fade" style="animation-delay:.4s">${tick(16, 16, 1, 1)}${tick(W20 - 16, 16, -1, 1)}${tick(16, H13 - 16, 1, -1)}${tick(W20 - 16, H13 - 16, -1, -1)}</g>` : "";
     const body = `<g clip-path="url(#bnClip)">
-<rect width="${W20}" height="${H11}" fill="${surfaceFill(t)}"/>
-${t.texture !== "none" ? `<rect width="${W20}" height="${H11}" fill="url(#${t.texture})" mask="url(#bnMask)" opacity=".8"/>` : ""}
-${o.glow !== false ? `<g class="blob loop"><ellipse cx="${center ? W20 / 2 + 140 : W20 - 160}" cy="${H11 * 0.35}" rx="300" ry="${Math.max(140, H11)}" fill="url(#bnBlob)"/></g>` : ""}
+<rect width="${W20}" height="${H13}" fill="${surfaceFill(t)}"/>
+${t.texture !== "none" ? `<rect width="${W20}" height="${H13}" fill="url(#${t.texture})" mask="url(#bnMask)" opacity=".8"/>` : ""}
+${o.glow !== false ? `<g class="blob loop"><ellipse cx="${center ? W20 / 2 + 140 : W20 - 160}" cy="${H13 * 0.35}" rx="300" ry="${Math.max(140, H13)}" fill="url(#bnBlob)"/></g>` : ""}
 ${effect === "marquee" ? head : ""}
 </g>
-${cardStroke(t, W20, H11)}
+${cardStroke(t, W20, H13)}
 ${corners}
 ${effect !== "marquee" && y0 - 22 > 14 ? under : ""}
 ${effect !== "marquee" ? head : ""}
 ${sub}`;
-    return svg({ width: W20, height: H11, theme: t, title: this.alt(ctx, o), css, defs, body });
+    return svg({ width: W20, height: H13, theme: t, title: this.alt(ctx, o), css, defs, body });
   }
 });
 
@@ -4940,13 +5068,13 @@ var contact = defineWidget({
   },
   render(ctx, o) {
     const t = ctx.theme;
-    const fill = (s) => fillPlaceholders(s, ctx);
+    const fill2 = (s) => fillPlaceholders(s, ctx);
     const status = pick(o.status, ["open", "busy", "away"], "open");
     const sColor = statusColor(t, status);
-    const statusText = fill(str(o.statusText)) || STATUS2[status];
-    const headline = fill(str(o.headline)) || "Get in touch";
-    const text = fill(str(o.text));
-    const ctas = items(o.ctas).map((c) => ({ label: fill(str(c.label)), icon: str(c.icon) })).filter((c) => c.label || hasMark(c.icon)).slice(0, 3);
+    const statusText = fill2(str(o.statusText)) || STATUS2[status];
+    const headline = fill2(str(o.headline)) || "Get in touch";
+    const text = fill2(str(o.text));
+    const ctas = items(o.ctas).map((c) => ({ label: fill2(str(c.label)), icon: str(c.icon) })).filter((c) => c.label || hasMark(c.icon)).slice(0, 3);
     const signal = o.signal !== false;
     const emblemId = hasMark(str(o.emblem)) ? str(o.emblem) : "mail";
     const x = 32;
@@ -4999,9 +5127,9 @@ ${primary ? `<g class="nudge loop"><path d="M${n1(bx + w - 26)} ${by + 20}h9m-3.
       bx += w + 10;
     });
     const bottom = btns.length ? by + BH2 : y + 6;
-    const H11 = Math.round(Math.max(signal ? 260 : 0, bottom + 32));
+    const H13 = Math.round(Math.max(signal ? 260 : 0, bottom + 32));
     let sig = "";
-    const syc = H11 / 2;
+    const syc = H13 / 2;
     if (signal) {
       const rings2 = RINGS.map((r, i) => `<circle cx="${sx}" cy="${n1(syc)}" r="${r}" stroke="${t.subtle}" stroke-opacity="${(0.9 - i * 0.18).toFixed(2)}" ${i % 2 ? `stroke-dasharray="2 6"` : ""}/>`).join("");
       const waves = [0, 1, 2].map((i) => `<circle class="wave loop loop-only" style="animation-delay:${(i * 1.2).toFixed(1)}s" cx="${sx}" cy="${n1(syc)}" r="40" stroke="${t.accent}" stroke-width="1.5" opacity="0"/>`).join("");
@@ -5027,15 +5155,15 @@ ${mark(t, emblemId, sx - 14, syc - 14, 28, onAccent(t), t.accent)}
 .nudge{animation:nudge 1.8s ease-in-out infinite}
 @keyframes nudge{0%,100%{transform:translateX(0)}50%{transform:translateX(3px)}}`;
     const defs = `<linearGradient id="ctaG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${t.glow}"/><stop offset=".6" stop-color="${t.accent}"/><stop offset="1" stop-color="${accentDeep(t)}"/></linearGradient>
-<clipPath id="ctClip"><rect x=".5" y=".5" width="${W21 - 1}" height="${H11 - 1}" rx="${t.radius}"/></clipPath>`;
-    const body = `${card(t, { width: W21, height: H11 })}
+<clipPath id="ctClip"><rect x=".5" y=".5" width="${W21 - 1}" height="${H13 - 1}" rx="${t.radius}"/></clipPath>`;
+    const body = `${card(t, { width: W21, height: H13 })}
 ${sig}
-${cardStroke(t, W21, H11)}
+${cardStroke(t, W21, H13)}
 ${pill}
 ${head}
 ${textMarkup}
 ${btns.join("\n")}`;
-    return svg({ width: W21, height: H11, theme: t, title: this.alt(ctx, o), css, defs, body });
+    return svg({ width: W21, height: H13, theme: t, title: this.alt(ctx, o), css, defs, body });
   }
 });
 
@@ -5101,32 +5229,32 @@ var facts = defineWidget({
     }
   ],
   alt: (ctx, o) => {
-    const rows2 = items(o.items).map((r) => `${fillPlaceholders(str(r.key), ctx)}: ${fillPlaceholders(str(r.value), ctx)}`).filter((s) => s !== ": ");
-    return rows2.length ? `${str(o.label) || "Facts"} \u2014 ${rows2.join("; ")}` : "Quick facts";
+    const rows3 = items(o.items).map((r) => `${fillPlaceholders(str(r.key), ctx)}: ${fillPlaceholders(str(r.value), ctx)}`).filter((s) => s !== ": ");
+    return rows3.length ? `${str(o.label) || "Facts"} \u2014 ${rows3.join("; ")}` : "Quick facts";
   },
   render(ctx, o) {
     const t = ctx.theme;
-    const fill = (s) => fillPlaceholders(s, ctx);
-    const rows2 = items(o.items).map((r) => ({ icon: str(r.icon), key: fill(str(r.key)), value: fill(str(r.value)) })).filter((r) => r.key || r.value).slice(0, 12);
-    const cols = rows2.length > 1 && pick(o.columns, ["1", "2"], "2") === "2" ? 2 : 1;
-    const lbl = fill(str(o.label));
+    const fill2 = (s) => fillPlaceholders(s, ctx);
+    const rows3 = items(o.items).map((r) => ({ icon: str(r.icon), key: fill2(str(r.key)), value: fill2(str(r.value)) })).filter((r) => r.key || r.value).slice(0, 12);
+    const cols = rows3.length > 1 && pick(o.columns, ["1", "2"], "2") === "2" ? 2 : 1;
+    const lbl = fill2(str(o.label));
     const top = lbl ? 48 : 18;
     const gap = 40;
     const cw = (W22 - 48 - gap * (cols - 1)) / cols;
-    const perCol = Math.ceil(rows2.length / cols);
+    const perCol = Math.ceil(rows3.length / cols);
     const iconMode = pick(o.iconColor, ["accent", "brand", "muted"], "accent");
     const iconColor2 = iconMode === "accent" ? t.accent : iconMode === "muted" ? t.muted : "brand";
-    if (!rows2.length) {
-      const H12 = top + 76;
-      const body2 = `${card(t, { width: W22, height: H12 })}
+    if (!rows3.length) {
+      const H14 = top + 76;
+      const body2 = `${card(t, { width: W22, height: H14 })}
 ${lbl ? label(t, 24, 30, lbl) : ""}
 ${emptyHint(t, W22 / 2, top + 34, "sparkle", "Add a few facts about yourself in the inspector")}`;
-      return svg({ width: W22, height: H12, theme: t, title: "Quick facts", body: body2 });
+      return svg({ width: W22, height: H14, theme: t, title: "Quick facts", body: body2 });
     }
-    const H11 = top + perCol * ROW2 + 14;
-    const anyIcon = rows2.some((r) => hasMark(r.icon));
+    const H13 = top + perCol * ROW2 + 14;
+    const anyIcon = rows3.some((r) => hasMark(r.icon));
     const out = [];
-    rows2.forEach((r, i) => {
+    rows3.forEach((r, i) => {
       const col = Math.floor(i / perCol);
       const row = i % perCol;
       const x = 24 + col * (cw + gap);
@@ -5155,10 +5283,10 @@ ${row < perCol - 1 ? `<rect x="${x}" y="${y + ROW2 - 0.5}" width="${n1(cw)}" hei
 @keyframes slideL{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:none}}
 .sep{transform-box:fill-box;transform-origin:left;animation:growX .9s cubic-bezier(.2,.7,.2,1) both}
 .lead{opacity:0;animation:fadeIn .6s ease forwards}`;
-    const body = `${card(t, { width: W22, height: H11 })}
+    const body = `${card(t, { width: W22, height: H13 })}
 ${lbl ? label(t, 24, 30, lbl) : ""}
 ${out.join("\n")}`;
-    return svg({ width: W22, height: H11, theme: t, title: this.alt(ctx, o), css, body });
+    return svg({ width: W22, height: H13, theme: t, title: this.alt(ctx, o), css, body });
   }
 });
 
@@ -5198,14 +5326,14 @@ var heading = defineWidget({
   alt: (ctx, o) => fillPlaceholders(str(o.title), ctx) || fillPlaceholders(str(o.eyebrow), ctx) || "Section",
   render(ctx, o) {
     const t = ctx.theme;
-    const fill = (s) => fillPlaceholders(s, ctx);
-    const eyebrow = fill(str(o.eyebrow));
-    const title = fill(str(o.title)) || (eyebrow ? "" : "Section title");
+    const fill2 = (s) => fillPlaceholders(s, ctx);
+    const eyebrow = fill2(str(o.eyebrow));
+    const title = fill2(str(o.title)) || (eyebrow ? "" : "Section title");
     const center = pick(o.align, ["left", "center"], "left") === "center";
     const withCard = o.card === true;
     const iconId = str(o.icon);
     const hasIco = hasMark(iconId);
-    const H11 = eyebrow && title ? 76 : 52;
+    const H13 = eyebrow && title ? 76 : 52;
     const px = withCard ? 24 : 2;
     const tOpts = { bold: true, heading: true, letterSpacing: -0.4 };
     const iconW = hasIco ? 32 : 0;
@@ -5262,12 +5390,12 @@ var heading = defineWidget({
         }
       }
     }
-    const body = `${withCard ? card(t, { width: W23, height: H11 }) : ""}
+    const body = `${withCard ? card(t, { width: W23, height: H13 }) : ""}
 ${line}
 ${eb}
 ${icon2}
 ${titleMarkup}`;
-    return svg({ width: W23, height: H11, theme: t, title: this.alt(ctx, o), css, defs, body });
+    return svg({ width: W23, height: H13, theme: t, title: this.alt(ctx, o), css, defs, body });
   }
 });
 
@@ -5370,14 +5498,14 @@ var quote = defineWidget({
   },
   render(ctx, o) {
     const t = ctx.theme;
-    const fill = (s) => fillPlaceholders(s, ctx);
+    const fill2 = (s) => fillPlaceholders(s, ctx);
     const style = pick(o.marks, ["serif", "bar", "none"], "serif");
-    let raw = items(o.quotes).map((q) => ({ text: fill(str(q.text)).replace(/\s+/g, " "), author: fill(str(q.author)), source: fill(str(q.source)) })).filter((q) => q.text).slice(0, 8);
+    let raw = items(o.quotes).map((q) => ({ text: fill2(str(q.text)).replace(/\s+/g, " "), author: fill2(str(q.author)), source: fill2(str(q.source)) })).filter((q) => q.text).slice(0, 8);
     const empty = !raw.length;
     if (empty) raw = [{ text: "Add a quote that captures how you like to work.", author: "", source: "" }];
     const rotating = o.rotate !== false && raw.length > 1 && t.motion === "full";
     if (!rotating) raw = raw.slice(0, 1);
-    const lbl = fill(str(o.label));
+    const lbl = fill2(str(o.label));
     const tx = style === "serif" ? 112 : style === "bar" ? 68 : 48;
     const maxW = W24 - tx - 64;
     const { size, quotes } = layoutQuotes(t, raw, maxW);
@@ -5387,7 +5515,7 @@ var quote = defineWidget({
     const areaH = Math.max(...quotes.map(blockH), size * 2.2);
     const top = lbl ? 62 : 40;
     const showProgress = rotating && o.progress !== false;
-    const H11 = Math.round(top + areaH + (showProgress ? 50 : 40));
+    const H13 = Math.round(top + areaH + (showProgress ? 50 : 40));
     const n = quotes.length;
     const slot = numOpt(o.seconds, 7, 3, 20);
     const total = slot * n;
@@ -5431,7 +5559,7 @@ ${src ? `<text x="${n1(tx + 30 + (aw ? aw + 10 : 0))}" y="${n1(ay)}" font-size="
       const tw = 22;
       const gap = 6;
       const px = W24 - 48 - n * tw - (n - 1) * gap;
-      const py = H11 - 30;
+      const py = H13 - 30;
       progress = quotes.map((_, i) => {
         const x = px + i * (tw + gap);
         return `<rect x="${x}" y="${py}" width="${tw}" height="3" rx="1.5" fill="${t.subtle}" opacity=".7"/><rect class="qp loop" style="animation-delay:${(i * slot).toFixed(2)}s" x="${x}" y="${py}" width="${tw}" height="3" rx="1.5" fill="${t.accent}"${i ? ` opacity="0"` : ""}/>`;
@@ -5439,12 +5567,12 @@ ${src ? `<text x="${n1(tx + 30 + (aw ? aw + 10 : 0))}" y="${n1(ay)}" font-size="
       progress = `<g class="fade" style="animation-delay:.6s">${progress}</g>`;
     }
     const defs = `<linearGradient id="qbarG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${t.glow}"/><stop offset="1" stop-color="${t.accent}" stop-opacity=".15"/></linearGradient>`;
-    const body = `${card(t, { width: W24, height: H11 })}
+    const body = `${card(t, { width: W24, height: H13 })}
 ${lbl ? label(t, 24, 30, lbl) : ""}
 ${deco}
 ${blocks.join("\n")}
 ${progress}`;
-    return svg({ width: W24, height: H11, theme: t, title: this.alt(ctx, o), css, defs, body });
+    return svg({ width: W24, height: H13, theme: t, title: this.alt(ctx, o), css, defs, body });
   }
 });
 
@@ -5454,6 +5582,7 @@ var skills = defineWidget({
   type: "skills",
   title: "Skill meters",
   description: "Your strongest tools as filling bars, segmented blocks or radial gauges, each with its icon and level.",
+  scope: "profile",
   category: "Identity",
   kind: "svg",
   width: "full",
@@ -5540,10 +5669,10 @@ var skills = defineWidget({
   },
   render(ctx, o) {
     const t = ctx.theme;
-    const fill = (s) => fillPlaceholders(s, ctx);
-    const list = items(o.items).map((s) => ({ name: fill(str(s.name)), icon: str(s.icon), level: numOpt(s.level, 0, 0, 100) })).filter((s) => s.name || hasMark(s.icon)).slice(0, 18);
+    const fill2 = (s) => fillPlaceholders(s, ctx);
+    const list = items(o.items).map((s) => ({ name: fill2(str(s.name)), icon: str(s.icon), level: numOpt(s.level, 0, 0, 100) })).filter((s) => s.name || hasMark(s.icon)).slice(0, 18);
     const style = pick(o.style, ["bars", "blocks", "gauges"], "bars");
-    const lbl = fill(str(o.label));
+    const lbl = fill2(str(o.label));
     const top = lbl ? 52 : 24;
     const showVal = o.values !== false;
     const iconMode = pick(o.iconColor, ["brand", "accent", "text"], "brand");
@@ -5559,22 +5688,22 @@ var skills = defineWidget({
 .seg{animation:segOn .35s ease both}
 @keyframes segOn{from{opacity:0;transform:scaleY(.3)}to{opacity:1;transform:none}}`;
     if (!list.length) {
-      const H12 = top + 70;
-      const body2 = `${card(t, { width: W25, height: H12 })}
+      const H14 = top + 70;
+      const body2 = `${card(t, { width: W25, height: H14 })}
 ${lbl ? label(t, 24, 30, lbl) : ""}
 ${emptyHint(t, W25 / 2, top + 30, "chart", "Add the tools you work with in the inspector")}`;
-      return svg({ width: W25, height: H12, theme: t, title: "Skills", body: body2 });
+      return svg({ width: W25, height: H14, theme: t, title: "Skills", body: body2 });
     }
     const out = [];
-    let H11;
+    let H13;
     if (style === "gauges") {
       const per = Math.min(list.length, Number(pick(o.gauges, ["3", "4", "5", "6"], "6")));
-      const rows2 = Math.ceil(list.length / per);
+      const rows3 = Math.ceil(list.length / per);
       const cw = (W25 - 48) / per;
       const ch = 140;
       const r = Math.min(36, cw / 2 - 18);
       const C = 2 * Math.PI * r;
-      H11 = top + rows2 * ch + 6;
+      H13 = top + rows3 * ch + 6;
       list.forEach((s, i) => {
         const row = Math.floor(i / per);
         const inRow = Math.min(per, list.length - row * per);
@@ -5611,7 +5740,7 @@ ${hasIc && showVal ? mark(t, s.icon, cx - nw / 2, ny - 11, 14, ink) : ""}
       const cw = (W25 - 48 - gap * (cols - 1)) / cols;
       const nRows = Math.ceil(list.length / cols);
       const rh = 50;
-      H11 = top + nRows * rh + 10;
+      H13 = top + nRows * rh + 10;
       list.forEach((s, i) => {
         const col = i % cols;
         const row = Math.floor(i / cols);
@@ -5650,10 +5779,10 @@ ${fw > 0 ? `<clipPath id="sk${i}"><rect x="${x}" y="${by}" width="${n1(fw)}" hei
         out.push(`<g class="in" style="animation-delay:${d.toFixed(2)}s">${head}${meter}</g>`);
       });
     }
-    const body = `${card(t, { width: W25, height: H11 })}
+    const body = `${card(t, { width: W25, height: H13 })}
 ${lbl ? label(t, 24, 30, lbl) : ""}
 ${out.join("\n")}`;
-    return svg({ width: W25, height: H11, theme: t, title: this.alt(ctx, o), css, defs, body });
+    return svg({ width: W25, height: H13, theme: t, title: this.alt(ctx, o), css, defs, body });
   }
 });
 
@@ -5663,6 +5792,7 @@ var timeline = defineWidget({
   type: "timeline",
   title: "Timeline",
   description: "Experience and education on a vertical rail whose nodes light up one after another, with a live pulse on what you do now.",
+  scope: "profile",
   category: "Identity",
   kind: "svg",
   width: "full",
@@ -5702,20 +5832,20 @@ var timeline = defineWidget({
   },
   render(ctx, o) {
     const t = ctx.theme;
-    const fill = (s) => fillPlaceholders(s, ctx);
-    const entries = items(o.items).map((e) => ({ period: fill(str(e.period)), title: fill(str(e.title)), place: fill(str(e.place)), description: fill(str(e.description)) })).filter((e) => e.period || e.title || e.place || e.description).slice(0, 8);
-    const lbl = fill(str(o.label));
+    const fill2 = (s) => fillPlaceholders(s, ctx);
+    const entries2 = items(o.items).map((e) => ({ period: fill2(str(e.period)), title: fill2(str(e.title)), place: fill2(str(e.place)), description: fill2(str(e.description)) })).filter((e) => e.period || e.title || e.place || e.description).slice(0, 8);
+    const lbl = fill2(str(o.label));
     const top = lbl ? 60 : 32;
-    if (!entries.length) {
-      const H12 = top + 64;
-      const body2 = `${card(t, { width: W26, height: H12 })}
+    if (!entries2.length) {
+      const H14 = top + 64;
+      const body2 = `${card(t, { width: W26, height: H14 })}
 ${lbl ? label(t, 24, 30, lbl) : ""}
 ${emptyHint(t, W26 / 2, top + 22, "calendar", "Add roles, degrees or milestones in the inspector")}`;
-      return svg({ width: W26, height: H12, theme: t, title: "Timeline", body: body2 });
+      return svg({ width: W26, height: H14, theme: t, title: "Timeline", body: body2 });
     }
     const pFs = 12;
     const pOpts = { bold: true, letterSpacing: 0.4 };
-    const periodW = Math.min(150, Math.max(64, ...entries.map((e) => textWidth(t, e.period, pFs, pOpts))));
+    const periodW = Math.min(150, Math.max(64, ...entries2.map((e) => textWidth(t, e.period, pFs, pOpts))));
     const railX = 24 + periodW + 28;
     const cx = railX + 28;
     const cw = W26 - cx - 32;
@@ -5725,7 +5855,7 @@ ${emptyHint(t, W26 / 2, top + 22, "calendar", "Add roles, degrees or milestones 
     const blocks = [];
     const nodes = [];
     let y = top;
-    entries.forEach((e, i) => {
+    entries2.forEach((e, i) => {
       const d = 0.2 + i * step;
       const titleY = y + 14;
       const isNow = now && i === 0;
@@ -5756,10 +5886,10 @@ ${emptyHint(t, W26 / 2, top + 22, "calendar", "Add roles, degrees or milestones 
       nodes.push({ y: titleY - 5, i });
       y = yy + 30;
     });
-    const H11 = y - 30 + 28;
+    const H13 = y - 30 + 28;
     const firstY = nodes[0].y;
     const lastY = nodes[nodes.length - 1].y;
-    const railDur = Math.max(0.4, step * (entries.length - 1));
+    const railDur = Math.max(0.4, step * (entries2.length - 1));
     const css = `
 .rail{transform-box:fill-box;transform-origin:top;animation:grow ${n1(railDur)}s linear .2s both}
 .lit{transform-box:fill-box;transform-origin:center;animation:pop .55s ease both}
@@ -5775,12 +5905,12 @@ ${emptyHint(t, W26 / 2, top + 22, "calendar", "Add roles, degrees or milestones 
 ${isNow ? `<circle class="halo loop loop-only" cx="${railX}" cy="${ny}" r="6" fill="${t.accent}" opacity="0"/>` : ""}
 <g class="lit" style="animation-delay:${d.toFixed(2)}s"><circle cx="${railX}" cy="${ny}" r="6" fill="${t.card}" stroke="${t.accent}" stroke-width="2"/><circle cx="${railX}" cy="${ny}" r="2.6" fill="${isNow ? t.glow : t.accent}"/></g>`;
     }).join("");
-    const body = `${card(t, { width: W26, height: H11 })}
+    const body = `${card(t, { width: W26, height: H13 })}
 ${lbl ? label(t, 24, 30, lbl) : ""}
 ${rail}
 ${nodeMarkup}
 ${blocks.join("\n")}`;
-    return svg({ width: W26, height: H11, theme: t, title: this.alt(ctx, o), css, defs, body });
+    return svg({ width: W26, height: H13, theme: t, title: this.alt(ctx, o), css, defs, body });
   }
 });
 
@@ -5886,6 +6016,7 @@ var area = defineWidget({
   type: "area",
   title: "Contribution trend",
   description: "Weekly contributions as a smooth area chart that draws itself on, with your average and peak week marked.",
+  scope: "profile",
   category: "Activity",
   kind: "svg",
   width: "full",
@@ -5923,12 +6054,12 @@ var area = defineWidget({
     const top = Math.max(step * 3, Math.ceil(want / step) * step);
     const Y0 = lbl ? 64 : 36;
     const Y1 = Y0 + 136;
-    const H11 = Y1 + 46;
+    const H13 = Y1 + 46;
     const xs = (i) => vals.length <= 1 ? (X02 + X1) / 2 : X02 + i / (vals.length - 1) * (X1 - X02);
     const ys = (v) => Y1 - v / top * (Y1 - Y0);
     const pts = vals.map((v, i) => [xs(i), ys(v)]);
-    const smooth = optBool(o.smooth, true);
-    const line = pts.length ? smooth ? smoothPath(pts, Y0, Y1) : pts.map((p, i) => `${i ? "L" : "M"}${f(p[0])} ${f(p[1])}`).join("") : "";
+    const smooth2 = optBool(o.smooth, true);
+    const line = pts.length ? smooth2 ? smoothPath(pts, Y0, Y1) : pts.map((p, i) => `${i ? "L" : "M"}${f(p[0])} ${f(p[1])}`).join("") : "";
     const areaD = pts.length ? `${line}L${f(pts[pts.length - 1][0])} ${Y1}L${f(pts[0][0])} ${Y1}Z` : "";
     const grid = [];
     for (let v = 0; v <= top + 1e-9; v += step) {
@@ -5995,7 +6126,7 @@ var area = defineWidget({
     const defs = `<linearGradient id="areaG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${t.accent}" stop-opacity="${dark ? 0.42 : 0.3}"/><stop offset="1" stop-color="${t.accent}" stop-opacity="0"/></linearGradient>
 <linearGradient id="lineG" gradientUnits="userSpaceOnUse" x1="${X02}" y1="0" x2="${X1}" y2="0"><stop offset="0" stop-color="${t.accent}"/><stop offset="1" stop-color="${t.glow}"/></linearGradient>
 <clipPath id="revC"><rect class="rev" x="${X02 - 8}" y="${Y0 - 30}" width="${X1 - X02 + 16}" height="${Y1 - Y0 + 31}"/></clipPath>`;
-    const body = `${card(t, { width: W27, height: H11 })}
+    const body = `${card(t, { width: W27, height: H13 })}
 ${lbl ? header(t, W27, lbl, right) : ""}
 <g class="fade" style="${dl(0.1)}">${grid.join("")}${months.join("")}</g>
 ${total > 0 ? `<path d="${areaD}" fill="url(#areaG)" clip-path="url(#revC)"/>` : ""}
@@ -6005,7 +6136,7 @@ ${avgLine}
 ${endDot}
 ${peak}
 ${empty}`;
-    return svg({ width: W27, height: H11, theme: t, title: `Weekly contributions over the last ${n} weeks`, css, defs, body });
+    return svg({ width: W27, height: H13, theme: t, title: `Weekly contributions over the last ${n} weeks`, css, defs, body });
   }
 });
 
@@ -6093,7 +6224,7 @@ var clock = defineWidget({
     const abbr = zoneAbbr(ctx.date, tz);
     const city = ctx.profile.location.city || (tz.includes("/") ? tz.split("/").pop().replace(/_/g, " ") : tz);
     const top = lbl ? 46 : 18;
-    const H11 = top + 160;
+    const H13 = top + 160;
     const cx = 24 + 70;
     const cy = top + 80;
     const r = 68;
@@ -6213,12 +6344,12 @@ ${ticks}
 </g>`;
     const defs = `<linearGradient id="dayG" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="${accentDeep(t)}"/><stop offset=".5" stop-color="${t.glow}"/><stop offset="1" stop-color="${accentDeep(t)}"/></linearGradient>
 <linearGradient id="secG" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="${t.accent}"/><stop offset="1" stop-color="${t.glow}"/></linearGradient>`;
-    const body = `${card(t, { width: W28, height: H11 })}
+    const body = `${card(t, { width: W28, height: H13 })}
 ${lbl ? header(t, W28, lbl) : ""}
 ${left}
 ${right}
 ${band}`;
-    return svg({ width: W28, height: H11, theme: t, title: this.alt(ctx, o), css, defs, body });
+    return svg({ width: W28, height: H13, theme: t, title: this.alt(ctx, o), css, defs, body });
   }
 });
 
@@ -6350,6 +6481,7 @@ var followers = defineWidget({
   type: "followers",
   title: "Follower milestone",
   description: "Your follower count on a rolling counter with a progress bar towards the next milestone.",
+  scope: "profile",
   category: "Stats",
   kind: "svg",
   width: "half",
@@ -6512,6 +6644,7 @@ var harvest = defineWidget({
   type: "harvest",
   title: "Contribution harvester",
   description: "A scanner drone glides over your contribution graph, harvesting every lit cell into a running tally before the grid regrows.",
+  scope: "profile",
   category: "Activity",
   kind: "svg",
   width: "full",
@@ -6543,7 +6676,7 @@ var harvest = defineWidget({
     const total = weeks.reduce((a, w) => a + w.reduce((b, d) => b + d.count, 0), 0);
     const active = weeks.reduce((a, w) => a + w.filter((d) => d.count > 0).length, 0);
     const GY = 92;
-    const H11 = GY + 7 * STEP2 + (legend ? 46 : 22);
+    const H13 = GY + 7 * STEP2 + (legend ? 46 : 22);
     const dy = GY - 20;
     const beamBottom = GY + 7 * STEP2 - 2;
     const totalStr = groupDigits(total);
@@ -6600,17 +6733,17 @@ ${counter2?.css ?? ""}
 .ping{transform-box:fill-box;transform-origin:center;animation:hping ${P}s ease-out infinite}
 @keyframes hping{0%,${pc(T0 + 0.6)}{opacity:0;transform:scale(.6)}${pc(T0 + 0.8)}{opacity:.7}${pc(T0 + (weeks.length - 1) * dt + 1.2)}{opacity:.25;transform:scale(1)}${pc(T0 + (weeks.length - 1) * dt + 1.8)},100%{opacity:0;transform:scale(1.4)}}` : TNUM;
     const defs = `<linearGradient id="beamG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${t.glow}" stop-opacity="${t.name === "dark" ? 0.4 : 0.3}"/><stop offset="1" stop-color="${t.glow}" stop-opacity="0"/></linearGradient>
-<clipPath id="hclip"><rect x=".5" y=".5" width="${W31 - 1}" height="${H11 - 1}" rx="${t.radius}"/></clipPath>`;
+<clipPath id="hclip"><rect x=".5" y=".5" width="${W31 - 1}" height="${H13 - 1}" rx="${t.radius}"/></clipPath>`;
     const dayLabels = [
       [1, "Mon"],
       [3, "Wed"],
       [5, "Fri"]
     ].map(([r, l]) => `<text x="${GX2 - 10}" y="${GY + r * STEP2 + 9}" font-size="10" text-anchor="end" class="m">${l}</text>`).join("");
     const best = ctx.d.best;
-    const foot = legend ? `<text x="${GX2}" y="${H11 - 18}" font-size="11" class="m fade" style="${dl(0.8)}">${total > 0 ? `${groupDigits(active)} active days \xB7 ${weeks.length} weeks scanned${best && best.count > 0 ? ` \xB7 richest cell <tspan class="t b">${best.count}</tspan> on ${esc(shortDate(best.date))}` : ""}` : "Nothing to harvest yet \xB7 the drone will be back after your next contribution"}</text>
-<text x="${W31 - 140}" y="${H11 - 18.5}" font-size="10.5" text-anchor="end" class="m">less</text>${t.heat.map((c, i) => `<rect x="${W31 - 132 + i * 14}" y="${H11 - 28}" width="${CELL2}" height="${CELL2}" rx="2.5" fill="${c}"/>`).join("")}<text x="${W31 - 58}" y="${H11 - 18.5}" font-size="10.5" class="m">more</text>` : "";
+    const foot = legend ? `<text x="${GX2}" y="${H13 - 18}" font-size="11" class="m fade" style="${dl(0.8)}">${total > 0 ? `${groupDigits(active)} active days \xB7 ${weeks.length} weeks scanned${best && best.count > 0 ? ` \xB7 richest cell <tspan class="t b">${best.count}</tspan> on ${esc(shortDate(best.date))}` : ""}` : "Nothing to harvest yet \xB7 the drone will be back after your next contribution"}</text>
+<text x="${W31 - 140}" y="${H13 - 18.5}" font-size="10.5" text-anchor="end" class="m">less</text>${t.heat.map((c, i) => `<rect x="${W31 - 132 + i * 14}" y="${H13 - 28}" width="${CELL2}" height="${CELL2}" rx="2.5" fill="${c}"/>`).join("")}<text x="${W31 - 58}" y="${H13 - 18.5}" font-size="10.5" class="m">more</text>` : "";
     const droneSvg = animate ? `<g clip-path="url(#hclip)"><g transform="translate(${PARK} 0)"><g class="drone loop loop-only">${drone(t, dy, beamBottom, beam)}</g></g></g>` : `<g transform="translate(${PARK} 0)" class="fade" style="${dl(0.6)}">${drone(t, dy, beamBottom, false)}</g>`;
-    const body = `${card(t, { width: W31, height: H11 })}
+    const body = `${card(t, { width: W31, height: H13 })}
 ${lbl ? header(t, W31, lbl) : ""}
 <g class="in tn" style="${dl(0.2)}">${counterSvg}</g>
 ${animate ? `<circle cx="${f(tx)}" cy="${f(ty)}" r="20" fill="${t.accent}" opacity="0" filter="url(#softglow)" class="ping loop loop-only"/>` : ""}
@@ -6620,7 +6753,7 @@ ${dayLabels}
 ${droneSvg}
 ${animate ? `<g class="loop-only">${parts.join("")}</g>` : ""}
 ${foot}`;
-    return svg({ width: W31, height: H11, theme: t, title: "A drone harvesting the contribution graph", css, defs, body });
+    return svg({ width: W31, height: H13, theme: t, title: "A drone harvesting the contribution graph", css, defs, body });
   }
 });
 
@@ -6696,14 +6829,14 @@ var posts = defineWidget({
     const summaries = optBool(o.summaries, true);
     const top = lbl ? 50 : 22;
     const site = host(optStr(o.link)) || host(optStr(o.feed)) || (list[0] ? host(list[0].url) : "");
-    let H11;
+    let H13;
     let content;
     if (!list.length) {
-      H11 = top + 124;
+      H13 = top + 124;
       content = emptyState(t, 24, top, W32 - 48, 100, "pen", "No posts yet", optStr(o.feed) ? "New articles from your feed will appear here." : "Add your blog's RSS or Atom feed URL.");
     } else {
       const rowH = summaries ? 62 : 44;
-      H11 = top + list.length * rowH + 10;
+      H13 = top + list.length * rowH + 10;
       content = list.map((p, i) => {
         const y = top + i * rowH;
         const d0 = 0.15 + i * 0.1;
@@ -6716,7 +6849,7 @@ var posts = defineWidget({
         const titleMax = W32 - 24 - tx - relW - arrowW;
         const title = fitText(t, p.title, 14, titleMax, { bold: true });
         const titleY = y + (summaries ? 20 : 26);
-        const sum = summaries ? wrapText(t, (p.summary || "").replace(/\s+/g, " ").trim(), 11.5, W32 - 24 - tx - arrowW, 1)[0] ?? "" : "";
+        const sum2 = summaries ? wrapText(t, (p.summary || "").replace(/\s+/g, " ").trim(), 11.5, W32 - 24 - tx - arrowW, 1)[0] ?? "" : "";
         const dt = hasDate ? new Date(p.date) : null;
         const badgeSvg = badge && dt ? `<rect x="24" y="${y + 4}" width="44" height="${summaries ? 46 : 32}" rx="${Math.max(4, t.radius - 4)}" fill="${t.raised}" stroke="${t.border}"/>
 <text x="46" y="${y + (summaries ? 19 : 15)}" font-size="9" letter-spacing="1.2" text-anchor="middle" class="${i === 0 ? "a" : "m"} b">${monthName(dt.getUTCMonth() + 1).toUpperCase()}</text>
@@ -6726,7 +6859,7 @@ var posts = defineWidget({
 ${i ? `<path d="M${tx} ${y - 5.5}H${W32 - 24}" stroke="${t.border}"/>` : ""}
 ${badgeSvg}
 <text x="${tx}" y="${titleY}" font-size="14" class="t b">${esc(title)}</text>
-${sum ? `<text x="${tx}" y="${titleY + 20}" font-size="11.5" class="m">${esc(fitText(t, meta2 + sum, 11.5, W32 - 24 - tx - arrowW))}</text>` : ""}
+${sum2 ? `<text x="${tx}" y="${titleY + 20}" font-size="11.5" class="m">${esc(fitText(t, meta2 + sum2, 11.5, W32 - 24 - tx - arrowW))}</text>` : ""}
 ${rel ? `<text x="${W32 - 24 - arrowW}" y="${titleY}" font-size="11" text-anchor="end" class="m">${esc(rel)}</text>` : ""}
 <path d="M${W32 - 36} ${titleY - 1}l7-7M${W32 - 34.5} ${titleY - 8}h5.5v5.5" stroke="${i === 0 ? t.accent : t.subtle}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="${i === 0 ? "arrow loop" : ""}"/>
 </g>`;
@@ -6734,10 +6867,10 @@ ${rel ? `<text x="${W32 - 24 - arrowW}" y="${titleY}" font-size="11" text-anchor
     }
     const right = list.length ? fitText(t, site ? `${site}${list[0] && validDate(list[0].date) ? ` \xB7 updated ${longDate(list[0].date.slice(0, 10))}` : ""}` : "", 11.5, 420) : "";
     const css = `.arrow{animation:arr 2.4s ease-in-out infinite}@keyframes arr{0%,100%{transform:translate(0,0)}50%{transform:translate(2px,-2px)}}`;
-    const body = `${card(t, { width: W32, height: H11 })}
+    const body = `${card(t, { width: W32, height: H13 })}
 ${lbl ? header(t, W32, lbl, right) : ""}
 ${content}`;
-    return svg({ width: W32, height: H11, theme: t, title: this.alt(ctx, o), css, body });
+    return svg({ width: W32, height: H13, theme: t, title: this.alt(ctx, o), css, body });
   }
 });
 
@@ -6781,13 +6914,13 @@ var releases = defineWidget({
     const names = optBool(o.names, true);
     const abs = optPick(o.time, ["relative", "absolute"], "relative") === "absolute";
     const rowH = 48;
-    let H11;
+    let H13;
     let content;
     if (!list.length) {
-      H11 = top + 128;
+      H13 = top + 128;
       content = emptyState(t, 24, top, W33 - 48, 104, "tag", "No releases yet", "Tagged releases will show up here.");
     } else {
-      H11 = top + list.length * rowH + 8;
+      H13 = top + list.length * rowH + 8;
       const lineX = 31;
       const firstY = top + 15;
       const lastY = top + (list.length - 1) * rowH + 15;
@@ -6821,10 +6954,10 @@ ${sub ? `<text x="${px}" y="${cy + 24}" font-size="11" class="m">${esc(fitText(t
     const css = `
 @keyframes ping{0%{transform:scale(.6);opacity:.6}100%{transform:scale(2);opacity:0}}
 .rail{transform-box:fill-box;transform-origin:top;animation:grow 1.2s cubic-bezier(.2,.7,.2,1) .3s both}`;
-    const body = `${card(t, { width: W33, height: H11 })}
+    const body = `${card(t, { width: W33, height: H13 })}
 ${lbl ? header(t, W33, lbl) : ""}
 ${content}`;
-    return svg({ width: W33, height: H11, theme: t, title: this.alt(ctx, o), css, body });
+    return svg({ width: W33, height: H13, theme: t, title: this.alt(ctx, o), css, body });
   }
 });
 
@@ -6869,6 +7002,7 @@ var repos = defineWidget({
   type: "repos",
   title: "Top repositories",
   description: "Your best or most recently pushed repositories with descriptions, languages and rolling star counters.",
+  scope: "profile",
   category: "Projects",
   kind: "svg",
   width: "full",
@@ -6931,13 +7065,13 @@ var repos = defineWidget({
     const right = list.length ? `${sort === "pushed" ? "recently pushed" : "by stars"} \xB7 ${groupDigits(totalStars)} stars across ${list.length}` : "";
     const showTime = sort === "pushed";
     let content = "";
-    let H11;
+    let H13;
     if (!list.length) {
-      H11 = top + 120;
+      H13 = top + 120;
       content = emptyState(t, 24, top, W34 - 48, 96, "repo", "No public repositories yet", "Repositories you own will appear here once they are public.");
     } else if (!grid) {
       const rowH = desc ? 54 : 38;
-      H11 = top + list.length * rowH + 14;
+      H13 = top + list.length * rowH + 14;
       content = list.map((r, i) => {
         const y = top + i * rowH;
         const d0 = 0.15 + i * 0.09;
@@ -6965,7 +7099,7 @@ ${mInline.svg}
       const tw = (W34 - 48 - gap) / 2;
       const th = desc ? 104 : 64;
       const nRows = Math.ceil(list.length / 2);
-      H11 = top + nRows * th + (nRows - 1) * gap + 24;
+      H13 = top + nRows * th + (nRows - 1) * gap + 24;
       content = list.map((r, i) => {
         const x = 24 + i % 2 * (tw + gap);
         const y = top + Math.floor(i / 2) * (th + gap);
@@ -6988,10 +7122,10 @@ ${time ? `<text x="${(x + tw - 16).toFixed(1)}" y="${footY}" font-size="11" text
 </g>`;
       }).join("\n");
     }
-    const body = `${card(t, { width: W34, height: H11 })}
+    const body = `${card(t, { width: W34, height: H13 })}
 ${lbl ? header(t, W34, lbl, right) : ""}
 ${content}`;
-    return svg({ width: W34, height: H11, theme: t, title: this.alt(ctx, o), css: TNUM, body });
+    return svg({ width: W34, height: H13, theme: t, title: this.alt(ctx, o), css: TNUM, body });
   }
 });
 
@@ -7028,6 +7162,7 @@ var streak = defineWidget({
   type: "streak",
   title: "Streak card",
   description: "Current streak in a burning ring, flanked by your longest run and total contributions, each with its date range.",
+  scope: "profile",
   category: "Stats",
   kind: "svg",
   width: "full",
@@ -7060,7 +7195,7 @@ var streak = defineWidget({
     const today2 = formatIsoDate(ctx.now);
     const first = ctx.d.days[0]?.date ?? today2;
     const off = lbl ? 0 : -24;
-    const H11 = (ranges ? 200 : 182) + off;
+    const H13 = (ranges ? 200 : 182) + off;
     const capY = 160 + off;
     const subY = 179 + off;
     const totals = {
@@ -7116,7 +7251,7 @@ ${flame(ctx, cx, cy - r + 10, lit, optBool(o.embers, true))}
 ${ranges ? `<text x="${cx}" y="${subY}" font-size="11.5" text-anchor="middle" class="m">${esc(fitText(t, curSub, 11.5, 240))}</text>` : ""}
 </g>`;
     const divTop = 60 + off;
-    const divBot = H11 - 22;
+    const divBot = H13 - 22;
     const dividers = [280, 560].map((x) => `<path d="M${x} ${divTop}V${divBot}" stroke="${t.border}" class="fade" style="${dl(0.2)}"/>`).join("");
     const css = `${TNUM}
 .ring{stroke-dasharray:${arcLen.toFixed(1)};stroke-dashoffset:${arcLen.toFixed(1)};animation:ringTo 1.8s cubic-bezier(.2,.7,.2,1) .6s forwards}
@@ -7132,13 +7267,13 @@ ${ranges ? `<text x="${cx}" y="${subY}" font-size="11.5" text-anchor="middle" cl
     const defs = `<linearGradient id="ringG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${t.glow}"/><stop offset="1" stop-color="${accentDeep(t)}"/></linearGradient>
 <linearGradient id="flameG" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="${t.accent}"/><stop offset="1" stop-color="${t.glow}"/></linearGradient>
 <linearGradient id="coreG" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#fff" stop-opacity=".95"/><stop offset="1" stop-color="${t.glow}" stop-opacity=".6"/></linearGradient>`;
-    const body = `${card(t, { width: W35, height: H11 })}
+    const body = `${card(t, { width: W35, height: H13 })}
 ${lbl ? header(t, W35, lbl) : ""}
 ${dividers}
 ${left}
 ${centre}
 ${right}`;
-    return svg({ width: W35, height: H11, theme: t, title: `Current streak ${current} days, longest ${longest} days`, css, defs, body });
+    return svg({ width: W35, height: H13, theme: t, title: `Current streak ${current} days, longest ${longest} days`, css, defs, body });
   }
 });
 
@@ -7148,6 +7283,7 @@ var weekdays = defineWidget({
   type: "weekdays",
   title: "Weekday rhythm",
   description: "Contributions per day of the week as rising bars, with your busiest day lit up.",
+  scope: "profile",
   category: "Activity",
   kind: "svg",
   width: "half",
@@ -7195,44 +7331,44 @@ var weekdays = defineWidget({
     const order = sunFirst ? [6, 0, 1, 2, 3, 4, 5] : [0, 1, 2, 3, 4, 5, 6];
     const vals = order.map((i) => avg2 ? occ[i] ? totals[i] / occ[i] : 0 : totals[i]);
     const names = order.map((i) => weekdayName((i + 1) % 7, true));
-    const sum = totals.reduce((a, b) => a + b, 0);
+    const sum2 = totals.reduce((a, b) => a + b, 0);
     const max = Math.max(...vals);
     const busy = max > 0 ? vals.indexOf(max) : -1;
     const fmt = (v) => avg2 ? v >= 100 ? groupDigits(v) : v.toFixed(1) : groupDigits(v);
     const top = lbl ? 56 : 28;
     const chartH = 108;
     const base = top + chartH;
-    const H11 = base + 64;
+    const H13 = base + 64;
     const slot = (W36 - 48) / 7;
     const bw = Math.min(30, slot - 16);
     const heatOf = (v) => v <= 0 ? t.heat[0] : t.heat[Math.max(1, Math.min(4, Math.ceil(v / (max || 1) * 4)))];
-    const bars = vals.map((v, i) => {
+    const bars2 = vals.map((v, i) => {
       const x = 24 + i * slot + (slot - bw) / 2;
       const h = max > 0 ? Math.max(v > 0 ? 4 : 0, v / max * (chartH - 18)) : 0;
       const isBusy = i === busy;
-      const fill = o.colour === "heat" ? isBusy ? "url(#busyG)" : heatOf(v) : isBusy ? "url(#busyG)" : t.subtle;
+      const fill2 = o.colour === "heat" ? isBusy ? "url(#busyG)" : heatOf(v) : isBusy ? "url(#busyG)" : t.subtle;
       const d0 = 0.3 + i * 0.07;
       const label2 = fmt(v);
       const lw = textWidth(t, label2, 11, { bold: isBusy });
       const ls = lw > slot - 2 ? 9.5 : 11;
       return `<rect x="${x.toFixed(1)}" y="${top}" width="${bw}" height="${chartH}" rx="${Math.min(8, bw / 2)}" fill="${t.heat[0]}" opacity=".6" class="fade" style="${dl(0.15)}"/>
-${h > 0 ? `${isBusy ? `<rect x="${(x - 4).toFixed(1)}" y="${(base - h - 4).toFixed(1)}" width="${bw + 8}" height="${(h + 4).toFixed(1)}" rx="${Math.min(10, bw / 2 + 4)}" fill="${t.accent}" opacity=".18" filter="url(#softglow)" class="fade"/>` : ""}<rect x="${x.toFixed(1)}" y="${(base - h).toFixed(1)}" width="${bw}" height="${h.toFixed(1)}" rx="${Math.min(8, bw / 2, h / 2).toFixed(1)}" fill="${fill}" class="bar" style="${dl(d0)}"/>` : ""}
+${h > 0 ? `${isBusy ? `<rect x="${(x - 4).toFixed(1)}" y="${(base - h - 4).toFixed(1)}" width="${bw + 8}" height="${(h + 4).toFixed(1)}" rx="${Math.min(10, bw / 2 + 4)}" fill="${t.accent}" opacity=".18" filter="url(#softglow)" class="fade"/>` : ""}<rect x="${x.toFixed(1)}" y="${(base - h).toFixed(1)}" width="${bw}" height="${h.toFixed(1)}" rx="${Math.min(8, bw / 2, h / 2).toFixed(1)}" fill="${fill2}" class="bar" style="${dl(d0)}"/>` : ""}
 <text x="${(x + bw / 2).toFixed(1)}" y="${(base - h - 7).toFixed(1)}" font-size="${ls}" text-anchor="middle" class="${isBusy ? "t b" : "m"} fade" style="${dl(d0 + 0.5)}">${esc(label2)}</text>
 <text x="${(x + bw / 2).toFixed(1)}" y="${base + 20}" font-size="11" text-anchor="middle" class="${isBusy ? "a b" : "m"}">${esc(names[i])}</text>`;
     }).join("\n");
-    const share = sum > 0 && busy >= 0 ? Math.round(totals[order[busy]] / sum * 100) : 0;
-    const foot = busy >= 0 ? `<text x="24" y="${H11 - 18}" font-size="11.5" class="m fade" style="${dl(1)}">busiest <tspan class="t b">${esc(weekdayName((order[busy] + 1) % 7))}</tspan> \xB7 ${share}% of ${avg2 ? "activity" : "contributions"}</text>` : `<text x="24" y="${H11 - 18}" font-size="11.5" class="m">No contributions in the last 12 months yet</text>`;
-    const weekend = sum > 0 ? Math.round((totals[5] + totals[6]) / sum * 100) : 0;
-    const right = sum > 0 ? `<text x="${W36 - 24}" y="${H11 - 18}" font-size="11.5" text-anchor="end" class="m fade" style="${dl(1.1)}">weekends ${weekend}%</text>` : "";
+    const share = sum2 > 0 && busy >= 0 ? Math.round(totals[order[busy]] / sum2 * 100) : 0;
+    const foot = busy >= 0 ? `<text x="24" y="${H13 - 18}" font-size="11.5" class="m fade" style="${dl(1)}">busiest <tspan class="t b">${esc(weekdayName((order[busy] + 1) % 7))}</tspan> \xB7 ${share}% of ${avg2 ? "activity" : "contributions"}</text>` : `<text x="24" y="${H13 - 18}" font-size="11.5" class="m">No contributions in the last 12 months yet</text>`;
+    const weekend = sum2 > 0 ? Math.round((totals[5] + totals[6]) / sum2 * 100) : 0;
+    const right = sum2 > 0 ? `<text x="${W36 - 24}" y="${H13 - 18}" font-size="11.5" text-anchor="end" class="m fade" style="${dl(1.1)}">weekends ${weekend}%</text>` : "";
     const css = `.bar{transform-box:fill-box;transform-origin:bottom;animation:grow .9s cubic-bezier(.2,.7,.2,1) both}`;
     const defs = `<linearGradient id="busyG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${t.glow}"/><stop offset="1" stop-color="${accentDeep(t)}"/></linearGradient>`;
-    const body = `${card(t, { width: W36, height: H11 })}
+    const body = `${card(t, { width: W36, height: H13 })}
 ${lbl ? header(t, W36, lbl, fitText(t, avg2 ? "avg per day" : "last 12 months", 11.5, 140)) : ""}
 <path d="M24 ${base + 0.5}H${W36 - 24}" stroke="${t.border}"/>
-${bars}
+${bars2}
 ${foot}
 ${right}`;
-    return svg({ width: W36, height: H11, theme: t, title: "Contributions per weekday", css, defs, body });
+    return svg({ width: W36, height: H13, theme: t, title: "Contributions per weekday", css, defs, body });
   }
 });
 
@@ -7285,6 +7421,7 @@ var year = defineWidget({
   type: "year",
   title: "Year in review",
   description: "Your year, wrapped: total contributions, busiest month, best day, favourite weekday and more, over a monthly bar chart.",
+  scope: "profile",
   category: "Stats",
   kind: "svg",
   width: "full",
@@ -7315,9 +7452,9 @@ var year = defineWidget({
     const y = ctx.now.year;
     const inYear = (iso2) => kind === "year" ? iso2.startsWith(`${y}-`) : new Date(iso2).getTime() > ctx.date.getTime() - 365 * 864e5;
     const best = p.days.reduce((b, d) => !b || d.count > b.count ? d : b, null);
-    const wk = new Array(7).fill(0);
-    for (const d of p.days) wk[d.weekday] += d.count;
-    const wkMax = Math.max(...wk);
+    const wk2 = new Array(7).fill(0);
+    for (const d of p.days) wk2[d.weekday] += d.count;
+    const wkMax = Math.max(...wk2);
     const bm = [...p.months].filter((m) => m.total > 0).sort((a, b) => b.total - a.total)[0] ?? null;
     const langs = ctx.data.languages ?? [];
     const lb = langs.reduce((a, l) => a + l.bytes, 0);
@@ -7331,7 +7468,7 @@ var year = defineWidget({
         case "day":
           return best && best.count > 0 ? { label: "best day", value: shortDate(best.date), sub: `${best.count} contributions \xB7 ${weekdayName(best.weekday, true)}`, glyph: "sparkle" } : { label: "best day", value: "\u2014", sub: "waiting for day one", glyph: "sparkle" };
         case "weekday":
-          return wkMax > 0 ? { label: "top weekday", value: weekdayName(wk.indexOf(wkMax)), sub: `${Math.round((wkMax / p.total || 0) * 100)}% of the year`, glyph: "chart" } : { label: "top weekday", value: "\u2014", sub: "no pattern yet", glyph: "chart" };
+          return wkMax > 0 ? { label: "top weekday", value: weekdayName(wk2.indexOf(wkMax)), sub: `${Math.round((wkMax / p.total || 0) * 100)}% of the year`, glyph: "chart" } : { label: "top weekday", value: "\u2014", sub: "no pattern yet", glyph: "chart" };
         case "language":
           return langs.length && lb > 0 ? { label: "top language", value: langs[0].name, sub: `${Math.round(langs[0].bytes / lb * 100)}% of code`, glyph: "code" } : { label: "top language", value: "\u2014", sub: "no languages yet", glyph: "code" };
         case "repos":
@@ -7365,7 +7502,7 @@ var year = defineWidget({
     const blockH = Math.max(124, fRows * fH + (fRows - 1) * fGap);
     const chartTop = top + blockH + 30;
     const chartH = 62;
-    const H11 = chart ? chartTop + chartH + 40 : top + blockH + 24;
+    const H13 = chart ? chartTop + chartH + 40 : top + blockH + 24;
     const totalStr = groupDigits(p.total);
     const bigSize = fitSize(t, totalStr, 60, leftW - 8, 30, { bold: true, heading: true });
     const numY = top + 66;
@@ -7420,8 +7557,8 @@ ${glyph(fa.glyph, fx, fy, 13, t.accent)}
         const h = m.future ? 0 : Math.max(m.total > 0 ? 3 : 1.5, m.total / mMax * chartH);
         const isBest = m.key === bmKey;
         const d0 = 0.6 + i * 0.06;
-        const fill = isBest ? "url(#bestG)" : m.current ? t.accent : t.subtle;
-        const bar = m.future ? `<rect x="${x.toFixed(1)}" y="${base - 10}" width="${bw}" height="10" rx="3" stroke="${t.subtle}" stroke-dasharray="2 3" fill="none" class="fade" style="${dl(d0)}"/>` : `<rect x="${x.toFixed(1)}" y="${(base - h).toFixed(1)}" width="${bw}" height="${h.toFixed(1)}" rx="${Math.min(4, h / 2).toFixed(1)}" fill="${fill}"${m.current && !isBest ? ' fill-opacity=".55"' : ""} class="bar" style="${dl(d0)}"/>`;
+        const fill2 = isBest ? "url(#bestG)" : m.current ? t.accent : t.subtle;
+        const bar = m.future ? `<rect x="${x.toFixed(1)}" y="${base - 10}" width="${bw}" height="10" rx="3" stroke="${t.subtle}" stroke-dasharray="2 3" fill="none" class="fade" style="${dl(d0)}"/>` : `<rect x="${x.toFixed(1)}" y="${(base - h).toFixed(1)}" width="${bw}" height="${h.toFixed(1)}" rx="${Math.min(4, h / 2).toFixed(1)}" fill="${fill2}"${m.current && !isBest ? ' fill-opacity=".55"' : ""} class="bar" style="${dl(d0)}"/>`;
         const val = (isBest || m.current) && m.total > 0 ? `<text x="${(x + bw / 2).toFixed(1)}" y="${(base - h - 7).toFixed(1)}" font-size="10.5" text-anchor="middle" class="${isBest ? "t b" : "m"} fade" style="${dl(d0 + 0.6)}">${esc(groupDigits(m.total))}</text>` : "";
         return `${isBest ? `<rect x="${(x - 3).toFixed(1)}" y="${(base - h).toFixed(1)}" width="${bw + 6}" height="${h.toFixed(1)}" rx="5" fill="${t.accent}" opacity=".16" filter="url(#softglow)" class="fade"/>` : ""}${bar}${val}
 <text x="${(x + bw / 2).toFixed(1)}" y="${base + 18}" font-size="10.5" text-anchor="middle" class="${isBest ? "a b" : m.future ? "s" : "m"}">${m.label}</text>`;
@@ -7429,22 +7566,3756 @@ ${glyph(fa.glyph, fx, fy, 13, t.accent)}
     }
     const css = `${TNUM}.bar{transform-box:fill-box;transform-origin:bottom;animation:grow .9s cubic-bezier(.2,.7,.2,1) both}`;
     const defs = `<linearGradient id="bestG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${t.glow}"/><stop offset="1" stop-color="${accentDeep(t)}"/></linearGradient>`;
-    const body = `${card(t, { width: W37, height: H11 })}
+    const body = `${card(t, { width: W37, height: H13 })}
 ${lbl ? header(t, W37, kind === "year" ? `${lbl}` : lbl, p.range) : ""}
 ${big}
 ${divider2}
 ${factSvg}
 ${chartSvg}`;
-    return svg({ width: W37, height: H11, theme: t, title: this.alt(ctx, o), css, defs, body });
+    return svg({ width: W37, height: H13, theme: t, title: this.alt(ctx, o), css, defs, body });
   }
 });
 
 // ../core/src/widgets/set-d.ts
 var setD = [streak, repos, releases, donut, year, area, weekdays, clock, posts, harvest, followers];
 
+// ../core/src/widgets/kit-e.ts
+function pdata(ctx) {
+  const p = ctx.data?.project;
+  return p && typeof p === "object" ? p : void 0;
+}
+function repoUrl(ctx) {
+  const u = pdata(ctx)?.url;
+  if (u) return u.replace(/\/$/, "");
+  const repo = (ctx.project?.repo || "").trim();
+  return repo ? `https://github.com/${repo}` : "https://github.com";
+}
+function homeUrl(ctx) {
+  return (ctx.project?.homepage || "").trim() || (pdata(ctx)?.homepage || "").trim() || repoUrl(ctx);
+}
+function repoSlug(ctx) {
+  return (ctx.project?.repo || "").trim() || pdata(ctx)?.fullName || "";
+}
+function latestRelease(pd) {
+  const list = (pd?.releases ?? []).filter((r) => r && r.tag);
+  return [...list].sort((a, b) => (b.publishedAt || "").localeCompare(a.publishedAt || ""))[0];
+}
+function latestTag(pd) {
+  const tag = latestRelease(pd)?.tag || pd?.downloads?.find((d) => d.version)?.version || "";
+  return tag ? /^\d/.test(tag) ? `v${tag}` : tag : "";
+}
+function ciColor(t, s) {
+  const dark = t.name === "dark";
+  if (s === "passing") return dark ? "#3fb950" : "#1a7f37";
+  if (s === "failing") return dark ? "#f85149" : "#cf222e";
+  if (s === "running") return dark ? "#d29922" : "#9a6700";
+  return t.muted;
+}
+function ciFill(t, s) {
+  const dark = t.name === "dark";
+  if (s === "passing") return dark ? "#238636" : "#1a7f37";
+  if (s === "failing") return dark ? "#da3633" : "#cf222e";
+  if (s === "running") return dark ? "#9e6a03" : "#9a6700";
+  return t.subtle;
+}
+function ciStatus(pd) {
+  const s = pd?.ci?.status;
+  return s === "passing" || s === "failing" || s === "running" ? s : "unknown";
+}
+function starsGained(pd, days, now) {
+  const h = (pd?.starHistory ?? []).filter((p) => p && p.date && Number.isFinite(p.stars));
+  if (!pd || !h.length) return null;
+  const cut = now.getTime() - days * 864e5;
+  const ts = h.map((p) => new Date(p.date).getTime());
+  let at;
+  if (cut <= ts[0]) at = 0;
+  else if (cut >= ts[ts.length - 1]) at = h[h.length - 1].stars;
+  else {
+    let i = 0;
+    while (i < ts.length - 1 && ts[i + 1] < cut) i++;
+    const span = ts[i + 1] - ts[i] || 1;
+    at = h[i].stars + (h[i + 1].stars - h[i].stars) * (cut - ts[i]) / span;
+  }
+  return Math.max(0, Math.round(Math.max(pd.stars, h[h.length - 1].stars) - at));
+}
+function isDataImage(s) {
+  return typeof s === "string" && /^data:image\/(png|jpe?g|gif|webp);base64,[A-Za-z0-9+/=\s]+$/.test(s);
+}
+function monoColor(t, login) {
+  const h = hash01(login.toLowerCase(), 7) * 360;
+  const fill2 = fromHsl({ h, s: t.name === "dark" ? 0.42 : 0.5, l: t.name === "dark" ? 0.36 : 0.6 });
+  return { fill: fill2, ink: onAccent(t, fill2) };
+}
+function loginInitials(login) {
+  const parts = login.replace(/\[bot\]$/, "").split(/[\s._-]+/).filter(Boolean);
+  if (!parts.length) return "?";
+  if (parts.length === 1) return [...parts[0]].slice(0, 2).join("").toUpperCase();
+  return ([...parts[0]][0] + [...parts[1]][0]).toUpperCase();
+}
+function mono(t) {
+  const own = fontInfo(t.font).category === "mono";
+  const id = own ? t.font : "jetbrains-mono";
+  const family = own ? fontStack(t.font) : "ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace";
+  return { family, measure: (text, size, bold = false) => measureText(text, size, id, bold ? 700 : 400), css: `.mono{font-family:${family}}` };
+}
+var xglyphs = {
+  scale: `<path d="M8 2v12M4.5 14h7M3 4.5h10M8 2.8 3 4.5m5-1.7 5 1.7M3 4.5 1.2 9a1.9 1.9 0 0 0 3.6 0zM13 4.5 11.2 9a1.9 1.9 0 0 0 3.6 0z"/>`,
+  download: `<path d="M8 2v8m-3.5-3.5L8 10l3.5-3.5M2.5 11v1.5a1.5 1.5 0 0 0 1.5 1.5h8a1.5 1.5 0 0 0 1.5-1.5V11"/>`,
+  pulse: `<path d="M1.5 8.5h3l1.8-4.5 3.2 8 1.8-3.5h3.2"/>`,
+  merge: `<circle cx="4" cy="3.5" r="1.8"/><circle cx="4" cy="12.5" r="1.8"/><circle cx="12" cy="9" r="1.8"/><path d="M4 5.3v5.4M4 5.5c0 2.5 2.5 3.5 6.2 3.5"/>`,
+  copy: `<rect x="5.5" y="5.5" width="8.5" height="8.5" rx="1.8"/><path d="M10.5 3.5V3A1.5 1.5 0 0 0 9 1.5H3A1.5 1.5 0 0 0 1.5 3v6A1.5 1.5 0 0 0 3 10.5h.5"/>`,
+  shield: `<path d="M8 1.5 13.5 3.5v4.2c0 3.3-2.3 5.7-5.5 6.8-3.2-1.1-5.5-3.5-5.5-6.8V3.5z"/><path d="m5.5 8 1.8 1.8L10.8 6"/>`,
+  x: `<path d="m4.5 4.5 7 7m0-7-7 7"/>`
+};
+function xglyph(name, x, y, size, color, extra = "") {
+  return `<svg x="${x}" y="${y}" width="${size}" height="${size}" viewBox="0 0 16 16" fill="none" stroke="${color}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" ${extra}>${xglyphs[name]}</svg>`;
+}
+function noRepo(t, x, y, w, h, what) {
+  return emptyState(t, x, y, w, h, "repo", "No repository data yet", `${what} will appear after the first build.`);
+}
+function weekStart(now, i, n) {
+  const d = new Date(now.getTime());
+  d.setUTCHours(0, 0, 0, 0);
+  d.setUTCDate(d.getUTCDate() - d.getUTCDay() - (n - 1 - i) * 7);
+  return d;
+}
+function niceStep2(raw) {
+  if (raw <= 0) return 1;
+  const p = 10 ** Math.floor(Math.log10(raw));
+  const m = raw / p;
+  return (m <= 1 ? 1 : m <= 2 ? 2 : m <= 2.5 ? 2.5 : m <= 5 ? 5 : 10) * p;
+}
+function smooth(pts, yMin, yMax, f2) {
+  if (pts.length < 3) return pts.map((p, i) => `${i ? "L" : "M"}${f2(p[0])} ${f2(p[1])}`).join("");
+  const c = (v) => Math.min(yMax, Math.max(yMin, v));
+  let d = `M${f2(pts[0][0])} ${f2(pts[0][1])}`;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[Math.max(0, i - 1)];
+    const p1 = pts[i];
+    const p2 = pts[i + 1];
+    const p3 = pts[Math.min(pts.length - 1, i + 2)];
+    const k = 1 / 6;
+    d += `C${f2(p1[0] + (p2[0] - p0[0]) * k)} ${f2(c(p1[1] + (p2[1] - p0[1]) * k))} ${f2(p2[0] - (p3[0] - p1[0]) * k)} ${f2(c(p2[1] - (p3[1] - p1[1]) * k))} ${f2(p2[0])} ${f2(p2[1])}`;
+  }
+  return d;
+}
+function avatar(t, c, cx, cy, r, id, o = {}) {
+  const sq = o.shape === "rounded";
+  const rr = sq ? Math.max(3, r * 0.42) : r;
+  const box = (extra) => sq ? `<rect x="${(cx - r).toFixed(1)}" y="${(cy - r).toFixed(1)}" width="${(r * 2).toFixed(1)}" height="${(r * 2).toFixed(1)}" rx="${rr.toFixed(1)}" ${extra}/>` : `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${r.toFixed(1)}" ${extra}/>`;
+  const ring = o.ring ? box(`stroke="${o.ring}" stroke-width="${o.ringWidth ?? 1}"`) : "";
+  if (isDataImage(c.avatar)) {
+    return `<g ${o.extra ?? ""}><clipPath id="${id}">${box("")}</clipPath>${box(`fill="${t.raised}"`)}<image href="${esc(c.avatar.replace(/\s+/g, ""))}" x="${(cx - r).toFixed(1)}" y="${(cy - r).toFixed(1)}" width="${(r * 2).toFixed(1)}" height="${(r * 2).toFixed(1)}" preserveAspectRatio="xMidYMid slice" clip-path="url(#${id})"/>${ring}</g>`;
+  }
+  const { fill: fill2, ink } = monoColor(t, c.login || "?");
+  const ini = r < 14 ? [...loginInitials(c.login || "?")][0] : loginInitials(c.login || "?");
+  const fs = r * (ini.length > 1 ? 0.72 : 0.9);
+  return `<g ${o.extra ?? ""}>${box(`fill="${fill2}"`)}<text x="${cx.toFixed(1)}" y="${(cy + fs * 0.35).toFixed(1)}" font-size="${fs.toFixed(1)}" text-anchor="middle" fill="${ink}" class="b">${esc(ini)}</text>${ring}</g>`;
+}
+function monotone(pts, f2) {
+  const n = pts.length;
+  if (n < 3) return pts.map((p, i) => `${i ? "L" : "M"}${f2(p[0])} ${f2(p[1])}`).join("");
+  const dx = [];
+  const m = [];
+  for (let i = 0; i < n - 1; i++) {
+    dx.push(pts[i + 1][0] - pts[i][0] || 1e-6);
+    m.push((pts[i + 1][1] - pts[i][1]) / (dx[i] || 1e-6));
+  }
+  const tg = [m[0]];
+  for (let i = 1; i < n - 1; i++) tg.push(m[i - 1] * m[i] <= 0 ? 0 : 3 * (dx[i - 1] + dx[i]) / ((2 * dx[i] + dx[i - 1]) / m[i - 1] + (dx[i] + 2 * dx[i - 1]) / m[i]));
+  tg.push(m[n - 2]);
+  let d = `M${f2(pts[0][0])} ${f2(pts[0][1])}`;
+  for (let i = 0; i < n - 1; i++) {
+    const h = dx[i] / 3;
+    d += `C${f2(pts[i][0] + h)} ${f2(pts[i][1] + tg[i] * h)} ${f2(pts[i + 1][0] - h)} ${f2(pts[i + 1][1] - tg[i + 1] * h)} ${f2(pts[i + 1][0])} ${f2(pts[i + 1][1])}`;
+  }
+  return d;
+}
+
+// ../core/src/widgets/p-commits.ts
+var W38 = 840;
+var X03 = 24;
+var X12 = W38 - 24;
+function wk(d) {
+  return `${monthName(d.getUTCMonth() + 1)} ${d.getUTCDate()}`;
+}
+var commitActivity = defineWidget({
+  type: "commit-activity",
+  title: "Commit activity",
+  description: "A year of weekly commits as growing bars, a heat strip or a line, with the busiest week called out and the latest commit underneath.",
+  scope: "project",
+  category: "Activity",
+  kind: "svg",
+  width: "full",
+  needs: ["project"],
+  defaults: { label: "commit activity", style: "bars", last: true },
+  fields: [
+    { key: "label", label: "Label", type: "text" },
+    {
+      key: "style",
+      label: "Style",
+      type: "segmented",
+      options: [
+        { value: "bars", label: "Bars" },
+        { value: "heat", label: "Heat strip" },
+        { value: "line", label: "Line" }
+      ]
+    },
+    { key: "last", label: "Latest commit", type: "toggle", help: "Message, short hash and time of the newest commit." }
+  ],
+  alt: (ctx) => {
+    const pd = pdata(ctx);
+    const total = (pd?.commitWeeks ?? []).reduce((a, b) => a + (Number.isFinite(b) ? b : 0), 0);
+    return pd ? `${groupDigits(total)} commits to ${pd.fullName} in the last year` : "commit activity";
+  },
+  href: (ctx) => {
+    const pd = pdata(ctx);
+    return `${repoUrl(ctx)}/commits/${pd?.defaultBranch || "main"}`;
+  },
+  render(ctx, o) {
+    const t = ctx.theme;
+    const pd = pdata(ctx);
+    const lbl = optStr(o.label);
+    const top = lbl ? 50 : 24;
+    if (!pd) {
+      const H14 = top + 150;
+      const body2 = `${card(t, { width: W38, height: H14 })}${lbl ? header(t, W38, lbl) : ""}${noRepo(t, 24, top, W38 - 48, 126, "Weekly commits")}`;
+      return svg({ width: W38, height: H14, theme: t, title: "commit activity", body: body2 });
+    }
+    const style = optPick(o.style, ["bars", "heat", "line"], "bars");
+    const raw = (pd.commitWeeks ?? []).map((v) => Number.isFinite(v) ? Math.max(0, v) : 0).slice(-52);
+    const vals = raw.length ? raw : [];
+    const n = vals.length;
+    const total = vals.reduce((a, b) => a + b, 0);
+    const avg2 = n ? total / n : 0;
+    const peak = Math.max(0, ...vals);
+    const pi = peak > 0 ? vals.lastIndexOf(peak) : -1;
+    const lc = o.last === false ? null : pd.lastCommit;
+    const mo = mono(t);
+    const first = n ? weekStart(ctx.date, 0, n) : null;
+    const rangeTxt = first ? `${wk(first)}, ${first.getUTCFullYear()} \u2013 today` : "";
+    const figY = top + 30;
+    const figs = [
+      [groupDigits(total), total === 1 ? "commit this year" : "commits this year"],
+      [avg2 >= 10 || avg2 === 0 ? String(Math.round(avg2)) : avg2.toFixed(1), "avg per week"],
+      [groupDigits(peak), "busiest week"]
+    ];
+    let fx = X03;
+    const figMarkup = figs.map(([v, l], i) => {
+      const vw = odometerWidth(t, v, 24, true, true);
+      const x = fx;
+      fx += vw + 8 + textWidth(t, l, 11.5) + 34;
+      return `<g class="in" style="${dl(0.15 + i * 0.1)}"><g class="tn">${odometer(t, v, { x, y: figY, fontSize: 24, delay: 0.25 + i * 0.1, heading: true, className: i === 0 ? "t b" : "t b" })}</g><text x="${f(x + vw + 8)}" y="${figY}" font-size="11.5" class="m">${esc(l)}</text>${i < figs.length - 1 ? `<path d="M${f(fx - 17)} ${figY - 16}v18" stroke="${t.border}"/>` : ""}</g>`;
+    }).join("");
+    const chartH = style === "heat" ? 44 : 96;
+    const Y0 = figY + (style === "heat" ? 52 : 46);
+    const Y1 = Y0 + chartH;
+    const footY = Y1 + 34;
+    const H13 = lc ? footY + 48 : Y1 + (total === 0 ? 24 : 44);
+    const slot = (X12 - X03) / Math.max(1, n);
+    const cx = (i) => X03 + (i + 0.5) * slot;
+    let chart = "";
+    let callout = "";
+    const css = [TNUM, mo.css, `@keyframes ping{0%{transform:scale(.6);opacity:1}100%{transform:scale(2.2);opacity:0}}`];
+    let defs = "";
+    if (total === 0) {
+      chart = emptyState(t, X03, Y0 - 16, X12 - X03, Math.max(76, chartH + 16), "commit", "No commits in the last year", "Weekly totals will chart here.");
+    } else {
+      const level = (v) => v <= 0 ? 0 : Math.min(4, Math.max(1, Math.ceil(v / peak * 4)));
+      if (style === "bars") {
+        const bw = Math.max(3, slot - 5);
+        chart = vals.map((v, i) => {
+          const h = Math.max(2, v / peak * chartH);
+          const isPeak = i === pi;
+          const fill2 = isPeak ? "url(#peakG)" : v === 0 ? t.heat[0] : t.heat[Math.max(1, level(v) - 1)];
+          return `<rect x="${f(cx(i) - bw / 2)}" y="${f(Y1 - h)}" width="${f(bw)}" height="${f(h)}" rx="${Math.min(3, bw / 3).toFixed(1)}" fill="${fill2}" style="transform-origin:bottom;transform-box:fill-box;animation:grow .7s cubic-bezier(.2,.7,.2,1) ${(0.4 + i * 0.022).toFixed(2)}s both"/>`;
+        }).join("");
+        defs = `<linearGradient id="peakG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${t.glow}"/><stop offset="1" stop-color="${t.accent}"/></linearGradient>`;
+      } else if (style === "heat") {
+        const cw = slot - 3;
+        chart = vals.map((v, i) => {
+          const isPeak = i === pi;
+          return `<rect x="${f(cx(i) - cw / 2)}" y="${Y0}" width="${f(cw)}" height="${chartH}" rx="${Math.min(3, cw / 3).toFixed(1)}" fill="${t.heat[level(v)]}" class="fx" style="animation:pop .45s ease ${(0.3 + i * 0.02).toFixed(2)}s both"/>${isPeak ? `<rect x="${f(cx(i) - cw / 2 - 2)}" y="${Y0 - 2}" width="${f(cw + 4)}" height="${chartH + 4}" rx="4" stroke="${t.text}" stroke-width="1.5" class="fade" style="${dl(1.6)}"/>` : ""}`;
+        }).join("");
+        css.push(`.beam{animation:beam 7s cubic-bezier(.45,0,.55,1) 2.4s infinite}
+@keyframes beam{0%{transform:translateX(0);opacity:0}5%{opacity:1}45%{opacity:1}50%{transform:translateX(${X12 - X03 + 60}px);opacity:0}100%{transform:translateX(${X12 - X03 + 60}px);opacity:0}}`);
+        defs = `<linearGradient id="beamG" x1="0" x2="1"><stop offset="0" stop-color="${t.glow}" stop-opacity="0"/><stop offset=".9" stop-color="${t.glow}" stop-opacity="${t.name === "dark" ? 0.35 : 0.25}"/><stop offset="1" stop-color="${t.name === "dark" ? "#fff" : t.glow}" stop-opacity=".9"/></linearGradient>
+<clipPath id="stripC"><rect x="${X03}" y="${Y0 - 4}" width="${X12 - X03}" height="${chartH + 8}"/></clipPath>`;
+        chart += `<g clip-path="url(#stripC)"><g class="beam loop loop-only"><rect x="${X03 - 60}" y="${Y0}" width="60" height="${chartH}" fill="url(#beamG)"/></g></g>`;
+      } else {
+        const ys = (v) => Y1 - v / (peak * 1.08) * chartH;
+        const pts = vals.map((v, i) => [cx(i), ys(v)]);
+        const line = smooth(pts, Y0 - 6, Y1, (x) => f(x));
+        const dark = t.name === "dark";
+        defs = `<linearGradient id="areaG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${t.accent}" stop-opacity="${dark ? 0.4 : 0.26}"/><stop offset="1" stop-color="${t.accent}" stop-opacity="0"/></linearGradient>
+<clipPath id="revC"><rect class="rev" x="${X03}" y="${Y0 - 12}" width="${X12 - X03}" height="${chartH + 13}"/></clipPath>`;
+        css.push(`.ln{stroke-dasharray:1;stroke-dashoffset:1;animation:draw 2.2s cubic-bezier(.45,.05,.25,1) .4s forwards}
+.rev{transform-box:fill-box;transform-origin:left;animation:growX 2.2s cubic-bezier(.45,.05,.25,1) .4s both}`);
+        chart = `<path d="${line}L${f(pts[n - 1][0])} ${Y1}L${f(pts[0][0])} ${Y1}Z" fill="url(#areaG)" clip-path="url(#revC)"/>
+<path d="${line}" pathLength="1" stroke="${t.accent}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="ln"/>`;
+      }
+      if (style !== "heat") {
+        chart = `<path d="M${X03} ${Y1 + 0.5}H${X12}" stroke="${t.border}"/>${chart}`;
+        const ay = Y1 - avg2 / (style === "line" ? peak * 1.08 : peak) * chartH;
+        chart += `<g class="fade" style="${dl(1.8)}"><path d="M${X03} ${f(ay)}H${X12}" stroke="${t.accent2}" stroke-width="1" stroke-dasharray="4 4" opacity=".8"/></g>`;
+      }
+      if (pi >= 0) {
+        const px = cx(pi);
+        const py = style === "heat" ? Y0 : style === "line" ? Y1 - peak / (peak * 1.08) * chartH : Y1 - chartH;
+        const d = weekStart(ctx.date, pi, n);
+        const txt = `busiest \xB7 ${groupDigits(peak)} \xB7 wk of ${wk(d)}`;
+        const tw = textWidth(t, txt, 11, { bold: true }) + 20;
+        const bx = Math.min(Math.max(px - tw / 2, X03), X12 - tw);
+        const by = py - 34;
+        callout = `<g class="in" style="${dl(2)}">
+<path d="M${f(px)} ${by + 20}V${f(py - (style === "line" ? 6 : 3))}" stroke="${t.glow}" stroke-dasharray="2 2"/>
+<rect x="${f(bx)}" y="${by}" width="${f(tw)}" height="20" rx="10" fill="${t.accent}"/>
+<text x="${f(bx + tw / 2)}" y="${by + 13.8}" font-size="11" text-anchor="middle" fill="${onAccent(t)}" class="b">${esc(txt)}</text>
+${style === "line" ? `<circle cx="${f(px)}" cy="${f(py)}" r="9" stroke="${t.glow}" stroke-width="1.5" class="fx loop loop-only" style="animation:ping 2s ease-out 2.4s infinite"/><circle cx="${f(px)}" cy="${f(py)}" r="4" fill="${t.card}" stroke="${t.glow}" stroke-width="2.2"/>` : ""}
+</g>`;
+      }
+    }
+    const months = [];
+    if (n && total > 0) {
+      let lastM = -1;
+      let lastX = -1e9;
+      for (let i = 0; i < n; i++) {
+        const d = weekStart(ctx.date, i, n);
+        const end = new Date(d.getTime() + 6 * 864e5);
+        const m = end.getUTCMonth();
+        if (m !== lastM) {
+          const x = cx(i);
+          if (lastM !== -1 && x - lastX > 40 && x < X12 - 14) {
+            const txt = m === 0 ? String(end.getUTCFullYear()) : monthName(m + 1);
+            months.push(`<text x="${f(x)}" y="${Y1 + 18}" font-size="10.5" text-anchor="middle" class="${m === 0 ? "t b" : "m"}">${txt}</text>`);
+            lastX = x;
+          }
+          lastM = m;
+        }
+      }
+    }
+    let foot = "";
+    if (lc) {
+      const sha = (lc.sha || "").slice(0, 7);
+      const when = lc.date ? ago(lc.date, ctx.date) : "";
+      const meta2 = [lc.author, when].filter(Boolean).join(" \xB7 ");
+      const metaW = meta2 ? textWidth(t, meta2, 11.5) : 0;
+      const shaW = sha ? mo.measure(sha, 11.5) + 16 : 0;
+      const msgX = X03 + 24 + (shaW ? shaW + 10 : 0);
+      const msg = fitText(t, (lc.message || "").split("\n")[0], 12.5, X12 - msgX - (metaW ? metaW + 20 : 0));
+      const cy = footY + 20;
+      foot = `<path d="M${X03} ${footY}H${X12}" stroke="${t.border}" class="fade" style="${dl(1.4)}"/>
+<g class="in" style="${dl(1.6)}">
+${glyph("commit", X03, cy - 8, 16, t.accent)}
+${sha ? `<rect x="${X03 + 24}" y="${cy - 10}" width="${f(shaW)}" height="20" rx="6" fill="${t.raised}" stroke="${t.border}"/><text x="${f(X03 + 24 + shaW / 2)}" y="${cy + 4}" font-size="11.5" text-anchor="middle" class="a mono">${esc(sha)}</text>` : ""}
+<text x="${f(msgX)}" y="${cy + 4.5}" font-size="12.5" class="t">${esc(msg)}</text>
+${meta2 ? `<text x="${X12}" y="${cy + 4.5}" font-size="11.5" text-anchor="end" class="m">${esc(meta2)}</text>` : ""}
+</g>`;
+    }
+    const body = `${card(t, { width: W38, height: H13 })}
+${lbl ? header(t, W38, lbl, rangeTxt) : ""}
+${figMarkup}
+${chart}
+<g class="fade" style="${dl(0.3)}">${months.join("")}</g>
+${callout}
+${foot}`;
+    return svg({ width: W38, height: H13, theme: t, title: this.alt(ctx, o), css: css.join("\n"), defs, body });
+  }
+});
+
+// ../core/src/widgets/p-contributors.ts
+var W39 = 840;
+var SIZES2 = { sm: 32, md: 44, lg: 58 };
+var contributorWall = defineWidget({
+  type: "contributors",
+  title: "Contributor wall",
+  description: "Everyone who has committed to the project as a wall of avatars that pop in one by one, top contributors first.",
+  scope: "project",
+  category: "Identity",
+  kind: "svg",
+  width: "full",
+  needs: ["project", "contributors"],
+  defaults: { label: "contributors", max: 30, size: "md", names: true, shape: "circle", sort: "contributions" },
+  fields: [
+    { key: "label", label: "Label", type: "text" },
+    { key: "max", label: "Avatars", type: "number", min: 12, max: 60, step: 1 },
+    {
+      key: "size",
+      label: "Size",
+      type: "segmented",
+      options: [
+        { value: "sm", label: "S" },
+        { value: "md", label: "M" },
+        { value: "lg", label: "L" }
+      ]
+    },
+    { key: "names", label: "Names", type: "toggle", help: "Login under each avatar." },
+    {
+      key: "shape",
+      label: "Shape",
+      type: "segmented",
+      options: [
+        { value: "circle", label: "Circle" },
+        { value: "rounded", label: "Rounded square" }
+      ]
+    },
+    {
+      key: "sort",
+      label: "Order",
+      type: "segmented",
+      options: [
+        { value: "contributions", label: "Most commits" },
+        { value: "alpha", label: "A\u2013Z" }
+      ]
+    }
+  ],
+  alt: (ctx) => {
+    const pd = pdata(ctx);
+    return pd ? `${groupDigits(pd.contributorCount || pd.contributors.length)} contributors to ${pd.fullName}` : "contributors";
+  },
+  href: (ctx) => `${repoUrl(ctx)}/graphs/contributors`,
+  render(ctx, o) {
+    const t = ctx.theme;
+    const pd = pdata(ctx);
+    const lbl = optStr(o.label);
+    const top = lbl ? 52 : 24;
+    if (!pd) {
+      const H14 = top + 150;
+      const body2 = `${card(t, { width: W39, height: H14 })}${lbl ? header(t, W39, lbl) : ""}${noRepo(t, 24, top, W39 - 48, 126, "Contributor avatars")}`;
+      return svg({ width: W39, height: H14, theme: t, title: "contributors", body: body2 });
+    }
+    const size = SIZES2[optPick(o.size, ["sm", "md", "lg"], "md")];
+    const names = optBool(o.names, true);
+    const shape = optPick(o.shape, ["circle", "rounded"], "circle");
+    const max = Math.round(optNum(o.max, 30, 12, 60));
+    const all = (pd.contributors ?? []).filter((c) => c && typeof c.login === "string" && c.login);
+    const byCommits = [...all].sort((a, b) => (b.contributions || 0) - (a.contributions || 0));
+    const rank = new Map(byCommits.map((c, i) => [c.login, i]));
+    const list = optPick(o.sort, ["contributions", "alpha"], "contributions") === "alpha" ? [...all].sort((a, b) => a.login.localeCompare(b.login)) : byCommits;
+    const count = Math.max(pd.contributorCount || 0, all.length);
+    const commits = all.reduce((a, c) => a + (c.contributions || 0), 0);
+    const areaW = W39 - 48;
+    const minCell = names ? Math.max(size + 14, size <= 32 ? 62 : 74) : size + (size <= 32 ? 8 : 12);
+    const cols = Math.max(1, Math.floor(areaW / minCell));
+    const more = count > list.length || list.length > max;
+    let shown = Math.min(list.length, max);
+    if (more && shown >= max) shown = max - 1;
+    if (list.length >= max && shown + 1 > cols) shown = Math.max(cols, Math.floor((shown + 1) / cols) * cols) - 1;
+    const slots = shown + (more ? 1 : 0);
+    const rows3 = Math.max(1, Math.ceil(slots / cols));
+    const cellW = areaW / cols;
+    const rowH = size + (names ? 30 : 12);
+    const right = `${groupDigits(count)} ${count === 1 ? "contributor" : "contributors"}${commits ? ` \xB7 ${groupDigits(commits)} commits` : ""}`;
+    if (!slots) {
+      const H14 = top + 120;
+      const body2 = `${card(t, { width: W39, height: H14 })}${lbl ? header(t, W39, lbl, right) : ""}
+<g class="in" style="${dl(0.2)}"><rect x="24" y="${top}" width="${W39 - 48}" height="96" rx="${Math.max(4, t.radius - 2)}" fill="${t.raised}" fill-opacity=".5" stroke="${t.border}" stroke-dasharray="4 4"/>
+${glyph("users", W39 / 2 - 9, top + 22, 18, t.subtle)}
+<text x="${W39 / 2}" y="${top + 60}" font-size="13" text-anchor="middle" class="t b">No contributors yet</text>
+<text x="${W39 / 2}" y="${top + 78}" font-size="11" text-anchor="middle" class="m">Commit authors will gather here.</text></g>`;
+      return svg({ width: W39, height: H14, theme: t, title: this.alt(ctx, o), body: body2 });
+    }
+    const H13 = top + rows3 * rowH + (names ? 8 : 12);
+    const r = size / 2;
+    const cells2 = [];
+    for (let i = 0; i < slots; i++) {
+      const row = Math.floor(i / cols);
+      const col = i % cols;
+      const cx = 24 + (col + 0.5) * cellW;
+      const cy = top + row * rowH + r + 4;
+      const d0 = 0.25 + Math.min(2.2, (row * cols + col) * (1.6 / Math.max(12, slots)) + row * 0.05);
+      if (more && i === slots - 1) {
+        const rest = count - shown;
+        const txt = `+${rest >= 1e3 ? `${Math.round(rest / 100) / 10}k` : rest}`;
+        const fs = Math.min(size * 0.34, (size - 8) / Math.max(1, textWidth(t, txt, 1, { bold: true })));
+        const box = shape === "rounded" ? `<rect x="${f(cx - r)}" y="${f(cy - r)}" width="${size}" height="${size}" rx="${f(Math.max(3, r * 0.42))}" fill="${t.raised}" stroke="${t.border}" stroke-dasharray="3 3"/>` : `<circle cx="${f(cx)}" cy="${f(cy)}" r="${r}" fill="${t.raised}" stroke="${t.border}" stroke-dasharray="3 3"/>`;
+        cells2.push(`<g class="fx" style="animation:pop .5s ease ${(d0 + 0.2).toFixed(2)}s both">${box}<text x="${f(cx)}" y="${f(cy + fs * 0.36)}" font-size="${f(fs)}" text-anchor="middle" class="a b">${esc(txt)}</text></g>
+${names ? `<text x="${f(cx)}" y="${f(cy + r + 16)}" font-size="10" text-anchor="middle" class="m fade" style="${dl(d0 + 0.3)}">more</text>` : ""}`);
+        continue;
+      }
+      const c = list[i];
+      const k = rank.get(c.login) ?? 99;
+      const ring = k < 3 ? t.accent : t.border;
+      const halo = k === 0 ? shape === "rounded" ? `<rect x="${f(cx - r - 3)}" y="${f(cy - r - 3)}" width="${f(size + 6)}" height="${f(size + 6)}" rx="${f(Math.max(3, r * 0.42) + 3)}" stroke="${t.glow}" stroke-width="1.5" class="fx loop loop-only" style="animation:ping 2.6s ease-out 2.6s infinite"/>` : `<circle cx="${f(cx)}" cy="${f(cy)}" r="${f(r + 3)}" stroke="${t.glow}" stroke-width="1.5" class="fx loop loop-only" style="animation:ping 2.6s ease-out 2.6s infinite"/>` : "";
+      cells2.push(`${halo}${avatar(t, c, cx, cy, r, `av${i}`, { shape, ring, ringWidth: k < 3 ? 2 : 1, extra: `class="fx" style="animation:pop .5s ease ${d0.toFixed(2)}s both"` })}
+${names ? `<text x="${f(cx)}" y="${f(cy + r + 16)}" font-size="10" text-anchor="middle" class="${k < 3 ? "t" : "m"} fade" style="${dl(d0 + 0.2)}">${esc(fitText(t, c.login, 10, cellW - 8))}</text>` : ""}`);
+    }
+    const css = `@keyframes ping{0%{transform:scale(1);opacity:.8}100%{transform:scale(1.35);opacity:0}}`;
+    const body = `${card(t, { width: W39, height: H13 })}
+${lbl ? header(t, W39, lbl, right) : ""}
+${cells2.join("\n")}`;
+    return svg({ width: W39, height: H13, theme: t, title: this.alt(ctx, o), css, body });
+  }
+});
+
+// ../core/src/widgets/p-health.ts
+var W40 = 415;
+var STATUS_TEXT = { passing: "Build passing", failing: "Build failing", running: "Build running", unknown: "No CI runs yet" };
+var repoHealth = defineWidget({
+  type: "repo-health",
+  title: "Repository vitals",
+  description: "A compact health check: build status with a live pulse, last commit, latest release, issue and pull request balance, and the licence.",
+  scope: "project",
+  category: "Stats",
+  kind: "svg",
+  width: "half",
+  needs: ["project", "releases"],
+  defaults: { label: "repo vitals", license: true },
+  fields: [
+    { key: "label", label: "Label", type: "text" },
+    { key: "license", label: "Licence row", type: "toggle" }
+  ],
+  alt: (ctx) => {
+    const pd = pdata(ctx);
+    if (!pd) return "repository vitals";
+    return `${pd.fullName}: build ${ciStatus(pd)}, ${groupDigits(pd.openIssues)} open issues`;
+  },
+  href: (ctx) => pdata(ctx)?.ci?.url || `${repoUrl(ctx)}/actions`,
+  render(ctx, o) {
+    const t = ctx.theme;
+    const pd = pdata(ctx);
+    const lbl = optStr(o.label);
+    const top = lbl ? 48 : 22;
+    if (!pd) {
+      const H14 = top + 150;
+      const body2 = `${card(t, { width: W40, height: H14 })}${lbl ? header(t, W40, lbl) : ""}${noRepo(t, 24, top, W40 - 48, 126, "Vitals")}`;
+      return svg({ width: W40, height: H14, theme: t, title: "repository vitals", body: body2 });
+    }
+    const status = ciStatus(pd);
+    const sc = ciColor(t, status);
+    const dark = t.name === "dark";
+    const ciH = 54;
+    const icx = 24 + 26;
+    const icy = top + ciH / 2;
+    let indicator;
+    if (status === "passing") {
+      indicator = `<circle cx="${icx}" cy="${icy}" r="13" fill="${sc}" opacity=".16"/>
+<circle cx="${icx}" cy="${icy}" r="13" stroke="${sc}" stroke-width="1.5" class="fx loop loop-only" style="animation:ping 2.2s ease-out 1.2s infinite"/>
+<circle cx="${icx}" cy="${icy}" r="8" fill="${sc}"/>
+<path d="m${icx - 3.6} ${icy + 0.2} 2.4 2.4 4.8-4.8" stroke="${dark ? "#0b0b0c" : "#fff"}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>`;
+    } else if (status === "failing") {
+      indicator = `<circle cx="${icx}" cy="${icy}" r="13" fill="${sc}" opacity=".16"/><circle cx="${icx}" cy="${icy}" r="8" fill="${sc}"/>
+<path d="m${icx - 3} ${icy - 3} 6 6m0-6-6 6" stroke="${dark ? "#0b0b0c" : "#fff"}" stroke-width="1.8" stroke-linecap="round"/>`;
+    } else if (status === "running") {
+      indicator = `<circle cx="${icx}" cy="${icy}" r="9" stroke="${sc}" stroke-opacity=".25" stroke-width="2.5"/>
+<path d="M${icx} ${icy - 9}a9 9 0 0 1 9 9" stroke="${sc}" stroke-width="2.5" stroke-linecap="round" class="spinr loop"/>
+<circle cx="${icx}" cy="${icy}" r="2.5" fill="${sc}"/>`;
+    } else {
+      indicator = `<circle cx="${icx}" cy="${icy}" r="9" stroke="${t.subtle}" stroke-width="2" stroke-dasharray="3 3"/>`;
+    }
+    const wf = pd.ci ? `${pd.ci.name || "workflow"} \xB7 ${pd.defaultBranch || "main"}` : "add a workflow to see build status";
+    const sha = pd.ci && pd.lastCommit?.sha ? pd.lastCommit.sha.slice(0, 7) : "";
+    const mo = mono(t);
+    const shaW = sha ? mo.measure(sha, 11) + 14 : 0;
+    const ciPanel = `<g class="in" style="${dl(0.15)}">
+<rect x="24" y="${top}" width="${W40 - 48}" height="${ciH}" rx="${Math.max(4, t.radius - 2)}" fill="${t.raised}" stroke="${t.border}"/>
+<rect x="24" y="${top + 10}" width="3" height="${ciH - 20}" rx="1.5" fill="${sc}"/>
+${indicator}
+<text x="${icx + 24}" y="${top + 24}" font-size="14" class="b" fill="${status === "unknown" ? t.text : sc}">${esc(STATUS_TEXT[status])}</text>
+<text x="${icx + 24}" y="${top + 41}" font-size="11" class="m">${esc(fitText(t, wf, 11, W40 - 24 - 14 - (icx + 24) - (shaW ? shaW + 8 : 0)))}</text>
+${sha ? `<rect x="${f(W40 - 38 - shaW)}" y="${icy - 10}" width="${f(shaW)}" height="20" rx="6" fill="${t.card}" stroke="${t.border}"/><text x="${f(W40 - 38 - shaW / 2)}" y="${icy + 4}" font-size="11" text-anchor="middle" class="m mono">${esc(sha)}</text>` : ""}
+</g>`;
+    const rows3 = [];
+    rows3.push(pd.lastCommit?.date ? { g: "commit", label: "last commit", value: ago(pd.lastCommit.date, ctx.date), sub: pd.lastCommit.author ? `by ${pd.lastCommit.author}` : "" } : { g: "commit", label: "last commit", value: "none yet", muted: true });
+    const rel = latestRelease(pd);
+    const tag = latestTag(pd);
+    rows3.push(
+      rel ? { g: "tag", label: "latest release", value: tag, sub: rel.publishedAt ? ago(rel.publishedAt, ctx.date) : "" } : tag ? { g: "tag", label: "latest version", value: tag } : { g: "tag", label: "latest release", value: "unreleased", muted: true }
+    );
+    const iAll = pd.openIssues + pd.closedIssues;
+    rows3.push({ g: "issue", label: "issues", value: `${groupDigits(pd.openIssues)} open`, sub: `${groupDigits(pd.closedIssues)} closed`, bar: iAll ? pd.closedIssues / iAll : -1 });
+    const pAll = pd.mergedPulls + pd.openPulls;
+    rows3.push({ g: "x:merge", label: "pull requests", value: `${groupDigits(pd.mergedPulls)} merged`, sub: `${groupDigits(pd.openPulls)} open`, bar: pAll ? pd.mergedPulls / pAll : -1 });
+    if (optBool(o.license, true)) rows3.push(pd.license ? { g: "x:scale", label: "licence", value: pd.license } : { g: "x:scale", label: "licence", value: "none", muted: true });
+    const rowH = 34;
+    const y0 = top + ciH + 14;
+    const rowMarkup = rows3.map((r, i) => {
+      const y = y0 + i * rowH;
+      const cy = y + rowH / 2;
+      const d0 = 0.35 + i * 0.09;
+      const g = r.g.startsWith("x:") ? xglyph(r.g.slice(2), 28, cy - 7.5, 15, t.accent) : glyph(r.g, 28, cy - 7.5, 15, t.accent);
+      const subW = r.sub ? textWidth(t, r.sub, 11) : 0;
+      const valW = textWidth(t, r.value, 12.5, { bold: true });
+      const rightX = W40 - 28;
+      const valX = r.sub ? rightX - subW - 10 : rightX;
+      const sep = i < rows3.length - 1 ? `<path d="M24 ${y + rowH}H${W40 - 24}" stroke="${t.border}" stroke-dasharray="1 3"/>` : "";
+      let bar = "";
+      if (r.bar !== void 0 && r.bar >= 0) {
+        const bx1 = valX - valW - 14;
+        const bx0 = Math.max(150, bx1 - 70);
+        const bw = bx1 - bx0;
+        if (bw > 30) {
+          bar = `<rect x="${f(bx0)}" y="${cy - 2.5}" width="${f(bw)}" height="5" rx="2.5" fill="${t.heat[0]}"/><rect x="${f(bx0)}" y="${cy - 2.5}" width="${f(Math.max(2.5, bw * r.bar))}" height="5" rx="2.5" fill="${i === 2 ? t.accent : t.accent2}" style="transform-box:fill-box;transform-origin:left;animation:growX 1s cubic-bezier(.2,.7,.2,1) ${(d0 + 0.3).toFixed(2)}s both"/>`;
+        }
+      }
+      return `<g class="in" style="${dl(d0)}">
+${g}
+<text x="52" y="${cy + 4}" font-size="12" class="m">${esc(r.label)}</text>
+${bar}
+<text x="${f(valX)}" y="${cy + 4.5}" font-size="12.5" text-anchor="end" class="${r.muted ? "m" : "t"} b">${esc(r.value)}</text>
+${r.sub ? `<text x="${rightX}" y="${cy + 4}" font-size="11" text-anchor="end" class="m">${esc(r.sub)}</text>` : ""}
+${sep}
+</g>`;
+    }).join("\n");
+    const H13 = y0 + rows3.length * rowH + 14;
+    const css = `${mo.css}
+@keyframes ping{0%{transform:scale(.7);opacity:.9}100%{transform:scale(1.8);opacity:0}}
+.spinr{transform-origin:${icx}px ${icy}px;animation:spin 1.1s linear infinite}`;
+    const body = `${card(t, { width: W40, height: H13 })}
+${lbl ? header(t, W40, lbl) : ""}
+${ciPanel}
+${rowMarkup}`;
+    return svg({ width: W40, height: H13, theme: t, title: this.alt(ctx, o), css, body });
+  }
+});
+
+// ../core/src/widgets/p-hero.ts
+var W41 = 840;
+function miniStats(ctx, third) {
+  const pd = pdata(ctx);
+  if (!pd) return [];
+  const out = [
+    { g: { kind: "g", name: "star" }, value: groupDigits(pd.stars), roll: true, unit: pd.stars === 1 ? "star" : "stars" },
+    { g: { kind: "g", name: "fork" }, value: groupDigits(pd.forks), roll: true, unit: pd.forks === 1 ? "fork" : "forks" }
+  ];
+  const dl0 = (pd.downloads ?? []).find((d) => d && typeof d.lastWeek === "number");
+  const order = [third, "license", "downloads", "contributors"];
+  for (const k of order) {
+    if (k === "license" && pd.license) return [...out, { g: { kind: "x", name: "scale" }, value: pd.license, roll: false, unit: "licence" }];
+    if (k === "downloads" && dl0) return [...out, { g: { kind: "x", name: "download" }, value: compact(dl0.lastWeek), roll: false, unit: "/ week" }];
+    if (k === "contributors" && pd.contributorCount > 0)
+      return [...out, { g: { kind: "g", name: "users" }, value: groupDigits(pd.contributorCount), roll: true, unit: "contributors" }];
+  }
+  return out;
+}
+function installHint(ctx, raw) {
+  if (!raw) return "";
+  const tokens = raw.match(/\{\s*[a-zA-Z]+\s*\}/g) ?? [];
+  for (const tk of tokens) if (!fillPlaceholders(tk, ctx).trim() || fillPlaceholders(tk, ctx) === tk) return "";
+  return fillPlaceholders(raw, ctx).trim();
+}
+function monogramText(name) {
+  const words2 = name.replace(/[^\p{L}\p{N}\s._-]/gu, "").split(/[\s._-]+/).filter(Boolean);
+  if (!words2.length) return "?";
+  if (words2.length === 1) return [...words2[0]][0].toUpperCase();
+  return ([...words2[0]][0] + [...words2[1]][0]).toUpperCase();
+}
+var projectHero = defineWidget({
+  type: "project-hero",
+  title: "Project hero",
+  description: "Your project's name drawn on, its tagline, version, install command and headline numbers over an ambient glow.",
+  scope: "project",
+  category: "Header",
+  kind: "svg",
+  width: "full",
+  needs: ["project", "releases"],
+  defaults: {
+    title: "",
+    align: "left",
+    version: true,
+    stats: true,
+    third: "license",
+    install: "npm i {npm}",
+    emblem: "",
+    emblemStyle: "orbit",
+    scanline: true,
+    glow: true
+  },
+  fields: [
+    { key: "title", label: "Headline", type: "text", placeholder: "Defaults to the project name" },
+    {
+      key: "align",
+      label: "Alignment",
+      type: "segmented",
+      options: [
+        { value: "left", label: "Left" },
+        { value: "center", label: "Centre" }
+      ]
+    },
+    { key: "version", label: "Version pill", type: "toggle", help: "Latest release tag next to the name." },
+    { key: "install", label: "Install command", type: "text", placeholder: "npm i {npm}", help: "Shown in a code pill under the tagline. Leave empty to hide. Placeholders: {npm} {repo} {project} {version}" },
+    { key: "stats", label: "Headline numbers", type: "toggle" },
+    {
+      key: "third",
+      label: "Third number",
+      type: "segmented",
+      when: { key: "stats", is: [true] },
+      options: [
+        { value: "license", label: "Licence" },
+        { value: "downloads", label: "Downloads" },
+        { value: "contributors", label: "Contributors" }
+      ]
+    },
+    { key: "emblem", label: "Emblem icon", type: "icon", help: "Defaults to the project logo; without one a monogram tile is drawn." },
+    {
+      key: "emblemStyle",
+      label: "Emblem style",
+      type: "segmented",
+      options: [
+        { value: "orbit", label: "Orbit" },
+        { value: "plain", label: "Plain" },
+        { value: "none", label: "None" }
+      ]
+    },
+    { key: "scanline", label: "Scanline sweep", type: "toggle" },
+    { key: "glow", label: "Ambient glow", type: "toggle" }
+  ],
+  alt: (ctx, o) => {
+    const name = fillPlaceholders(optStr(o.title), ctx) || projectName(ctx.project);
+    const tag = (ctx.project.tagline || pdata(ctx)?.description || "").trim();
+    return tag ? `${name} \u2014 ${tag}` : name;
+  },
+  href: (ctx) => homeUrl(ctx),
+  render(ctx, o) {
+    const t = ctx.theme;
+    const pd = pdata(ctx);
+    const center = optPick(o.align, ["left", "center"], "left") === "center";
+    const style = optPick(o.emblemStyle, ["orbit", "plain", "none"], "orbit");
+    const name = fillPlaceholders(optStr(o.title), ctx) || projectName(ctx.project) || pd?.name || "project";
+    const tagline = (ctx.project.tagline || pd?.description || "").trim();
+    const tag = optBool(o.version, true) ? latestTag(pd) : "";
+    const cmd = installHint(ctx, optStr(o.install));
+    const stats2 = optBool(o.stats, true) ? miniStats(ctx, optStr(o.third, "license")) : [];
+    const slug3 = repoSlug(ctx);
+    const mo = mono(t);
+    const sideEmblem = style !== "none" && !center;
+    const topEmblem = style !== "none" && center;
+    const x0 = center ? W41 / 2 : 56;
+    const colW = center ? 680 : sideEmblem ? 520 : 728;
+    const anchor = center ? "middle" : "start";
+    let y = topEmblem ? 128 : 58;
+    const eyebrowY = y;
+    const pillSize = 12;
+    const pillW = tag ? textWidth(t, tag, pillSize, { bold: true }) + 22 : 0;
+    const nameMax = colW - (tag ? pillW + 16 : 0);
+    const nameSize = fitSize(t, name, 64, nameMax, 28, { bold: true, heading: true, letterSpacing: -1.5 });
+    const shownName = fitText(t, name, nameSize, nameMax, { bold: true, heading: true, letterSpacing: -1.5 });
+    const nameW = textWidth(t, shownName, nameSize, { bold: true, heading: true, letterSpacing: -1.5 });
+    const nameY = y + 20 + Math.round(nameSize * 0.74);
+    y = nameY;
+    const tagSize = 17;
+    const lines = tagline ? wrapText(t, tagline, tagSize, colW, 2) : [];
+    const tagY = nameY + 38;
+    if (lines.length) y = tagY + (lines.length - 1) * 25;
+    const cmdSize = 13;
+    const cmdH = 36;
+    const cmdTextW = cmd ? mo.measure(cmd, cmdSize) : 0;
+    const cmdW = cmd ? Math.min(colW, cmdTextW + 100) : 0;
+    const cmdY = y + (lines.length ? 24 : 26);
+    if (cmd) y = cmdY + cmdH;
+    const statY = y + (cmd ? 36 : 40);
+    if (stats2.length) y = statY;
+    const H13 = Math.max(sideEmblem ? 250 : 200, Math.round(y + (center ? 36 : stats2.length ? 42 : 46)));
+    const groupW = nameW + (tag ? 16 + pillW : 0);
+    const nameX = center ? W41 / 2 - groupW / 2 : x0;
+    const dash = Math.max(180, Math.round(nameW * 0.9));
+    const pillX = nameX + nameW + 16;
+    const pillY = nameY - nameSize * 0.72 + (nameSize * 0.72 - 24) / 2;
+    const version = tag ? `<g class="in" style="${dl(1.5)}">
+<rect x="${pillX.toFixed(1)}" y="${pillY.toFixed(1)}" width="${pillW.toFixed(1)}" height="24" rx="12" fill="${t.accent}"/>
+<rect x="${pillX.toFixed(1)}" y="${pillY.toFixed(1)}" width="${pillW.toFixed(1)}" height="24" rx="12" fill="url(#shine)" class="psh loop loop-only"/>
+<text x="${(pillX + pillW / 2).toFixed(1)}" y="${(pillY + 16.3).toFixed(1)}" font-size="${pillSize}" text-anchor="middle" fill="${onAccent(t)}" class="b">${esc(tag)}</text></g>` : "";
+    let eyebrow = "";
+    if (slug3) {
+      const txt = slug3.toUpperCase();
+      const lw = 16 + textWidth(t, txt, 11.5, { bold: true, letterSpacing: 2 });
+      const lx = center ? W41 / 2 - lw / 2 : x0;
+      eyebrow = `<g class="in" style="${dl(0.1)}">
+<circle cx="${lx + 4}" cy="${eyebrowY - 4}" r="4" fill="${t.accent}"/><circle cx="${lx + 4}" cy="${eyebrowY - 4}" r="4" fill="${t.accent}" class="loop" style="animation:pulse 2s ease-in-out infinite" filter="url(#glow)"/>
+<text x="${lx + 16}" y="${eyebrowY}" font-size="11.5" letter-spacing="2" class="m b">${esc(txt)}</text></g>`;
+    }
+    const tagMarkup = lines.map((l, i) => `<text x="${x0}" y="${tagY + i * 25}" font-size="${tagSize}" text-anchor="${anchor}" class="m in" style="${dl(1.3 + i * 0.08)}">${esc(l)}</text>`).join("");
+    let install = "";
+    if (cmd) {
+      const cx0 = center ? W41 / 2 - cmdW / 2 : x0;
+      const shown = cmdTextW + 100 > colW ? cmd.slice(0, Math.max(4, Math.floor((colW - 100) / cmdTextW * cmd.length) - 1)) + "\u2026" : cmd;
+      const r = Math.min(10, t.radius);
+      install = `<g class="in" style="${dl(1.6)}">
+<rect x="${cx0.toFixed(1)}" y="${cmdY}" width="${cmdW.toFixed(1)}" height="${cmdH}" rx="${r}" fill="${t.raised}" stroke="${t.border}"/>
+<text x="${(cx0 + 16).toFixed(1)}" y="${cmdY + 22.6}" font-size="${cmdSize}" class="a b mono">$</text>
+<text x="${(cx0 + 34).toFixed(1)}" y="${cmdY + 22.6}" font-size="${cmdSize}" class="t mono">${esc(shown)}</text>
+<rect x="${(cx0 + 34 + mo.measure(shown, cmdSize) + 3).toFixed(1)}" y="${cmdY + 11}" width="7" height="14" rx="1" fill="${t.accent}" class="blink loop"/>
+<path d="M${(cx0 + cmdW - 40).toFixed(1)} ${cmdY + 9}V${cmdY + cmdH - 9}" stroke="${t.border}"/>
+${xglyph("copy", cx0 + cmdW - 28, cmdY + 10, 16, t.muted)}
+</g>`;
+    }
+    let statRow = "";
+    if (stats2.length) {
+      const size = 15;
+      const items2 = stats2.map((s) => {
+        const vw = s.roll ? odometerWidth(t, s.value, size, true) : textWidth(t, s.value, size, { bold: true });
+        const uw = textWidth(t, s.unit, 13);
+        return { s, vw, uw, w: 22 + vw + 6 + uw };
+      });
+      const gap = 30;
+      const total = items2.reduce((a, b) => a + b.w, 0) + gap * (items2.length - 1);
+      let sx = center ? W41 / 2 - total / 2 : x0;
+      statRow = items2.map((it, i) => {
+        const d0 = 1.8 + i * 0.12;
+        const gx = sx;
+        const g = it.s.g.kind === "g" ? glyph(it.s.g.name, gx, statY - 12.5, 15, t.accent) : xglyph(it.s.g.name, gx, statY - 12.5, 15, t.accent);
+        const vx = gx + 22;
+        const val = it.s.roll ? `<g class="tn">${odometer(t, it.s.value, { x: vx, y: statY, fontSize: size, delay: d0 + 0.1, duration: 1.4 })}</g>` : `<text x="${vx.toFixed(1)}" y="${statY}" font-size="${size}" class="t b">${esc(it.s.value)}</text>`;
+        const sep = i < items2.length - 1 ? `<circle cx="${(sx + it.w + gap / 2).toFixed(1)}" cy="${statY - 5}" r="1.6" fill="${t.subtle}"/>` : "";
+        sx += it.w + gap;
+        return `<g class="in" style="${dl(d0)}">${g}${val}<text x="${(vx + it.vw + 6).toFixed(1)}" y="${statY}" font-size="13" class="m">${esc(it.s.unit)}</text>${sep}</g>`;
+      }).join("");
+    }
+    const logoId = optStr(o.emblem) || ctx.project.logo || "";
+    const useIcon = !!logoId && hasIcon(logoId);
+    const emblemAt = (cx, cy, ks, rings2) => {
+      const half = ks / 2;
+      let inner;
+      if (useIcon) {
+        const em = icon(logoId);
+        const emInner = em.inner.replace(/fill="currentColor"/g, 'fill="url(#kgrad)"');
+        inner = `<svg x="${-ks * 0.3}" y="${-ks * 0.3}" width="${ks * 0.6}" height="${ks * 0.6}" viewBox="${em.viewBox}" color="url(#kgrad)">${emInner}</svg>`;
+      } else {
+        const s = ks * 0.62;
+        const m = monogramText(name);
+        const fs = m.length > 1 ? s * 0.4 : s * 0.52;
+        inner = `<rect x="${-s / 2}" y="${-s / 2}" width="${s}" height="${s}" rx="${Math.max(6, s * 0.26).toFixed(1)}" fill="url(#kgrad)"/>
+<rect x="${-s / 2}" y="${-s / 2}" width="${s}" height="${s / 2}" rx="${Math.max(6, s * 0.26).toFixed(1)}" fill="#fff" opacity="${t.name === "dark" ? 0.08 : 0.14}"/>
+<text x="0" y="${(fs * 0.36).toFixed(1)}" font-size="${fs.toFixed(1)}" text-anchor="middle" fill="${onAccent(t)}" class="b h" letter-spacing="-.5">${esc(m)}</text>`;
+      }
+      const ringMarkup = rings2 ? `${ks >= 100 ? `<circle class="ring loop" cx="0" cy="0" r="${ks * 0.78}" stroke="${t.subtle}" stroke-dasharray="2 10" stroke-width="2"/>` : ""}
+<circle class="ring2 loop" cx="0" cy="0" r="${ks * 0.62}" stroke="${t.accent}" stroke-opacity=".5" stroke-dasharray="40 160 10 60" stroke-width="1.5"/>
+<g class="orbit loop"><circle cx="0" cy="0" r="${ks * 0.62}"/><circle cx="${ks * 0.62}" cy="0" r="3.5" fill="${t.glow}" filter="url(#glow)"/></g>` : "";
+      return `<g transform="translate(${cx} ${cy})"><g class="in" style="${dl(0.4)}">
+${ringMarkup}
+<g class="bob loop">
+<circle class="kpulse loop" cx="0" cy="0" r="${half * 0.72}" fill="${t.accent}" filter="url(#softglow)"/>
+${inner}
+</g></g></g>`;
+    };
+    const emblem = sideEmblem ? emblemAt(704, Math.round(H13 / 2), 128, style === "orbit") : topEmblem ? emblemAt(W41 / 2, 62, 72, style === "orbit") : "";
+    const dark = t.name === "dark";
+    const css = `${TNUM}${mo.css}
+.drift{animation:drift 6s linear infinite}
+@keyframes drift{to{transform:translate(-16px,-16px)}}
+.blob{animation:blob 14s ease-in-out infinite alternate}
+@keyframes blob{0%{transform:translate(0,0)}50%{transform:translate(-120px,40px)}100%{transform:translate(60px,-20px)}}
+.name{stroke:${t.text};stroke-width:1.2;stroke-dasharray:${dash};stroke-dashoffset:${dash};fill:${t.text};fill-opacity:0;
+  animation:draw 2s cubic-bezier(.6,.1,.3,1) .2s forwards,fillIn .8s ease 1.5s forwards}
+@keyframes fillIn{to{fill-opacity:1;stroke-width:0}}
+.scan{animation:scan 5s linear infinite}
+@keyframes scan{from{transform:translateY(-20px)}to{transform:translateY(${H13 + 20}px)}}
+.bob{animation:bob 5s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.ring{transform-box:fill-box;transform-origin:center;animation:spin 18s linear infinite}
+.ring2{transform-box:fill-box;transform-origin:center;animation:spinR 26s linear infinite}
+.orbit{transform-box:fill-box;transform-origin:center;animation:spin 9s linear infinite}
+.kpulse{transform-box:fill-box;transform-origin:center;animation:kp 3s ease-in-out infinite}
+@keyframes kp{0%,100%{opacity:.25;transform:scale(.9)}50%{opacity:.6;transform:scale(1.1)}}
+.psh{animation:pshine 5s ease-in-out 3s infinite}
+@keyframes pshine{0%,70%,100%{opacity:0}80%{opacity:1}}`;
+    const defs = `
+<clipPath id="frame"><rect x="0.5" y="0.5" width="${W41 - 1}" height="${H13 - 1}" rx="${t.radius + 4}"/></clipPath>
+<linearGradient id="kgrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${t.glow}"/><stop offset=".55" stop-color="${t.accent}"/><stop offset="1" stop-color="${accentDeep(t)}"/></linearGradient>
+<radialGradient id="blobG"><stop offset="0" stop-color="${t.accent}" stop-opacity="${dark ? 0.32 : 0.16}"/><stop offset="1" stop-color="${t.accent}" stop-opacity="0"/></radialGradient>
+<linearGradient id="scanG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${t.accent}" stop-opacity="0"/><stop offset="1" stop-color="${t.accent}" stop-opacity="${dark ? 0.12 : 0.05}"/></linearGradient>`;
+    const body = `
+<g clip-path="url(#frame)">
+  <rect width="${W41}" height="${H13}" fill="${surfaceFill(t)}"/>
+  ${t.texture !== "none" ? `<g class="drift loop"><rect x="0" y="0" width="${W41 + 32}" height="${H13 + 32}" fill="url(#${t.texture})"/></g>` : ""}
+  ${optBool(o.glow, true) ? `<g class="blob loop"><circle cx="${center ? W41 / 2 : 600}" cy="${Math.round(H13 * 0.45)}" r="260" fill="url(#blobG)"/></g>` : ""}
+  ${optBool(o.scanline, true) ? `<rect class="scan loop loop-only" x="0" y="0" width="${W41}" height="20" fill="url(#scanG)"/>` : ""}
+</g>
+${cardStroke(t, W41, H13, t.radius + 4)}
+${eyebrow}
+<text x="${nameX.toFixed(1)}" y="${nameY}" font-size="${nameSize}" class="name b h" letter-spacing="-1.5">${esc(shownName)}</text>
+${version}
+${tagMarkup}
+${install}
+${statRow}
+${emblem}`;
+    return svg({ width: W41, height: H13, theme: t, title: this.alt(ctx, o), css, defs, body });
+  }
+});
+
+// ../core/src/widgets/p-shields.ts
+var H11 = 28;
+var BADGES = [
+  { value: "version", label: "Version" },
+  { value: "license", label: "Licence" },
+  { value: "ci", label: "Build status" },
+  { value: "stars", label: "Stars" },
+  { value: "forks", label: "Forks" },
+  { value: "downloads", label: "Weekly downloads" },
+  { value: "contributors", label: "Contributors" },
+  { value: "issues", label: "Open issues" },
+  { value: "prs", label: "Open pull requests" },
+  { value: "commit", label: "Last commit" },
+  { value: "release", label: "Last release" },
+  { value: "topics", label: "Topics (one badge each)" }
+];
+var REGISTRY_URL = {
+  npm: (n) => `https://www.npmjs.com/package/${n}`,
+  pypi: (n) => `https://pypi.org/project/${n}/`,
+  crates: (n) => `https://crates.io/crates/${n}`
+};
+function slug(s) {
+  return s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 24) || "x";
+}
+function badgeList(ctx, o, now = new Date(ctx.data?.generatedAt || Date.now())) {
+  const pd = pdata(ctx);
+  const url = repoUrl(ctx);
+  const branch = pd?.defaultBranch || "main";
+  const dash = "\u2013";
+  const out = [];
+  for (const k of optList(o.badges)) {
+    switch (k) {
+      case "version": {
+        const v = latestTag(pd);
+        if (pd && !v) break;
+        const rel = latestRelease(pd);
+        out.push({ key: k, label: "version", value: v || dash, icon: "tag", href: rel?.url || `${url}/releases` });
+        break;
+      }
+      case "license":
+        if (pd && !pd.license) break;
+        out.push({ key: k, label: "license", value: pd?.license || dash, icon: "x:scale", href: `${url}/blob/${branch}/LICENSE` });
+        break;
+      case "ci": {
+        if (pd && !pd.ci) break;
+        const s = ciStatus(pd);
+        out.push({ key: k, label: pd?.ci?.name || "build", value: s, status: s, icon: "x:shield", href: pd?.ci?.url || `${url}/actions` });
+        break;
+      }
+      case "stars":
+        out.push({ key: k, label: "stars", value: pd ? compact(pd.stars) : dash, icon: "star", href: `${url}/stargazers` });
+        break;
+      case "forks":
+        out.push({ key: k, label: "forks", value: pd ? compact(pd.forks) : dash, icon: "fork", href: `${url}/forks` });
+        break;
+      case "downloads": {
+        const d = (pd?.downloads ?? []).find((x) => x && typeof x.lastWeek === "number");
+        if (pd && !d) break;
+        const name = d?.name || ctx.project.packages?.npm || "";
+        const reg = d?.registry || "npm";
+        out.push({
+          key: k,
+          label: d ? `${reg} downloads` : "downloads",
+          value: d ? `${compact(d.lastWeek)}/week` : dash,
+          icon: "x:download",
+          href: name && REGISTRY_URL[reg] ? REGISTRY_URL[reg](name) : url
+        });
+        break;
+      }
+      case "contributors":
+        out.push({ key: k, label: "contributors", value: pd ? compact(pd.contributorCount) : dash, icon: "users", href: `${url}/graphs/contributors` });
+        break;
+      case "issues":
+        out.push({ key: k, label: "issues", value: pd ? `${compact(pd.openIssues)} open` : dash, icon: "issue", href: `${url}/issues` });
+        break;
+      case "prs":
+        out.push({ key: k, label: "pull requests", value: pd ? `${compact(pd.openPulls)} open` : dash, icon: "pr", href: `${url}/pulls` });
+        break;
+      case "commit":
+        if (pd && !pd.lastCommit?.date) break;
+        out.push({ key: k, label: "last commit", value: pd?.lastCommit?.date ? ago(pd.lastCommit.date, now) : dash, icon: "commit", href: `${url}/commits/${branch}` });
+        break;
+      case "release": {
+        const rel = latestRelease(pd);
+        if (pd && !rel?.publishedAt) break;
+        out.push({ key: k, label: "release", value: rel?.publishedAt ? ago(rel.publishedAt, now) : dash, icon: "rocket", href: `${url}/releases/latest` });
+        break;
+      }
+      case "topics":
+        for (const tp of (pd?.topics ?? []).filter(Boolean).slice(0, 6)) {
+          out.push({ key: `topic-${slug(tp)}`, label: "", value: tp, icon: "x:hash", href: `https://github.com/topics/${encodeURIComponent(tp)}`, solo: true });
+        }
+        break;
+    }
+  }
+  items(o.custom).slice(0, 8).forEach((c, i) => {
+    const label2 = fillPlaceholders(str(c.label), ctx);
+    const value = fillPlaceholders(str(c.value), ctx);
+    if (!label2 && !value) return;
+    out.push({
+      key: `custom-${i + 1}`,
+      label: value ? label2 : "",
+      value: value || label2,
+      icon: str(c.icon),
+      color: isHex(c.color) ? c.color : void 0,
+      href: str(c.link) || void 0,
+      solo: !value || !label2
+    });
+  });
+  const seen = /* @__PURE__ */ new Set();
+  return out.filter((b) => seen.has(b.key) ? false : (seen.add(b.key), true));
+}
+function badgeFont(t) {
+  const f2 = fontInfo(t.font);
+  if (f2.category === "serif") return { family: fontInfo("inter").fallback, id: "inter" };
+  return { family: f2.fallback, id: f2.id };
+}
+function drawIcon(t, id, x, y, size, color) {
+  if (!id) return "";
+  if (id === "x:hash") {
+    return `<svg x="${x}" y="${y}" width="${size}" height="${size}" viewBox="0 0 16 16" fill="none" stroke="${color}" stroke-width="1.6" stroke-linecap="round"><path d="M6 2.5 4.8 13.5M11.2 2.5 10 13.5M2.5 6h11M2 10.5h11"/></svg>`;
+  }
+  if (id.startsWith("x:")) {
+    const name = id.slice(2);
+    if (!xglyphs[name]) return "";
+    return `<svg x="${x}" y="${y}" width="${size}" height="${size}" viewBox="0 0 16 16" fill="none" stroke="${color}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${xglyphs[name]}</svg>`;
+  }
+  if (id in glyphs) return `<svg x="${x}" y="${y}" width="${size}" height="${size}" viewBox="0 0 16 16" fill="none" stroke="${color}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${glyphs[id]}</svg>`;
+  return hasMark(id) ? mark(t, id, x, y, size, color) : "";
+}
+function renderBadge(ctx, o, b, index) {
+  const t = ctx.theme;
+  const style = optPick(o.style, ["flat", "rounded", "outline", "plastic"], "rounded");
+  const big = style === "plastic";
+  const icons = optBool(o.icons, true) && !!b.icon;
+  const neutral = optPick(o.color, ["accent", "neutral"], "accent") === "neutral";
+  const font = badgeFont(t);
+  const size = big ? 10.5 : 11.5;
+  const ls = big ? 1.2 : 0;
+  const weightL = big ? 700 : 400;
+  const caps = (s) => big ? s.toUpperCase() : s;
+  const label2 = caps(b.label);
+  const value = caps(b.value).slice(0, 48);
+  const measure = (s, w) => measureText(s, size, font.id, w, ls);
+  const padX = big ? 12 : 10;
+  const iconW = icons ? 14 + 6 : 0;
+  const lw = b.solo ? 0 : padX + iconW + measure(label2, weightL) + padX;
+  const vTextW = measure(value, 700);
+  const statusDot = b.status && b.status !== "unknown" ? 12 : 0;
+  const vw = (b.solo ? padX + iconW : padX) + statusDot + vTextW + padX;
+  const W51 = Math.ceil(lw + vw);
+  const r = style === "rounded" ? H11 / 2 : big ? 3 : 5;
+  const dark = t.name === "dark";
+  const fill2 = b.status ? style === "outline" ? ciColor(t, b.status) : ciFill(t, b.status) : b.color || (neutral ? t.text : t.accent);
+  const outline = style === "outline";
+  const labelBg = dark ? t.raised : mix(t.raised, t.text, 0.06);
+  const valueBg = b.solo && !b.color ? labelBg : outline ? "none" : neutral && !b.status && !b.color ? mix(labelBg, t.text, dark ? 0.12 : 0.1) : fill2;
+  const valueInk = outline ? fill2 : valueBg === labelBg || neutral && !b.status && !b.color ? t.text : onAccent(t, fill2);
+  const labelInk = outline ? t.muted : t.muted;
+  const iconInk = b.solo ? b.color ? onAccent(t, b.color) : t.accent : outline ? fill2 : t.accent;
+  const baseY = (H11 / 2 + size * 0.36).toFixed(1);
+  const tl = (x, s, w, ink, bold) => `<text x="${x.toFixed(1)}" y="${baseY}" font-size="${size}" fill="${ink}"${bold ? ' font-weight="700"' : ""}${ls ? ` letter-spacing="${ls}"` : ""} textLength="${w.toFixed(1)}" lengthAdjust="spacingAndGlyphs">${esc(s)}</text>`;
+  const parts = [];
+  parts.push(`<clipPath id="bc"><rect width="${W51}" height="${H11}" rx="${r}"/></clipPath>`);
+  parts.push(`<g clip-path="url(#bc)">`);
+  if (!outline) {
+    parts.push(`<rect width="${W51}" height="${H11}" fill="${labelBg}"/>`);
+    if (!(b.solo && !b.color)) parts.push(`<rect x="${lw.toFixed(1)}" width="${(W51 - lw).toFixed(1)}" height="${H11}" fill="${valueBg}" class="vseg"/>`);
+    parts.push(`<rect width="${W51}" height="${H11 / 2}" fill="#fff" opacity="${dark ? 0.04 : 0.12}"/>`);
+  } else {
+    parts.push(`<rect width="${W51}" height="${H11}" fill="${t.surface ? t.card : "none"}"/>`);
+    if (!b.solo) parts.push(`<rect x="${lw.toFixed(1)}" width="${(W51 - lw).toFixed(1)}" height="${H11}" fill="${fill2}" opacity=".12"/>`);
+  }
+  parts.push(`<rect class="sh loop loop-only" x="-60" width="48" height="${H11}" fill="url(#shine)" transform="skewX(-20)" style="animation-delay:${(2 + index * 0.35).toFixed(2)}s"/>`);
+  parts.push(`</g>`);
+  parts.push(
+    `<rect x=".5" y=".5" width="${W51 - 1}" height="${H11 - 1}" rx="${Math.max(0, r - 0.5)}" stroke="${outline ? fill2 : t.border}" stroke-opacity="${outline ? 0.9 : 1}"/>`
+  );
+  if (!b.solo) {
+    if (icons) parts.push(drawIcon(t, b.icon, padX, (H11 - 14) / 2, 14, iconInk));
+    parts.push(tl(padX + iconW, label2, measure(label2, weightL), labelInk, big));
+  }
+  let vx = lw + (b.solo ? padX + iconW : padX);
+  if (b.solo && icons) parts.push(drawIcon(t, b.icon, padX, (H11 - 14) / 2, 14, iconInk));
+  if (statusDot) {
+    const cx = vx + 4;
+    const ink = outline ? fill2 : valueInk;
+    if (b.status === "running") {
+      parts.push(`<circle cx="${cx.toFixed(1)}" cy="${H11 / 2}" r="3.6" stroke="${ink}" stroke-opacity=".35" stroke-width="1.6"/><path d="M${cx.toFixed(1)} ${H11 / 2 - 3.6}a3.6 3.6 0 0 1 3.6 3.6" stroke="${ink}" stroke-width="1.6" stroke-linecap="round" class="spin loop"/>`);
+    } else {
+      parts.push(`<circle cx="${cx.toFixed(1)}" cy="${H11 / 2}" r="3.2" fill="${ink}"/>`);
+      if (b.status === "passing") parts.push(`<circle cx="${cx.toFixed(1)}" cy="${H11 / 2}" r="3.2" fill="${ink}" class="ping loop loop-only"/>`);
+    }
+    vx += statusDot;
+  }
+  parts.push(`<g class="fade" style="animation-delay:${(0.25 + index * 0.08).toFixed(2)}s">${tl(vx, value, vTextW, valueInk, true)}</g>`);
+  const css = `text{font-family:${font.family}}
+.sh{animation:shimmer 6s ease-in-out infinite}
+.spin{transform-box:view-box;transform-origin:${(vx - statusDot + 4).toFixed(1)}px ${H11 / 2}px;animation:spin 1.1s linear infinite}
+.ping{transform-box:fill-box;transform-origin:center;animation:ping 2s ease-out infinite}
+@keyframes ping{0%{transform:scale(1);opacity:.7}100%{transform:scale(2.6);opacity:0}}
+.vseg{transform-box:fill-box;transform-origin:left;animation:growX .6s cubic-bezier(.2,.7,.2,1) ${(0.1 + index * 0.08).toFixed(2)}s both}`;
+  const title = b.solo ? b.value : `${b.label}: ${b.value}`;
+  return svg({ width: W51, height: H11, theme: t, title, css, body: `<g class="fade" style="animation-delay:${(index * 0.08).toFixed(2)}s">${parts.join("")}</g>`, fonts: false });
+}
+var shields = defineWidget({
+  type: "shields",
+  title: "Shields",
+  description: "Shield-style badges for version, licence, build status, stars, downloads and more, each its own image linking to the right page.",
+  scope: "project",
+  category: "Identity",
+  kind: "svg",
+  width: "full",
+  fixedHeight: H11,
+  needs: ["project", "releases", "downloads"],
+  defaults: {
+    badges: ["version", "license", "ci", "stars", "downloads", "contributors"],
+    style: "rounded",
+    color: "accent",
+    icons: true,
+    custom: []
+  },
+  fields: [
+    { key: "badges", label: "Badges", type: "checklist", options: BADGES },
+    {
+      key: "style",
+      label: "Style",
+      type: "segmented",
+      options: [
+        { value: "flat", label: "Flat" },
+        { value: "rounded", label: "Rounded" },
+        { value: "outline", label: "Outline" },
+        { value: "plastic", label: "FOR THE BADGE" }
+      ]
+    },
+    {
+      key: "color",
+      label: "Value colour",
+      type: "segmented",
+      help: "Build status always uses green, amber or red.",
+      options: [
+        { value: "accent", label: "Accent" },
+        { value: "neutral", label: "Neutral" }
+      ]
+    },
+    { key: "icons", label: "Icons", type: "toggle" },
+    {
+      key: "custom",
+      label: "Custom badges",
+      type: "list",
+      itemLabel: "Badge",
+      titleKey: "label",
+      max: 8,
+      newItem: { label: "chat", value: "discord", color: "", link: "", icon: "" },
+      item: [
+        { key: "label", label: "Label", type: "text", help: "Placeholders like {version} work here." },
+        { key: "value", label: "Value", type: "text" },
+        { key: "color", label: "Colour", type: "color", allowTheme: true },
+        { key: "icon", label: "Icon", type: "icon" },
+        { key: "link", label: "Link", type: "text", placeholder: "https://" }
+      ]
+    }
+  ],
+  alt: () => "project badges",
+  href: (ctx) => repoUrl(ctx),
+  parts: (ctx, o) => badgeList(ctx, o).map((b) => ({ key: b.key, alt: b.solo ? b.value : `${b.label}: ${b.value}`, href: b.href })),
+  render(ctx, o) {
+    const list = badgeList(ctx, o, ctx.date);
+    if (!list.length) return renderBadge(ctx, o, { key: "none", label: "badges", value: "none selected", icon: "tag" }, 0);
+    return renderBadge(ctx, o, list[0], 0);
+  },
+  renderPart(ctx, o, key) {
+    const list = badgeList(ctx, o, ctx.date);
+    const i = Math.max(0, list.findIndex((b2) => b2.key === key));
+    const b = list[i] ?? { key: "none", label: "badges", value: "none selected", icon: "tag" };
+    return renderBadge(ctx, o, b, i);
+  }
+});
+
+// ../core/src/widgets/p-stars.ts
+var W42 = 840;
+var X04 = 64;
+var X13 = W42 - 28;
+var DAY2 = 864e5;
+var MILESTONES = [10, 50, 100, 500, 1e3, 5e3, 1e4, 5e4, 1e5, 5e5, 1e6];
+var starHistory = defineWidget({
+  type: "star-history",
+  title: "Star history",
+  description: "Cumulative stars over time as a chart that draws itself on, with milestone flags and the stars gained this month.",
+  scope: "project",
+  category: "Activity",
+  kind: "svg",
+  width: "full",
+  needs: ["project", "stars"],
+  defaults: { label: "star history", scale: "linear", milestones: true, fill: true },
+  fields: [
+    { key: "label", label: "Label", type: "text" },
+    {
+      key: "scale",
+      label: "Scale",
+      type: "segmented",
+      options: [
+        { value: "linear", label: "Linear" },
+        { value: "log", label: "Log" }
+      ]
+    },
+    { key: "milestones", label: "Milestone flags", type: "toggle", help: "Marks when the project crossed 100, 500, 1k, 5k \u2026 stars." },
+    { key: "fill", label: "Area fill", type: "toggle" }
+  ],
+  alt: (ctx) => {
+    const pd = pdata(ctx);
+    return pd ? `Star history of ${pd.fullName}: ${groupDigits(pd.stars)} stars` : "star history";
+  },
+  href: (ctx) => `${repoUrl(ctx)}/stargazers`,
+  render(ctx, o) {
+    const t = ctx.theme;
+    const pd = pdata(ctx);
+    const lbl = optStr(o.label);
+    const top0 = lbl ? 50 : 24;
+    if (!pd) {
+      const H14 = top0 + 150;
+      const body2 = `${card(t, { width: W42, height: H14 })}${lbl ? header(t, W42, lbl) : ""}${noRepo(t, 24, top0, W42 - 48, 126, "The star chart")}`;
+      return svg({ width: W42, height: H14, theme: t, title: "star history", body: body2 });
+    }
+    const now = ctx.date.getTime();
+    let hist = (pd.starHistory ?? []).filter((p) => p && p.date && Number.isFinite(p.stars) && !Number.isNaN(new Date(p.date).getTime())).map((p) => ({ t: new Date(p.date).getTime(), v: Math.max(0, p.stars) })).sort((a, b) => a.t - b.t);
+    const total = Math.max(pd.stars, hist.length ? hist[hist.length - 1].v : 0);
+    if (hist.length && hist[hist.length - 1].v < total) hist.push({ t: Math.max(now, hist[hist.length - 1].t), v: total });
+    if (hist.length < 2 && total > 0) {
+      const born2 = pd.createdAt ? new Date(pd.createdAt).getTime() : now - 365 * DAY2;
+      hist = [
+        { t: Number.isNaN(born2) ? now - 365 * DAY2 : Math.min(born2, now - DAY2), v: 0 },
+        { t: now, v: total }
+      ];
+    }
+    const log = optPick(o.scale, ["linear", "log"], "linear") === "log";
+    const gained = starsGained(pd, 30, ctx.date) ?? 0;
+    const heroY = top0 + 40;
+    const value = groupDigits(total);
+    const vw = odometerWidth(t, value, 38, true, true);
+    let chipX = 24 + vw + 10 + textWidth(t, "stars", 14) + 16;
+    const chipTxt = gained > 0 ? `+${groupDigits(gained)} in the last 30 days` : "no new stars in the last 30 days";
+    const chipW = textWidth(t, chipTxt, 11.5, { bold: gained > 0 }) + 22;
+    if (chipX + chipW > W42 - 24) chipX = W42 - 24 - chipW;
+    const born = hist.length ? hist[0].t : now;
+    const days = Math.max(1, (now - born) / DAY2);
+    const perDay = total / days;
+    const rightTxt = hist.length ? `since ${monthName(new Date(born).getUTCMonth() + 1)} ${new Date(born).getUTCFullYear()} \xB7 ${perDay >= 10 ? Math.round(perDay) : perDay.toFixed(1)} a day` : "";
+    const headline = `<g class="in" style="${dl(0.15)}">
+<g class="tn">${odometer(t, value, { x: 24, y: heroY, fontSize: 38, delay: 0.25, heading: true })}</g>
+<text x="${f(24 + vw + 10)}" y="${heroY}" font-size="14" class="m">${total === 1 ? "star" : "stars"}</text>
+</g>
+<g class="in" style="${dl(0.5)}">
+<rect x="${f(chipX)}" y="${heroY - 17}" width="${f(chipW)}" height="22" rx="11" fill="${gained > 0 ? t.accent : t.raised}" stroke="${gained > 0 ? "none" : t.border}"/>
+<text x="${f(chipX + chipW / 2)}" y="${heroY - 2}" font-size="11.5" text-anchor="middle" ${gained > 0 ? `fill="${onAccent(t)}" class="b"` : 'class="m"'}>${esc(chipTxt)}</text>
+</g>
+${rightTxt && chipX + chipW + 24 + textWidth(t, rightTxt, 11.5) < W42 - 24 ? `<text x="${W42 - 24}" y="${heroY - 2}" font-size="11.5" text-anchor="end" class="m fade" style="${dl(0.6)}">${esc(rightTxt)}</text>` : ""}`;
+    const Y0 = heroY + 52;
+    const Y1 = Y0 + 140;
+    const H13 = Y1 + 44;
+    if (total === 0 || hist.length < 2) {
+      const body2 = `${card(t, { width: W42, height: H13 })}${lbl ? header(t, W42, lbl) : ""}${headline}${emptyState(t, 24, Y0 - 14, W42 - 48, Y1 - Y0 + 34, "star", "No stars yet", "The chart starts with the first stargazer.")}`;
+      return svg({ width: W42, height: H13, theme: t, title: this.alt(ctx, o), css: TNUM, body: body2 });
+    }
+    const t0 = hist[0].t;
+    const t1 = Math.max(hist[hist.length - 1].t, t0 + DAY2);
+    const xs = (ts) => X04 + (ts - t0) / (t1 - t0) * (X13 - X04);
+    let ys;
+    const grid = [];
+    if (log) {
+      const decades = Math.max(1, Math.ceil(Math.log10(Math.max(10, total * 1.15))));
+      ys = (v) => Y1 - Math.log10(Math.max(1, v)) / decades * (Y1 - Y0);
+      for (let k = 0; k <= decades; k++) {
+        const y = ys(10 ** k);
+        grid.push(`<path d="M${X04} ${f(y)}H${X13}" stroke="${t.border}"${k ? ' stroke-dasharray="2 4"' : ""}/><text x="${X04 - 12}" y="${f(y + 3.5)}" font-size="10" text-anchor="end" class="m">${esc(compact(10 ** k))}</text>`);
+      }
+    } else {
+      const step = niceStep2(total * 1.12 / 5);
+      const topV = Math.max(step * 2, Math.ceil(total * 1.12 / step) * step);
+      ys = (v) => Y1 - v / topV * (Y1 - Y0);
+      for (let v = 0; v <= topV + 1e-9; v += step) {
+        const y = ys(v);
+        grid.push(`<path d="M${X04} ${f(y)}H${X13}" stroke="${t.border}"${v ? ' stroke-dasharray="2 4"' : ""}/><text x="${X04 - 12}" y="${f(y + 3.5)}" font-size="10" text-anchor="end" class="m">${esc(compact(v))}</text>`);
+      }
+    }
+    const ticks = [];
+    const d0 = new Date(t0);
+    const spanMonths = (t1 - t0) / (30.44 * DAY2);
+    const stepM = [1, 2, 3, 4, 6, 12, 24].find((s) => spanMonths / s <= 6) ?? 24;
+    let m = new Date(Date.UTC(d0.getUTCFullYear(), d0.getUTCMonth() + 1, 1));
+    while (m.getUTCMonth() % stepM !== 0) m = new Date(Date.UTC(m.getUTCFullYear(), m.getUTCMonth() + 1, 1));
+    let lastX = -1e9;
+    for (; m.getTime() <= t1; m = new Date(Date.UTC(m.getUTCFullYear(), m.getUTCMonth() + stepM, 1))) {
+      const x = xs(m.getTime());
+      const txt = stepM >= 12 || m.getUTCMonth() === 0 ? String(m.getUTCFullYear()) : ticks.length ? monthName(m.getUTCMonth() + 1) : `${monthName(m.getUTCMonth() + 1)} ${m.getUTCFullYear()}`;
+      const w = textWidth(t, txt, 10.5);
+      if (x - lastX < w + 18 || x + w / 2 > X13 + 8 || x - w / 2 < X04 - 20) continue;
+      ticks.push(`<path d="M${f(x)} ${Y1}v4" stroke="${t.subtle}"/><text x="${f(x)}" y="${Y1 + 18}" font-size="10.5" text-anchor="middle" class="m">${esc(txt)}</text>`);
+      lastX = x;
+    }
+    const pts = hist.map((p) => [xs(p.t), ys(p.v)]);
+    const line = monotone(pts, (n) => f(n));
+    const areaD = `${line}L${f(pts[pts.length - 1][0])} ${Y1}L${f(pts[0][0])} ${Y1}Z`;
+    const last = pts[pts.length - 1];
+    const bandX = Math.max(X04, xs(now - 30 * DAY2));
+    const band = gained > 0 && bandX < X13 - 4 ? `<g class="fade" style="${dl(2)}"><rect x="${f(bandX)}" y="${Y0}" width="${f(X13 - bandX)}" height="${Y1 - Y0}" fill="${t.accent}" opacity="${t.name === "dark" ? 0.08 : 0.06}"/><path d="M${f(bandX)} ${Y0}V${Y1}" stroke="${t.accent}" stroke-opacity=".45" stroke-dasharray="2 3"/>${X13 - bandX > 34 ? `<text x="${f((bandX + X13) / 2)}" y="${Y1 - 8}" font-size="9.5" letter-spacing="1" text-anchor="middle" class="a b">30D</text>` : ""}</g>` : "";
+    let flags = "";
+    if (optBool(o.milestones, true)) {
+      const crossed = MILESTONES.filter((v) => v <= total && hist[0].v < v);
+      const marks = [];
+      for (const v of crossed) {
+        const i = hist.findIndex((p) => p.v >= v);
+        if (i <= 0) continue;
+        const a = hist[i - 1];
+        const b = hist[i];
+        const ts = a.t + (b.t - a.t) * (v - a.v) / Math.max(1, b.v - a.v);
+        marks.push({ v, x: xs(ts), y: ys(v) });
+      }
+      const kept = [];
+      for (const mk of [...marks].reverse()) {
+        const w = textWidth(t, compact(mk.v), 10.5, { bold: true }) + 26;
+        if (kept.every((k) => Math.abs(k.x - mk.x) > (k.w + w) / 2 + 6) && kept.length < 5) kept.push({ ...mk, w });
+      }
+      const fy = Y0 - 20;
+      flags = kept.sort((a, b) => a.x - b.x).map((k, i) => {
+        const d = 1.6 + i * 0.15;
+        const bx = Math.min(Math.max(k.x - k.w / 2, X04 - 6), X13 + 6 - k.w);
+        return `<g class="in" style="${dl(d)}">
+<path d="M${f(k.x)} ${fy + 9}V${f(k.y - 5)}" stroke="${t.glow}" stroke-opacity=".7" stroke-dasharray="2 3"/>
+<rect x="${f(bx)}" y="${fy - 9}" width="${f(k.w)}" height="18" rx="9" fill="${t.card}" stroke="${t.accent}"/>
+<path d="M${f(bx + 10)} ${fy - 3.5}l1.6 3.3 3.6.5-2.6 2.5.6 3.6-3.2-1.7-3.2 1.7.6-3.6-2.6-2.5 3.6-.5z" fill="${t.accent}"/>
+<text x="${f(bx + 19)}" y="${fy + 3.8}" font-size="10.5" class="t b">${esc(compact(k.v))}</text>
+<circle cx="${f(k.x)}" cy="${f(k.y)}" r="4" fill="${t.card}" stroke="${t.glow}" stroke-width="2"/>
+</g>`;
+      }).join("");
+    }
+    const dark = t.name === "dark";
+    const css = `${TNUM}
+.ln{stroke-dasharray:1;stroke-dashoffset:1;animation:draw 2.2s cubic-bezier(.45,.05,.25,1) .4s forwards}
+.rev{transform-box:fill-box;transform-origin:left;animation:growX 2.2s cubic-bezier(.45,.05,.25,1) .4s both}
+@keyframes ping{0%{transform:scale(.6);opacity:1}100%{transform:scale(2.4);opacity:0}}`;
+    const defs = `<linearGradient id="areaG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${t.accent}" stop-opacity="${dark ? 0.42 : 0.28}"/><stop offset="1" stop-color="${t.accent}" stop-opacity="0"/></linearGradient>
+<linearGradient id="lineG" gradientUnits="userSpaceOnUse" x1="${X04}" y1="0" x2="${X13}" y2="0"><stop offset="0" stop-color="${t.accent}"/><stop offset="1" stop-color="${t.glow}"/></linearGradient>
+<clipPath id="revC"><rect class="rev" x="${X04 - 8}" y="${Y0 - 10}" width="${X13 - X04 + 16}" height="${Y1 - Y0 + 11}"/></clipPath>`;
+    const body = `${card(t, { width: W42, height: H13 })}
+${lbl ? header(t, W42, lbl) : ""}
+${headline}
+<g class="fade" style="${dl(0.1)}">${grid.join("")}${ticks.join("")}</g>
+${band}
+${optBool(o.fill, true) ? `<path d="${areaD}" fill="url(#areaG)" clip-path="url(#revC)"/>` : ""}
+<path d="${line}" pathLength="1" stroke="url(#lineG)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" class="ln"/>
+${flags}
+<g class="fade" style="${dl(2.4)}">
+<circle cx="${f(last[0])}" cy="${f(last[1])}" r="9" stroke="${t.glow}" stroke-width="1.5" class="fx loop loop-only" style="animation:ping 2s ease-out 2.6s infinite"/>
+<circle cx="${f(last[0])}" cy="${f(last[1])}" r="4.5" fill="${t.card}" stroke="${t.glow}" stroke-width="2.5"/>
+</g>`;
+    return svg({ width: W42, height: H13, theme: t, title: this.alt(ctx, o), css, defs, body });
+  }
+});
+
+// ../core/src/widgets/p-stats.ts
+var W43 = 840;
+var TILES = [
+  { value: "stars", label: "Stars" },
+  { value: "forks", label: "Forks" },
+  { value: "watchers", label: "Watchers" },
+  { value: "issues", label: "Open issues" },
+  { value: "prs", label: "Merged pull requests" },
+  { value: "contributors", label: "Contributors" },
+  { value: "commits", label: "Commits, last 12 months" },
+  { value: "downloads", label: "Weekly downloads" }
+];
+function sparkLine(t, vals, x, y, w, h, d0, id) {
+  if (vals.length < 2) return "";
+  const lo = Math.min(...vals);
+  const hi = Math.max(...vals);
+  const span = hi - lo || 1;
+  const pts = vals.map((v, i) => [x + i / (vals.length - 1) * w, y + h - (v - lo) / span * h]);
+  const line = pts.map((p, i) => `${i ? "L" : "M"}${f(p[0])} ${f(p[1])}`).join("");
+  const last = pts[pts.length - 1];
+  return `<path d="${line}L${f(x + w)} ${f(y + h)}L${f(x)} ${f(y + h)}Z" fill="url(#${id})" class="fade" style="${dl(d0 + 0.6)}"/>
+<path d="${line}" pathLength="1" stroke="${t.accent}" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" class="ln" style="${dl(d0 + 0.2)}"/>
+<circle cx="${f(last[0])}" cy="${f(last[1])}" r="2.4" fill="${t.glow}" class="fx" style="animation:pop .4s ease ${(d0 + 1.2).toFixed(2)}s both"/>`;
+}
+function bars(t, vals, x, y, w, h, d0) {
+  if (!vals.length) return "";
+  const max = Math.max(1, ...vals);
+  const gap = 2;
+  const bw = (w - gap * (vals.length - 1)) / vals.length;
+  return vals.map((v, i) => {
+    const bh = Math.max(2, v / max * h);
+    return `<rect x="${f(x + i * (bw + gap))}" y="${f(y + h - bh)}" width="${f(bw)}" height="${f(bh)}" rx="1.2" fill="${i === vals.length - 1 ? t.accent : t.subtle}" style="transform-origin:bottom;transform-box:fill-box;animation:grow .6s cubic-bezier(.2,.7,.2,1) ${(d0 + 0.4 + i * 0.035).toFixed(2)}s both"/>`;
+  }).join("");
+}
+function tileFor(ctx, pd, key) {
+  const t = ctx.theme;
+  switch (key) {
+    case "stars": {
+      const g = starsGained(pd, 30, ctx.date);
+      const hist = (pd.starHistory ?? []).map((p) => p.stars).filter((v) => Number.isFinite(v));
+      const tail = hist.slice(-14);
+      return {
+        label: "stars",
+        value: pd.stars,
+        g: "star",
+        sub: g ? `+${groupDigits(g)} in 30 days` : pd.stars ? "no new stars this month" : "be the first to star",
+        hot: !!g,
+        extra: tail.length >= 2 ? (x, y, w, h, d0) => sparkLine(t, tail, x + w - 78, y + 42, 62, 22, d0, "spk") : void 0
+      };
+    }
+    case "forks":
+      return { label: "forks", value: pd.forks, g: "fork", sub: pd.stars ? `${(Math.round(pd.forks / pd.stars * 1e3) / 10).toString()} per 100 stars` : "" };
+    case "watchers":
+      return { label: "watchers", value: pd.watchers, g: "eye", sub: "following every change" };
+    case "issues":
+      return { label: "open issues", value: pd.openIssues, g: "issue", sub: `${groupDigits(pd.closedIssues)} closed` };
+    case "prs":
+      return { label: "merged prs", value: pd.mergedPulls, g: "x:merge", sub: `${groupDigits(pd.openPulls)} open for review` };
+    case "contributors": {
+      const top = (pd.contributors ?? []).filter((c) => c && c.login).slice(0, 4);
+      return {
+        label: "contributors",
+        value: pd.contributorCount || top.length,
+        g: "users",
+        sub: top[0] ? `top: ${top[0].login}` : "",
+        extra: top.length ? (x, y, w, _h, d0) => top.map((c, i) => {
+          const r = 11;
+          const cx = x + w - 16 - r - (top.length - 1 - i) * 18;
+          return avatar(t, c, cx, y + 53, r, `sav${i}`, { ring: t.raised, ringWidth: 2, extra: `class="fx" style="animation:pop .45s ease ${(d0 + 0.5 + i * 0.08).toFixed(2)}s both"` });
+        }).join("") : void 0
+      };
+    }
+    case "commits": {
+      const weeks = (pd.commitWeeks ?? []).filter((v) => Number.isFinite(v));
+      const total = weeks.reduce((a, b) => a + b, 0);
+      const avg2 = weeks.length ? total / weeks.length : 0;
+      return {
+        label: "commits \xB7 12 mo",
+        value: total,
+        g: "commit",
+        sub: total ? `avg ${avg2 >= 10 ? Math.round(avg2) : avg2.toFixed(1)} per week` : "quiet year",
+        extra: total ? (x, y, w, h, d0) => bars(t, weeks.slice(-12), x + w - 86, y + 40, 70, 26, d0) : void 0
+      };
+    }
+    case "downloads": {
+      const d = (pd.downloads ?? []).find((x) => x && typeof x.lastWeek === "number");
+      if (!d) return null;
+      const weekly = (d.weekly ?? []).filter((v) => Number.isFinite(v)).slice(-14);
+      return {
+        label: `${d.registry} \xB7 weekly`,
+        value: d.lastWeek ?? 0,
+        g: "x:download",
+        sub: d.lastMonth !== null ? `${compact(d.lastMonth)} this month` : d.name,
+        extra: weekly.length >= 2 ? (x, y, w, h, d0) => sparkLine(t, weekly, x + w - 78, y + 42, 62, 22, d0, "spk") : void 0
+      };
+    }
+    default:
+      return null;
+  }
+}
+var repoStats = defineWidget({
+  type: "repo-stats",
+  title: "Repository stats",
+  description: "Rolling counters for stars, forks, issues, pull requests and contributors, each with a tiny trend, plus an issue-health ring.",
+  scope: "project",
+  category: "Stats",
+  kind: "svg",
+  width: "full",
+  needs: ["project", "stars", "contributors"],
+  defaults: {
+    label: "repository \xB7 live from github",
+    tiles: ["stars", "forks", "contributors", "commits", "prs", "issues"],
+    ring: true
+  },
+  fields: [
+    { key: "label", label: "Label", type: "text" },
+    { key: "tiles", label: "Tiles", type: "checklist", options: TILES, max: 8, help: "Up to 6 with the ring, 8 without." },
+    { key: "ring", label: "Health ring", type: "toggle", help: "Share of issues closed, with pull requests merged as an inner ring." }
+  ],
+  alt: (ctx) => {
+    const pd = pdata(ctx);
+    return pd ? `${pd.fullName}: ${groupDigits(pd.stars)} stars, ${groupDigits(pd.forks)} forks, ${groupDigits(pd.contributorCount)} contributors` : "repository stats";
+  },
+  href: (ctx) => repoUrl(ctx),
+  render(ctx, o) {
+    const t = ctx.theme;
+    const pd = pdata(ctx);
+    const lbl = optStr(o.label);
+    const ring = optBool(o.ring, true);
+    const gx = 24;
+    const gy = lbl ? 50 : 24;
+    if (!pd) {
+      const H14 = gy + 150;
+      const body2 = `${card(t, { width: W43, height: H14 })}${lbl ? header(t, W43, lbl) : ""}${noRepo(t, 24, gy, W43 - 48, 126, "Stars, forks and contributors")}`;
+      return svg({ width: W43, height: H14, theme: t, title: "repository stats", body: body2 });
+    }
+    const max = ring ? 6 : 8;
+    const tiles = optList(o.tiles).slice(0, 12).map((k) => tileFor(ctx, pd, k)).filter((x) => x !== null).slice(0, max);
+    const cols = ring ? 3 : Math.min(4, Math.max(1, tiles.length <= 4 ? tiles.length : tiles.length === 6 ? 3 : 4));
+    const rows3 = Math.max(1, Math.ceil(tiles.length / cols));
+    const gap = 12;
+    const areaW = ring ? 582 : W43 - 48;
+    const tw = (areaW - gap * (cols - 1)) / cols;
+    const th = 96;
+    const H13 = Math.max(ring ? 270 : 0, gy + rows3 * th + (rows3 - 1) * gap + 24);
+    const tileMarkup = tiles.map((tile, i) => {
+      const col = i % cols;
+      const row = Math.floor(i / cols);
+      const x = gx + col * (tw + gap);
+      const y = gy + row * (th + gap);
+      const d0 = 0.15 + i * 0.1;
+      const value = groupDigits(tile.value);
+      const g = tile.g.startsWith("x:") ? xglyph(tile.g.slice(2), x + 14, y + 13, 15, t.accent) : glyph(tile.g, x + 14, y + 13, 15, t.accent);
+      const extraW = tile.extra ? 96 : 0;
+      const sub = tile.sub ? fitText(t, tile.sub, 10.5, tw - 28 - (tile.extra && tw < 220 ? 0 : 0)) : "";
+      const labelTxt = fitText(t, tile.label.toUpperCase(), 10.5, tw - 50, { letterSpacing: 1 });
+      return `<g class="in" style="${dl(d0)}">
+<rect x="${f(x)}" y="${y}" width="${f(tw)}" height="${th}" rx="${Math.max(2, t.radius - 2)}" fill="${t.raised}" stroke="${t.border}"/>
+${g}
+<text x="${f(x + 36)}" y="${y + 25}" font-size="10.5" letter-spacing="1" class="m">${esc(labelTxt)}</text>
+<g class="tn">${odometer(t, value, { x: x + 14, y: y + 63, fontSize: textWidth(t, value, 28, { bold: true, heading: true }) > tw - 28 - extraW ? 22 : 28, delay: d0 + 0.2, heading: true })}</g>
+${sub ? `<text x="${f(x + 14)}" y="${y + 83}" font-size="10.5" class="${tile.hot ? "a" : "m"}">${esc(sub)}</text>` : ""}
+${tile.extra ? tile.extra(x, y, tw, th, d0) : ""}
+</g>`;
+    }).join("\n");
+    let ringMarkup = "";
+    let css = "";
+    if (ring) {
+      const cx = 708;
+      const cy = gy + 82;
+      const r1 = 60;
+      const r2 = 45;
+      const issuesAll = pd.openIssues + pd.closedIssues;
+      const prsAll = pd.mergedPulls + pd.openPulls;
+      const fi = issuesAll ? pd.closedIssues / issuesAll : 0;
+      const fp = prsAll ? pd.mergedPulls / prsAll : 0;
+      const C1 = 2 * Math.PI * r1;
+      const C2 = 2 * Math.PI * r2;
+      const pct2 = issuesAll ? `${Math.round(fi * 100)}` : "\u2013";
+      const pw = textWidth(t, pct2, 26, { bold: true, heading: true });
+      const ly = cy + r1 + 34;
+      const row = (y, color, name, v, d) => `<g class="in" style="${dl(d)}"><rect x="${cx - 86}" y="${y - 8}" width="8" height="8" rx="2" fill="${color}"/><text x="${cx - 72}" y="${y}" font-size="11" class="m">${esc(name)}</text><text x="${cx + 86}" y="${y}" font-size="11" text-anchor="end" class="t b">${esc(v)}</text></g>`;
+      css = `
+.r1{stroke-dasharray:${f(C1)};stroke-dashoffset:${f(C1)};animation:r1 2s cubic-bezier(.2,.7,.2,1) .5s forwards}
+@keyframes r1{to{stroke-dashoffset:${f(C1 * (1 - fi))}}}
+.r2{stroke-dasharray:${f(C2)};stroke-dashoffset:${f(C2)};animation:r2 2s cubic-bezier(.2,.7,.2,1) .8s forwards}
+@keyframes r2{to{stroke-dashoffset:${f(C2 * (1 - fp))}}}
+.sweep{transform-origin:${cx}px ${cy}px;animation:spin 8s linear infinite}`;
+      ringMarkup = `<g class="in" style="${dl(0.3)}">
+<circle cx="${cx}" cy="${cy}" r="${r1}" stroke="${t.heat[0]}" stroke-width="9"/>
+<circle cx="${cx}" cy="${cy}" r="${r2}" stroke="${t.heat[0]}" stroke-width="7"/>
+${fi > 0 ? `<circle class="r1" cx="${cx}" cy="${cy}" r="${r1}" stroke="url(#ringG)" stroke-width="9" stroke-linecap="round" transform="rotate(-90 ${cx} ${cy})"/>` : ""}
+${fp > 0 ? `<circle class="r2" cx="${cx}" cy="${cy}" r="${r2}" stroke="${t.accent2}" stroke-width="7" stroke-linecap="round" transform="rotate(-90 ${cx} ${cy})"/>` : ""}
+<g class="sweep loop loop-only"><circle cx="${cx}" cy="${cy - r1}" r="2" fill="${t.glow}" filter="url(#glow)"/></g>
+<text x="${f(cx - (issuesAll ? 7 : 0))}" y="${cy + 6}" font-size="26" text-anchor="middle" class="t b h">${esc(pct2)}</text>
+${issuesAll ? `<text x="${f(cx - 7 + pw / 2 + 2)}" y="${cy + 6}" font-size="14" class="m">%</text>` : ""}
+<text x="${cx}" y="${cy + 24}" font-size="9.5" letter-spacing="1.5" text-anchor="middle" class="m">CLOSED</text>
+</g>
+${row(ly, t.accent, "issues closed", issuesAll ? `${Math.round(fi * 100)}%` : "\u2013", 0.9)}
+${row(ly + 20, t.accent2, "prs merged", prsAll ? `${Math.round(fp * 100)}%` : "\u2013", 1)}`;
+    }
+    const defs = `<linearGradient id="ringG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${t.glow}"/><stop offset="1" stop-color="${accentDeep(t)}"/></linearGradient>
+<linearGradient id="spk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${t.accent}" stop-opacity="${t.name === "dark" ? 0.35 : 0.22}"/><stop offset="1" stop-color="${t.accent}" stop-opacity="0"/></linearGradient>`;
+    css += `${TNUM}
+.ln{stroke-dasharray:1;stroke-dashoffset:1;animation:draw 1.4s cubic-bezier(.45,.05,.25,1) forwards}`;
+    const right = pd.pushedAt ? "" : "";
+    const body = `${card(t, { width: W43, height: H13 })}
+${lbl ? header(t, W43, lbl, right) : ""}
+${tileMarkup}
+${ringMarkup}`;
+    return svg({ width: W43, height: H13, theme: t, title: this.alt(ctx, o), css, defs, body });
+  }
+});
+
+// ../core/src/widgets/set-e.ts
+var setE = [projectHero, shields, repoStats, starHistory, contributorWall, commitActivity, repoHealth];
+
+// ../core/src/widgets/kit-f.ts
+function projectData(ctx) {
+  const p = ctx.data?.project;
+  return p && typeof p === "object" ? p : void 0;
+}
+function repoSlug2(ctx) {
+  const r = (ctx.project?.repo || projectData(ctx)?.fullName || "").trim();
+  return /^[\w.-]+\/[\w.-]+$/.test(r) ? r : "";
+}
+function repoUrl2(ctx) {
+  const r = repoSlug2(ctx);
+  return r ? `https://github.com/${r}` : `https://github.com/${ctx.profile.login}`;
+}
+function pkgSafe(s) {
+  return s.trim().toLowerCase().replace(/[^a-z0-9._-]+/g, "-").replace(/^[-.]+|[-.]+$/g, "");
+}
+function pkgNames(ctx) {
+  const pi = ctx.project;
+  const pd = projectData(ctx);
+  const repo = repoSlug2(ctx);
+  const repoName2 = repo.split("/")[1] || pd?.name || "";
+  const base = pkgSafe(repoName2) || pkgSafe(pi ? projectName(pi) : "") || "my-project";
+  const dl2 = (r) => pd?.downloads?.find((d) => d && d.registry === r)?.name || "";
+  const npm = pi?.packages?.npm?.trim() || dl2("npm") || base;
+  const pypi = pi?.packages?.pypi?.trim() || dl2("pypi") || npm.replace(/^@[^/]+\//, "");
+  const crate = pi?.packages?.crates?.trim() || dl2("crates") || pypi.replace(/[.]/g, "-");
+  const tag = pd?.releases?.find((r) => r && r.tag)?.tag || pd?.downloads?.find((d) => d && d.version)?.version || "";
+  const version = tag.replace(/^v(?=\d)/, "");
+  return {
+    name: (pi ? projectName(pi) : "") || pd?.name || base,
+    npm,
+    pypi,
+    crate,
+    bin: base,
+    repo: repo || `${ctx.profile.login}/${base}`,
+    version,
+    license: pd?.license || ""
+  };
+}
+function fillStrict(text, ctx) {
+  if (typeof text !== "string") return "";
+  if (!text.includes("{")) return text;
+  const n = pkgNames(ctx);
+  const own = {
+    npm: n.npm,
+    pypi: n.pypi,
+    crate: n.crate,
+    crates: n.crate,
+    pkg: n.npm,
+    bin: n.bin,
+    repo: n.repo,
+    project: n.name
+  };
+  const passthrough = /* @__PURE__ */ new Set(["version", "license", "tagline"]);
+  return text.replace(/\{([a-z]+)\}/g, (m, key) => {
+    if (key in own) return own[key];
+    return passthrough.has(key) ? fillPlaceholders(m, ctx) : m;
+  });
+}
+function discreteTimeline(period2, steps) {
+  const pts = [];
+  for (const [s, v] of steps) {
+    let k = Math.max(0, Math.min(1, s / period2));
+    const prev = pts[pts.length - 1];
+    if (prev) {
+      if (k <= prev[0]) k = prev[0] + 1e-4;
+      if (k >= 1) break;
+      if (prev[1] === v) continue;
+    } else k = 0;
+    pts.push([k, v]);
+  }
+  if (!pts.length) pts.push([0, "0"]);
+  return { values: pts.map((p) => p[1]).join(";"), keyTimes: pts.map((p) => Number(p[0].toFixed(4))).join(";") };
+}
+function linearTimeline(period2, steps) {
+  const pts = [];
+  for (const [s, v] of steps) {
+    let k = Math.max(0, Math.min(1, s / period2));
+    const prev = pts[pts.length - 1];
+    if (!prev) k = 0;
+    else if (k <= prev[0]) k = prev[0] + 1e-4;
+    if (k > 1) break;
+    pts.push([k, v]);
+  }
+  if (pts.length < 2) pts.push([1, pts[0]?.[1] ?? "0"]);
+  pts[pts.length - 1][0] = 1;
+  return { values: pts.map((p) => p[1]).join(";"), keyTimes: pts.map((p) => Number(p[0].toFixed(4))).join(";") };
+}
+function tint(t, color, amount = t.name === "dark" ? 0.16 : 0.1) {
+  return mix(t.card, color, amount);
+}
+function okColor(t) {
+  return t.name === "dark" ? "#3fb950" : "#1a7f37";
+}
+var extraGlyphs = {
+  copy: `<rect x="5.5" y="5.5" width="8" height="8" rx="1.8"/><path d="M10.5 3.5V3a1.5 1.5 0 0 0-1.5-1.5H4A1.5 1.5 0 0 0 2.5 3v5A1.5 1.5 0 0 0 4 9.5h.5"/>`,
+  file: `<path d="M9 1.5H4.5A1.5 1.5 0 0 0 3 3v10a1.5 1.5 0 0 0 1.5 1.5h7A1.5 1.5 0 0 0 13 13V5.5zM9 1.5v4h4"/>`,
+  flag: `<path d="M3 14.5V2m0 .5h8.5l-1.8 3 1.8 3H3"/>`,
+  coffee: `<path d="M2.5 6h9v4a3.5 3.5 0 0 1-3.5 3.5H6A3.5 3.5 0 0 1 2.5 10zM11.5 7h1a2 2 0 0 1 0 4h-1.2M5 1.5v2.5M8 1.5v2.5"/>`,
+  collective: `<circle cx="8" cy="8" r="6"/><path d="M10.6 5.4a3.6 3.6 0 1 0 0 5.2" /><path d="M12.4 4.6a6 6 0 0 1 0 6.8"/>`,
+  beer: `<path d="M3 4.5h7.5V13a1.5 1.5 0 0 1-1.5 1.5H4.5A1.5 1.5 0 0 1 3 13zM10.5 6.5h1.2a1.8 1.8 0 0 1 1.8 1.8v1.4a1.8 1.8 0 0 1-1.8 1.8h-1.2M3 4.5a2 2 0 0 1 2-2.5 2.2 2.2 0 0 1 3.3-.3A2 2 0 0 1 10.5 4.5M5.5 7.5v4.5M8 7.5v4.5"/>`,
+  box: `<path d="M8 1.5 14 4.5v7L8 14.5 2 11.5v-7zM2 4.5l6 3 6-3M8 7.5v7"/>`
+};
+function xglyph2(name, x, y, size, color, extra = "") {
+  return `<svg x="${x}" y="${y}" width="${size}" height="${size}" viewBox="0 0 16 16" fill="none" stroke="${color}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" ${extra}>${extraGlyphs[name]}</svg>`;
+}
+function lineSet(spec, max = 400) {
+  const out = /* @__PURE__ */ new Set();
+  for (const part of String(spec || "").split(/[,\s]+/)) {
+    const m = /^(\d+)(?:\s*[-–]\s*(\d+))?$/.exec(part.trim());
+    if (!m) continue;
+    const a = Number(m[1]);
+    const b = m[2] ? Number(m[2]) : a;
+    for (let i = Math.min(a, b); i <= Math.min(Math.max(a, b), max); i++) if (i >= 1) out.add(i);
+  }
+  return out;
+}
+function ghSlug(s) {
+  return s.trim().toLowerCase().replace(/<[^>]*>/g, "").replace(/[^\p{L}\p{N}\s_-]/gu, "").replace(/\s/g, "-");
+}
+function balancedWrap(t, text, size, max, maxLines, o = {}) {
+  const lines = wrapText(t, text, size, max, maxLines, o);
+  if (lines.length < 2 || lines[lines.length - 1].endsWith("\u2026")) return lines;
+  let lo = max * 0.55;
+  let hi = max;
+  let best = lines;
+  for (let k = 0; k < 10; k++) {
+    const mid = (lo + hi) / 2;
+    const l = wrapText(t, text, size, mid, maxLines, o);
+    if (l.length === lines.length && !l[l.length - 1].endsWith("\u2026")) {
+      best = l;
+      hi = mid;
+    } else lo = mid;
+  }
+  return best;
+}
+
+// ../core/src/widgets/pf-install.ts
+var W44 = 840;
+var BAR2 = 44;
+var FS3 = 14;
+var X05 = 28;
+var STATUS3 = 30;
+var MAX_TABS = 6;
+var MANAGERS = [
+  { value: "npm", label: "npm" },
+  { value: "pnpm", label: "pnpm" },
+  { value: "yarn", label: "Yarn" },
+  { value: "bun", label: "Bun" },
+  { value: "pip", label: "pip" },
+  { value: "uv", label: "uv" },
+  { value: "cargo", label: "Cargo" },
+  { value: "brew", label: "Homebrew" },
+  { value: "go", label: "Go" },
+  { value: "docker", label: "Docker" },
+  { value: "custom", label: "Custom" }
+];
+function builtin(m, n) {
+  const js = { registry: "npm registry", verb: "installed", pkg: n.npm };
+  const py = { registry: "PyPI", verb: "installed", pkg: n.pypi };
+  const mod = n.pypi.replace(/-/g, "_");
+  switch (m) {
+    case "npm":
+      return { id: m, label: "npm", icon: "npm", cmd: `npm install ${n.npm}`, then: `npx ${n.npm} init`, ...js };
+    case "pnpm":
+      return { id: m, label: "pnpm", icon: "", cmd: `pnpm add ${n.npm}`, then: `pnpm dlx ${n.npm} init`, ...js };
+    case "yarn":
+      return { id: m, label: "yarn", icon: "", cmd: `yarn add ${n.npm}`, then: `yarn dlx ${n.npm} init`, ...js };
+    case "bun":
+      return { id: m, label: "bun", icon: "bun", cmd: `bun add ${n.npm}`, then: `bunx ${n.npm} init`, ...js };
+    case "pip":
+      return { id: m, label: "pip", icon: "python", cmd: `pip install ${n.pypi}`, then: `python -m ${mod} --help`, ...py };
+    case "uv":
+      return { id: m, label: "uv", icon: "python", cmd: `uv add ${n.pypi}`, then: `uv run ${n.pypi} --help`, ...py };
+    case "cargo":
+      return { id: m, label: "cargo", icon: "rust", cmd: `cargo add ${n.crate}`, then: `cargo run --release`, registry: "crates.io", verb: "added", pkg: n.crate };
+    case "brew":
+      return { id: m, label: "brew", icon: "", cmd: `brew install ${n.bin}`, then: `${n.bin} --version`, registry: "Homebrew", verb: "poured", pkg: n.bin };
+    case "go":
+      return { id: m, label: "go", icon: "go", cmd: `go install github.com/${n.repo}@latest`, then: `${n.bin} --help`, registry: "Go modules", verb: "installed", pkg: n.bin };
+    case "docker":
+      return { id: m, label: "docker", icon: "docker", cmd: `docker pull ghcr.io/${n.repo.toLowerCase()}`, then: `docker run --rm -it ghcr.io/${n.repo.toLowerCase()}`, registry: "GHCR", verb: "pulled", pkg: n.bin };
+  }
+}
+function tabIcon(t, tab, x, y, size, color) {
+  if (tab.icon) return mark(t, tab.icon, x, y, size, color, t.raised);
+  if (tab.id === "pnpm") {
+    const s = size / 3.4;
+    const cells2 = [
+      [0, 0],
+      [1.2, 0],
+      [2.4, 0],
+      [2.4, 1.2],
+      [1.2, 1.2],
+      [1.2, 2.4],
+      [0, 2.4],
+      [2.4, 2.4]
+    ];
+    return cells2.map(([cx, cy], i) => `<rect x="${n1(x + cx * s)}" y="${n1(y + cy * s)}" width="${n1(s)}" height="${n1(s)}" rx=".6" fill="${color}" fill-opacity="${i > 3 ? 0.55 : 1}"/>`).join("");
+  }
+  if (tab.id === "yarn") {
+    const r = size / 2 - 1;
+    const cx = x + size / 2;
+    const cy = y + size / 2;
+    return `<g stroke="${color}" stroke-width="1.4" fill="none" stroke-linecap="round"><circle cx="${n1(cx)}" cy="${n1(cy)}" r="${n1(r)}"/><path d="M${n1(cx - r * 0.75)} ${n1(cy - r * 0.2)}c${n1(r * 0.7)} ${n1(-r * 0.5)} ${n1(r * 1.3)} ${n1(-r * 0.4)} ${n1(r * 1.6)} ${n1(r * 0.2)}M${n1(cx - r * 0.6)} ${n1(cy + r * 0.45)}c${n1(r * 0.6)} ${n1(-r * 0.5)} ${n1(r * 1.2)} ${n1(-r * 0.4)} ${n1(r * 1.5)} 0M${n1(cx - r * 0.1)} ${n1(cy - r)}c${n1(-r * 0.3)} ${n1(r * 0.7)} ${n1(-r * 0.2)} ${n1(r * 1.4)} ${n1(r * 0.3)} ${n1(r * 1.95)}"/></g>`;
+  }
+  if (tab.id === "brew") return xglyph2("beer", x, y, size, color);
+  return glyph("terminal", x, y, size, color);
+}
+function tabsFor(ctx, o) {
+  const n = pkgNames(ctx);
+  const picked = (Array.isArray(o.managers) ? o.managers : []).filter((m) => MANAGERS.some((x) => x.value === m));
+  const custom = items(o.custom).map((c) => ({ label: str(c.label).slice(0, 18), cmd: fillStrict(str(c.cmd), ctx), then: fillStrict(str(c.then), ctx) })).filter((c) => c.cmd);
+  const tabs = [];
+  for (const m of picked) {
+    if (m === "custom") {
+      for (const c of custom) {
+        if (MANAGERS.some((x) => x.value === c.label.toLowerCase() && picked.includes(x.value))) continue;
+        tabs.push({ id: "custom", label: c.label || "shell", icon: "", cmd: c.cmd, then: c.then, registry: "", verb: "done", pkg: "" });
+      }
+      continue;
+    }
+    const tab = builtin(m, n);
+    const over = custom.find((c) => c.label.toLowerCase() === m);
+    if (over) Object.assign(tab, { cmd: over.cmd, then: over.then || "" });
+    tabs.push(tab);
+  }
+  if (!tabs.length) tabs.push(builtin("npm", n));
+  return tabs.slice(0, MAX_TABS);
+}
+var pfInstall = defineWidget({
+  type: "install",
+  title: "Install command",
+  description: "A terminal that types your install command, cycling through package-manager tabs, with a copy button and an optional quick-start line.",
+  scope: "project",
+  category: "Content",
+  kind: "svg",
+  width: "full",
+  defaults: {
+    managers: ["npm", "pnpm", "yarn", "bun"],
+    quickStart: true,
+    quickStartCmd: "",
+    custom: [],
+    statusBar: true
+  },
+  fields: [
+    { key: "managers", label: "Package managers", type: "checklist", options: MANAGERS, max: MAX_TABS, help: "One tab each, typed in turn. Package names come from the project settings and fall back to the repository name." },
+    { key: "quickStart", label: "Quick-start line", type: "toggle", help: "A follow-up command such as `npx {npm} init`." },
+    { key: "quickStartCmd", label: "Quick-start command", type: "text", placeholder: "Automatic per package manager", when: { key: "quickStart", is: [true] }, help: "Same command on every tab. Placeholders: {npm} {pypi} {crate} {bin} {repo}." },
+    {
+      key: "custom",
+      label: "Custom commands",
+      type: "list",
+      itemLabel: "Command",
+      titleKey: "label",
+      max: 6,
+      newItem: { label: "curl", cmd: "curl -fsSL https://example.com/install.sh | sh", then: "" },
+      help: "Shown as extra tabs when Custom is ticked. An entry labelled like a ticked manager (npm, pip, \u2026) replaces that tab's command.",
+      item: [
+        { key: "label", label: "Tab label", type: "text", max: 18, placeholder: "curl" },
+        { key: "cmd", label: "Command", type: "text", max: 120, placeholder: "curl -fsSL https://\u2026 | sh" },
+        { key: "then", label: "Then (optional)", type: "text", max: 120, placeholder: "{bin} --help" }
+      ]
+    },
+    { key: "statusBar", label: "Status bar", type: "toggle" }
+  ],
+  alt: (ctx, o) => {
+    const tabs = tabsFor(ctx, o);
+    return `Install ${pkgNames(ctx).name}: ${tabs.map((t) => t.cmd).join(" | ")}`;
+  },
+  href: (ctx) => repoUrl2(ctx),
+  render(ctx, o) {
+    const t = ctx.theme;
+    const n = pkgNames(ctx);
+    const tabs = tabsFor(ctx, o);
+    const quick = o.quickStart !== false;
+    const quickOverride = fillStrict(str(o.quickStartCmd), ctx);
+    const statusBar = o.statusBar !== false;
+    const motion = t.motion !== "off";
+    const cycle = t.motion === "full" && tabs.length > 1;
+    const TAB_H = 28;
+    const tabY = (BAR2 - TAB_H) / 2;
+    const tabFs = 12.5;
+    const tabX0 = 86;
+    const geo = [];
+    let tx = tabX0;
+    const shown = [];
+    for (const tab of tabs) {
+      const lw = textWidth(t, fitText(t, tab.label, tabFs, 110, { bold: true }), tabFs, { bold: true });
+      const w = 14 + 14 + 7 + lw + 14;
+      if (tx + w > W44 - 16) break;
+      geo.push({ x: tx, w });
+      shown.push(tab);
+      tx += w + 4;
+    }
+    const N = shown.length;
+    const promptW = Math.max(20, textWidth(t, "$ ", FS3, { bold: true }));
+    const copyS = 30;
+    const cmdMax = W44 - X05 - promptW - copyS - 40;
+    const y1 = BAR2 + 36;
+    const y2 = y1 + 27;
+    const y3 = y2 + 34;
+    const lastY = quick && shown.some((tab) => quickOverride || tab.then) ? y3 : y2;
+    const H13 = lastY + 28 + (statusBar ? STATUS3 : 0);
+    const CH2 = 0.055;
+    const plan = shown.map((tab) => {
+      const cmd = fitText(t, tab.cmd, FS3, cmdMax);
+      const thenRaw = quick ? quickOverride || tab.then : "";
+      const then = thenRaw ? fitText(t, thenRaw, FS3, cmdMax - 110) : "";
+      const t1 = 0.45;
+      const d1 = Math.min(1.7, [...cmd].length * CH2);
+      const tOut = t1 + d1 + 0.35;
+      const t2 = tOut + 0.55;
+      const d2 = then ? Math.min(1.5, [...then].length * CH2) : 0;
+      const end = then ? t2 + d2 : tOut;
+      return { cmd, then, t1, d1, tOut, t2, d2, end };
+    });
+    const slot = Math.max(5.2, ...plan.map((p) => p.end + 2.6));
+    const P2 = cycle ? slot * N : slot;
+    const loopAttr = cycle ? `dur="${n1(P2)}s" repeatCount="indefinite"` : `dur="${n1(P2)}s" fill="freeze"`;
+    const begin = 0.35;
+    const anim = (attr, i, steps, before) => {
+      const off = cycle ? i * slot : 0;
+      const all = [[0, before], ...steps.map(([s, v]) => [off + s, v])];
+      if (cycle) all.push([off + slot, before]);
+      const tl = discreteTimeline(P2, all);
+      return `<animate attributeName="${attr}" begin="${begin}s" ${loopAttr} calcMode="discrete" values="${tl.values}" keyTimes="${tl.keyTimes}"/>`;
+    };
+    const typed = (i, key, text, x, y, start, cls) => {
+      const markup = `<text x="${n1(x)}" y="${y}" font-size="${FS3}" class="${cls}" xml:space="preserve">${esc(text)}</text>`;
+      if (!motion || !cycle && i > 0) return markup;
+      const chars = [...text];
+      const steps = chars.map((_, k) => [start + k * CH2, n1(textWidth(t, chars.slice(0, k + 1).join(""), FS3) + 1)]);
+      const id = `ty${i}${key}`;
+      return `<clipPath id="${id}"><rect x="${n1(x)}" y="${y - FS3 - 3}" width="0" height="${FS3 + 9}">${anim("width", i, steps, "0")}</rect></clipPath><g clip-path="url(#${id})">${markup}</g>`;
+    };
+    const appear = (i, at, inner) => {
+      if (!motion || !cycle && i > 0) return inner;
+      return `<g opacity="0">${anim("opacity", i, [[at, "1"]], "0")}${inner}</g>`;
+    };
+    const ok = okColor(t);
+    const panes = shown.map((tab, i) => {
+      const p = plan[i];
+      const cx = X05 + promptW;
+      const prompt = (y) => `<text x="${X05}" y="${y}" font-size="${FS3}" class="a b">$</text>`;
+      const row1 = `${prompt(y1)}${typed(i, "c", p.cmd, cx, y1, p.t1, "t")}`;
+      const ver = n.version && tab.pkg && tab.id !== "docker" && tab.id !== "custom" ? `@${n.version}` : "";
+      const outParts = [
+        { s: `${tab.verb} `, cls: "m" },
+        { s: tab.pkg, cls: "t b" },
+        { s: ver, cls: "a2" }
+      ].filter((s) => s.s);
+      let ox = cx;
+      const outText = outParts.map((s) => {
+        const fitted = fitText(t, s.s, 13, Math.max(20, W44 - 80 - ox), { bold: s.cls.includes("b") });
+        const m = `<text x="${n1(ox)}" y="${y2}" font-size="13" class="${s.cls}" xml:space="preserve">${esc(fitted)}</text>`;
+        ox += textWidth(t, fitted, 13, { bold: s.cls.includes("b") });
+        return m;
+      }).join("");
+      const row2 = appear(i, p.tOut, `${glyph("check", X05 - 1, y2 - 11.5, 14, ok)}${outText}`);
+      let row3 = "";
+      let curX = cx + textWidth(t, p.cmd, FS3) + 3;
+      let curY = y1;
+      let curAt = p.t1 + p.d1;
+      if (p.then) {
+        const tw = textWidth(t, p.then, FS3);
+        const comment = `<text x="${n1(cx + tw + 26)}" y="${y3}" font-size="12.5" class="s">${esc("# quick start")}</text>`;
+        row3 = `${appear(i, p.t2 - 0.25, prompt(y3))}${typed(i, "q", p.then, cx, y3, p.t2, "t")}${appear(i, p.t2 + p.d2 + 0.1, comment)}`;
+        curX = cx + tw + 3;
+        curY = y3;
+        curAt = p.t2 + p.d2;
+      }
+      const cursorW = textWidth(t, "n", FS3);
+      const cursor = appear(i, curAt, `<rect x="${n1(curX)}" y="${curY - FS3 + 1}" width="${n1(cursorW)}" height="${FS3 + 3}" rx="1" fill="${t.accent}" class="blink loop"/>`);
+      const pane = `${row1}${row2}${row3}${cursor}`;
+      if (!motion) return i === 0 ? pane : "";
+      if (!cycle) return i === 0 ? pane : "";
+      return `<g opacity="${i === 0 ? 1 : 0}">${anim("opacity", i, [[0, "1"]], "0")}${pane}</g>`;
+    });
+    const barFill = t.surface ? t.raised : "none";
+    const pillRects = (() => {
+      const g0 = geo[0];
+      if (!g0) return "";
+      let ax = "";
+      let aw = "";
+      let ux = "";
+      if (cycle) {
+        const sp = ".4 0 .2 1";
+        const xs = [];
+        const ws = [];
+        const uxs = [];
+        for (let i = 0; i <= N; i++) {
+          const g = geo[i % N];
+          const tIn = i * slot;
+          const tOut = (i + 1) * slot - 0.4;
+          if (i === N) {
+            xs.push([P2, n1(g.x)]);
+            ws.push([P2, n1(g.w)]);
+            uxs.push([P2, n1(g.x + 14)]);
+            break;
+          }
+          xs.push([tIn, n1(g.x)], [tOut, n1(g.x)]);
+          ws.push([tIn, n1(g.w)], [tOut, n1(g.w)]);
+          uxs.push([tIn, n1(g.x + 14)], [tOut, n1(g.x + 14)]);
+        }
+        const mk = (attr, steps) => {
+          const tl = linearTimeline(P2, steps);
+          const k = tl.keyTimes.split(";").length - 1;
+          return `<animate attributeName="${attr}" begin="${begin}s" dur="${n1(P2)}s" repeatCount="indefinite" calcMode="spline" keySplines="${Array(k).fill(sp).join(";")}" values="${tl.values}" keyTimes="${tl.keyTimes}"/>`;
+        };
+        ax = mk("x", xs);
+        aw = mk("width", ws);
+        ux = mk("x", uxs) + mk("width", ws.map(([s, v]) => [s, n1(Number(v) - 28)]));
+      }
+      return `<rect x="${n1(g0.x)}" y="${tabY}" width="${n1(g0.w)}" height="${TAB_H}" rx="${Math.min(8, t.radius)}" fill="${t.surface ? t.card : t.raised}" stroke="${t.border}">${ax}${aw}</rect>
+<rect x="${n1(g0.x + 14)}" y="${tabY + TAB_H - 2.5}" width="${n1(g0.w - 28)}" height="2" rx="1" fill="${t.accent}">${ux}</rect>`;
+    })();
+    const tabMarkup = shown.map((tab, i) => {
+      const g = geo[i];
+      const lab = fitText(t, tab.label, tabFs, 110, { bold: true });
+      const ix = g.x + 14;
+      const iy = tabY + (TAB_H - 14) / 2;
+      const lx = ix + 21;
+      const ly = tabY + TAB_H / 2 + tabFs * 0.36;
+      const base = `${tabIcon(t, tab, ix, iy, 14, t.muted)}<text x="${n1(lx)}" y="${n1(ly)}" font-size="${tabFs}" class="m b">${esc(lab)}</text>`;
+      const active = `${tabIcon(t, tab, ix, iy, 14, tab.icon ? "brand" : t.accent)}<text x="${n1(lx)}" y="${n1(ly)}" font-size="${tabFs}" class="t b">${esc(lab)}</text>`;
+      if (!cycle) {
+        return i === 0 ? active : `<g opacity=".85">${base}</g>`;
+      }
+      const on = (() => {
+        const sw = 0.2;
+        const steps = i === 0 ? [
+          [0, "1"],
+          [slot - sw, "0"],
+          [P2 - sw, "1"]
+        ] : [
+          [0, "0"],
+          [i * slot - sw, "1"],
+          [(i + 1) * slot - sw, "0"]
+        ];
+        const tl = discreteTimeline(P2, steps);
+        return `<animate attributeName="opacity" begin="${begin}s" dur="${n1(P2)}s" repeatCount="indefinite" calcMode="discrete" values="${tl.values}" keyTimes="${tl.keyTimes}"/>`;
+      })();
+      const off = on.replace(/values="([^"]*)"/, (_, v) => `values="${v.replace(/[01]/g, (d) => d === "1" ? "0" : "1")}"`);
+      return `<g opacity="${i === 0 ? 0 : 1}">${off}${base}</g><g opacity="${i === 0 ? 1 : 0}">${on}${active}</g>`;
+    }).join("");
+    const bx = W44 - X05 - copyS;
+    const byy = y1 - copyS / 2 - 5;
+    let copyIcons = `${xglyph2("copy", bx + 8, byy + 8, 14, t.muted)}`;
+    if (motion) {
+      const flash = shown.map((_, i) => {
+        const p = plan[i];
+        const off = cycle ? i * slot : 0;
+        return [off + p.tOut + 0.5, off + p.tOut + 1.9];
+      });
+      const vis = (on, off) => {
+        const steps = [[0, off]];
+        for (const [a, b] of flash.slice(0, cycle ? N : 1)) steps.push([a, on], [b, off]);
+        const tl = discreteTimeline(P2, steps);
+        return `<animate attributeName="opacity" begin="${begin}s" ${loopAttr} calcMode="discrete" values="${tl.values}" keyTimes="${tl.keyTimes}"/>`;
+      };
+      copyIcons = `<g>${vis("0", "1")}${xglyph2("copy", bx + 8, byy + 8, 14, t.muted)}</g><g opacity="0">${vis("1", "0")}${glyph("check", bx + 8, byy + 8, 14, ok)}</g>`;
+    }
+    const copyBtn = `<g class="fade" style="animation-delay:.3s"><rect x="${bx + 0.5}" y="${byy + 0.5}" width="${copyS - 1}" height="${copyS - 1}" rx="${Math.min(8, t.radius)}" fill="${t.raised}" stroke="${t.border}"/>${copyIcons}</g>`;
+    let statusMarkup = "";
+    if (statusBar) {
+      const sy = H13 - STATUS3;
+      const regs = shown.map((s) => s.registry || s.label);
+      const regW = Math.max(...regs.map((r) => textWidth(t, fitText(t, r, 11.5, 150, { bold: true }), 11.5, { bold: true }))) + 30;
+      const regTexts = regs.map((r, i) => {
+        const txt = `<text x="${n1(regW / 2)}" y="${H13 - 10.5}" font-size="11.5" text-anchor="middle" class="b" fill="${onAccent(t)}">${esc(fitText(t, r, 11.5, 150, { bold: true }))}</text>`;
+        if (!cycle) return i === 0 ? txt : "";
+        const steps = i === 0 ? [
+          [0, "1"],
+          [slot - 0.2, "0"],
+          [P2 - 0.2, "1"]
+        ] : [
+          [0, "0"],
+          [i * slot - 0.2, "1"],
+          [(i + 1) * slot - 0.2, "0"]
+        ];
+        const tl = discreteTimeline(P2, steps);
+        return `<g opacity="${i === 0 ? 1 : 0}"><animate attributeName="opacity" begin="${begin}s" dur="${n1(P2)}s" repeatCount="indefinite" calcMode="discrete" values="${tl.values}" keyTimes="${tl.keyTimes}"/>${txt}</g>`;
+      }).join("");
+      const right = [n.repo, n.version ? `v${n.version}` : "", n.license ? `${n.license} licence` : ""].filter(Boolean).join("  \xB7  ");
+      statusMarkup = `<rect x="0" y="${sy}" width="${W44}" height="${STATUS3}" fill="${barFill}"/>
+<path d="M0 ${sy - 0.5}H${W44}" stroke="${t.border}"/>
+<rect x="0" y="${sy + 0.5}" width="${n1(regW)}" height="${STATUS3}" fill="${t.accent}"/>${regTexts}
+<text x="${W44 - 16}" y="${H13 - 10.5}" font-size="11.5" class="m" text-anchor="end">${esc(fitText(t, right, 11.5, W44 - regW - 48))}</text>`;
+    }
+    const chrome = `<rect x="0" y="0" width="${W44}" height="${BAR2}" fill="${barFill}"/>
+<path d="M0 ${BAR2 + 0.5}H${W44}" stroke="${t.border}"/>
+<circle cx="22" cy="${BAR2 / 2}" r="6" fill="#ff5f57"/><circle cx="42" cy="${BAR2 / 2}" r="6" fill="#febc2e"/><circle cx="62" cy="${BAR2 / 2}" r="6" fill="#28c840"/>`;
+    const css = `.a2{fill:${t.accent2}}`;
+    const defs = `<clipPath id="win"><rect x=".5" y=".5" width="${W44 - 1}" height="${H13 - 1}" rx="${t.radius}"/></clipPath>`;
+    const body = `${card(t, { width: W44, height: H13 })}
+<g clip-path="url(#win)">${chrome}${statusMarkup}</g>
+<g class="fade" style="animation-delay:.1s">${pillRects}${tabMarkup}</g>
+${cardStroke(t, W44, H13)}
+${copyBtn}
+<g class="fade" style="animation-delay:.2s">${panes.join("\n")}</g>`;
+    return svg({ width: W44, height: H13, theme: t, title: this.alt(ctx, o), css, defs, body });
+  }
+});
+
+// ../core/src/widgets/pf-highlight.ts
+var LANGS2 = [
+  { value: "auto", label: "Detect from file name" },
+  { value: "ts", label: "TypeScript / JavaScript" },
+  { value: "python", label: "Python" },
+  { value: "rust", label: "Rust" },
+  { value: "go", label: "Go" },
+  { value: "shell", label: "Shell" },
+  { value: "json", label: "JSON" },
+  { value: "yaml", label: "YAML" },
+  { value: "plain", label: "Plain text" }
+];
+var LANG_NAME = {
+  ts: "TypeScript",
+  python: "Python",
+  rust: "Rust",
+  go: "Go",
+  shell: "Shell",
+  json: "JSON",
+  yaml: "YAML",
+  plain: "Text"
+};
+var LANG_ICON = {
+  ts: "typescript",
+  python: "python",
+  rust: "rust",
+  go: "go",
+  shell: "terminal",
+  json: "code",
+  yaml: "code",
+  plain: "book"
+};
+var words = (s) => new Set(s.split(/\s+/).filter(Boolean));
+var DEFS = {
+  ts: {
+    line: ["//"],
+    block: ["/*", "*/"],
+    quotes: ['"', "'", "`"],
+    multi: ["`"],
+    kw: words(
+      "import export from as default const let var function return if else for while do switch case break continue new class extends implements interface type enum async await yield try catch finally throw typeof instanceof in of void delete this super static public private protected readonly declare namespace module keyof satisfies get set"
+    ),
+    consts: words("true false null undefined NaN Infinity"),
+    decl: words("function class interface type enum"),
+    builtinTypes: words("string number boolean any unknown never object bigint symbol Promise Record Array Map Set")
+  },
+  python: {
+    line: ["#"],
+    quotes: ['"', "'"],
+    triple: true,
+    kw: words("import from as def return if elif else for while in not and or is class with try except finally raise lambda yield async await pass break continue global nonlocal del assert match case self"),
+    consts: words("True False None"),
+    decl: words("def class"),
+    builtinTypes: words("int str float bool list dict tuple set bytes")
+  },
+  rust: {
+    line: ["//"],
+    block: ["/*", "*/"],
+    quotes: ['"'],
+    kw: words("use mod pub crate fn let mut const static struct enum impl trait for in while loop if else match return break continue as where ref move async await dyn unsafe extern type self Self super"),
+    consts: words("true false None Some Ok Err"),
+    decl: words("fn struct enum trait type mod"),
+    builtinTypes: words("i8 i16 i32 i64 i128 isize u8 u16 u32 u64 u128 usize f32 f64 bool char str String Vec Option Result Box")
+  },
+  go: {
+    line: ["//"],
+    block: ["/*", "*/"],
+    quotes: ['"', "`"],
+    multi: ["`"],
+    kw: words("package import func return if else for range switch case default break continue go defer select chan map struct interface type var const fallthrough goto"),
+    consts: words("true false nil iota"),
+    decl: words("func type"),
+    builtinTypes: words("int int8 int16 int32 int64 uint uint8 uint16 uint32 uint64 float32 float64 string bool byte rune error any")
+  }
+};
+function newState() {
+  return { open: null };
+}
+var NUM = /^(?:0[xX][\da-fA-F_]+|0[bB][01_]+|0[oO][0-7_]+|\d[\d_]*(?:\.\d[\d_]*)?(?:[eE][+-]?\d+)?)(?:n|[iuf](?:8|16|32|64|128|size)|[jJ])?/;
+var IDENT = /^[A-Za-z_$][\w$]*/;
+function push(out, s, c) {
+  if (!s) return;
+  const last = out[out.length - 1];
+  if (last && last.c === c) last.s += s;
+  else out.push({ s, c });
+}
+function readString(line, i, q) {
+  let j = i + q.length;
+  while (j < line.length) {
+    if (line[j] === "\\") {
+      j += 2;
+      continue;
+    }
+    if (line.startsWith(q, j)) return { end: j + q.length, closed: true };
+    j++;
+  }
+  return { end: line.length, closed: false };
+}
+function codeLine(line, def, lang, st) {
+  const out = [];
+  let i = 0;
+  let prevWord = "";
+  if (st.open) {
+    const k = line.indexOf(st.open.end);
+    if (k < 0) {
+      push(out, line, st.open.c);
+      return out;
+    }
+    push(out, line.slice(0, k + st.open.end.length), st.open.c);
+    i = k + st.open.end.length;
+    st.open = null;
+  }
+  while (i < line.length) {
+    const rest = line.slice(i);
+    const ch = line[i];
+    if (/\s/.test(ch)) {
+      const m = /^\s+/.exec(rest)[0];
+      push(out, m, "t");
+      i += m.length;
+      continue;
+    }
+    if (def.line.some((p) => rest.startsWith(p))) {
+      push(out, rest, "com");
+      break;
+    }
+    if (def.block && rest.startsWith(def.block[0])) {
+      const k = line.indexOf(def.block[1], i + 2);
+      if (k < 0) {
+        push(out, rest, "com");
+        st.open = { end: def.block[1], c: "com" };
+        break;
+      }
+      push(out, line.slice(i, k + 2), "com");
+      i = k + 2;
+      continue;
+    }
+    let pre = 0;
+    if (lang === "python") {
+      const m = /^[rRbBfFuU]{1,2}(?=["'])/.exec(rest);
+      if (m) pre = m[0].length;
+    }
+    const qch = line[i + pre];
+    if (def.quotes.includes(qch) || lang === "rust" && ch === "'") {
+      if (lang === "rust" && ch === "'") {
+        const c = /^'(?:\\.|[^\\'])'/.exec(rest);
+        if (c) {
+          push(out, c[0], "str");
+          i += c[0].length;
+          continue;
+        }
+        const lt = /^'[A-Za-z_]\w*/.exec(rest);
+        if (lt) {
+          push(out, lt[0], "ty");
+          i += lt[0].length;
+          continue;
+        }
+      }
+      const triple = def.triple && line.startsWith(qch.repeat(3), i + pre) ? qch.repeat(3) : "";
+      const q = triple || qch;
+      const r = readString(line, i + pre, q);
+      push(out, line.slice(i, r.end), "str");
+      if (!r.closed && (triple || def.multi?.includes(qch))) st.open = { end: q, c: "str" };
+      i = r.end;
+      continue;
+    }
+    const num3 = NUM.exec(rest);
+    if (num3 && /\d/.test(ch)) {
+      push(out, num3[0], "num");
+      i += num3[0].length;
+      continue;
+    }
+    if (lang === "python" && ch === "@") {
+      const m = /^@[\w.]+/.exec(rest);
+      if (m) {
+        push(out, m[0], "fn");
+        i += m[0].length;
+        continue;
+      }
+    }
+    if (lang === "rust" && ch === "#") {
+      const m = /^#!?\[[^\]]*\]/.exec(rest);
+      if (m) {
+        push(out, m[0], "pun");
+        i += m[0].length;
+        continue;
+      }
+    }
+    const id = IDENT.exec(rest);
+    if (id) {
+      const w = id[0];
+      const after = line.slice(i + w.length);
+      let c = "t";
+      const prevChar = line.slice(0, i).trimEnd().slice(-1);
+      if (def.kw.has(w) && prevChar !== ".") c = "kw";
+      else if (def.consts.has(w)) c = "num";
+      else if (def.decl.has(prevWord)) c = prevWord === "class" || prevWord === "struct" || prevWord === "interface" || prevWord === "type" || prevWord === "enum" || prevWord === "trait" ? "ty" : "fn";
+      else if (lang === "rust" && after.startsWith("!")) {
+        push(out, `${w}!`, "fn");
+        i += w.length + 1;
+        prevWord = w;
+        continue;
+      } else if (/^\s*(?:<[^()]*>)?\s*\(/.test(after)) c = "fn";
+      else if (def.builtinTypes?.has(w) || /^[A-Z][a-z0-9]+[A-Za-z0-9]*$/.test(w)) c = "ty";
+      else if (prevChar === ".") c = "prop";
+      else if (lang === "ts" && /^\s*\??:(?!:)/.test(after) && /[{,(]\s*$|^\s*$/.test(line.slice(0, i))) c = "prop";
+      push(out, w, c);
+      prevWord = w;
+      i += w.length;
+      continue;
+    }
+    push(out, ch, "pun");
+    i++;
+  }
+  return out;
+}
+function shellLine(line, st) {
+  const out = [];
+  let i = 0;
+  let cmdPos = true;
+  if (st.open) {
+    const k = line.indexOf(st.open.end);
+    if (k < 0) {
+      push(out, line, "str");
+      return out;
+    }
+    push(out, line.slice(0, k + 1), "str");
+    i = k + 1;
+    st.open = null;
+    cmdPos = false;
+  }
+  while (i < line.length) {
+    const rest = line.slice(i);
+    const ch = line[i];
+    if (/\s/.test(ch)) {
+      const m = /^\s+/.exec(rest)[0];
+      push(out, m, "t");
+      i += m.length;
+      continue;
+    }
+    if (ch === "#" && (i === 0 || /\s/.test(line[i - 1]))) {
+      push(out, rest, "com");
+      break;
+    }
+    if (ch === '"' || ch === "'") {
+      const r = readString(line, i, ch);
+      push(out, line.slice(i, r.end), "str");
+      if (!r.closed) st.open = { end: ch, c: "str" };
+      i = r.end;
+      cmdPos = false;
+      continue;
+    }
+    if (ch === "$") {
+      const m = /^\$(?:\{[^}]*\}|\(|[A-Za-z_]\w*|[@#?$!0-9*])/.exec(rest);
+      if (m) {
+        push(out, m[0], "var");
+        i += m[0].length;
+        if (m[0] === "$(") cmdPos = true;
+        continue;
+      }
+      if (i === 0 || /^\s*$/.test(line.slice(0, i))) {
+        push(out, "$", "pun");
+        i++;
+        continue;
+      }
+    }
+    if (/[|;&()<>]/.test(ch)) {
+      const m = /^(?:\|\||&&|[|;&()<>]+)/.exec(rest)[0];
+      push(out, m, "pun");
+      i += m.length;
+      if (/[|;&(]/.test(m)) cmdPos = true;
+      continue;
+    }
+    if (ch === "\\" && i === line.length - 1) {
+      push(out, ch, "pun");
+      i++;
+      continue;
+    }
+    const word = /^[^\s|;&()<>"'$]+/.exec(rest)[0];
+    if (cmdPos && /^[A-Za-z_]\w*=/.test(word)) {
+      const eq = word.indexOf("=");
+      push(out, word.slice(0, eq), "var");
+      push(out, "=", "pun");
+      push(out, word.slice(eq + 1), "str");
+    } else if (cmdPos) {
+      push(out, word, /^(if|then|else|fi|for|do|done|while|case|esac|function|export|sudo|in)$/.test(word) ? "kw" : "fn");
+      if (!/^(sudo|if|then|do|else|export)$/.test(word)) cmdPos = false;
+    } else if (/^--?[A-Za-z]/.test(word)) push(out, word, "ty");
+    else if (/^\d[\d.]*$/.test(word)) push(out, word, "num");
+    else push(out, word, "t");
+    i += word.length;
+  }
+  return out;
+}
+function jsonLine(line) {
+  const out = [];
+  let i = 0;
+  while (i < line.length) {
+    const rest = line.slice(i);
+    const ch = line[i];
+    if (/\s/.test(ch)) {
+      const m = /^\s+/.exec(rest)[0];
+      push(out, m, "t");
+      i += m.length;
+      continue;
+    }
+    if (rest.startsWith("//")) {
+      push(out, rest, "com");
+      break;
+    }
+    if (ch === '"') {
+      const r = readString(line, i, '"');
+      const isKey = /^\s*:/.test(line.slice(r.end));
+      push(out, line.slice(i, r.end), isKey ? "prop" : "str");
+      i = r.end;
+      continue;
+    }
+    const n = /^-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?/.exec(rest);
+    if (n) {
+      push(out, n[0], "num");
+      i += n[0].length;
+      continue;
+    }
+    const w = /^(true|false|null)\b/.exec(rest);
+    if (w) {
+      push(out, w[0], "kw");
+      i += w[0].length;
+      continue;
+    }
+    push(out, ch, "pun");
+    i++;
+  }
+  return out;
+}
+function yamlValue(out, v) {
+  const lead = /^\s*/.exec(v)[0];
+  push(out, lead, "t");
+  let body = v.slice(lead.length);
+  const ci = body.search(/(^|\s)#/);
+  let comment = "";
+  if (ci >= 0 && !/^["']/.test(body)) {
+    comment = body.slice(ci);
+    body = body.slice(0, ci);
+  }
+  const trimmed = body.trimEnd();
+  const tail = body.slice(trimmed.length);
+  if (!trimmed) {
+  } else if (/^["']/.test(trimmed)) push(out, trimmed, "str");
+  else if (/^(true|false|yes|no|on|off|null|~)$/i.test(trimmed)) push(out, trimmed, "kw");
+  else if (/^-?\d+(\.\d+)?$/.test(trimmed)) push(out, trimmed, "num");
+  else if (/^[|>][-+]?$/.test(trimmed) || /^[[{]/.test(trimmed)) push(out, trimmed, "pun");
+  else if (/^[&*!]/.test(trimmed)) push(out, trimmed, "ty");
+  else push(out, trimmed, "str");
+  push(out, tail, "t");
+  if (comment) {
+    const sp = /^\s*/.exec(comment)[0];
+    push(out, sp, "t");
+    push(out, comment.slice(sp.length), "com");
+  }
+}
+function yamlLine(line) {
+  const out = [];
+  const com = /^(\s*)(#.*)$/.exec(line);
+  if (com) {
+    push(out, com[1], "t");
+    push(out, com[2], "com");
+    return out;
+  }
+  if (/^(---|\.\.\.)\s*$/.test(line)) {
+    push(out, line, "pun");
+    return out;
+  }
+  const m = /^(\s*)(-\s+)?((?:"[^"]*"|'[^']*'|[^\s:#][^:#]*?))(:)(\s.*|$)/.exec(line);
+  if (m) {
+    push(out, m[1], "t");
+    if (m[2]) push(out, m[2], "pun");
+    push(out, m[3], "prop");
+    push(out, m[4], "pun");
+    yamlValue(out, m[5]);
+    return out;
+  }
+  const li = /^(\s*)(-)(\s.*|$)/.exec(line);
+  if (li) {
+    push(out, li[1], "t");
+    push(out, li[2], "pun");
+    yamlValue(out, li[3]);
+    return out;
+  }
+  yamlValue(out, line);
+  return out;
+}
+function highlight(code, lang) {
+  const st = newState();
+  return code.split("\n").map((raw) => {
+    const line = raw.replace(/\t/g, "  ").replace(/\s+$/, "");
+    if (lang === "plain") return line ? [{ s: line, c: "t" }] : [];
+    if (lang === "shell") return shellLine(line, st);
+    if (lang === "json") return jsonLine(line);
+    if (lang === "yaml") return yamlLine(line);
+    return codeLine(line, DEFS[lang], lang, st);
+  });
+}
+function detectLang(filename, code) {
+  const ext = /\.([a-z0-9]+)$/i.exec(filename.trim())?.[1]?.toLowerCase() ?? "";
+  const byExt = {
+    ts: "ts",
+    tsx: "ts",
+    js: "ts",
+    jsx: "ts",
+    mjs: "ts",
+    cjs: "ts",
+    mts: "ts",
+    cts: "ts",
+    py: "python",
+    pyi: "python",
+    rs: "rust",
+    go: "go",
+    sh: "shell",
+    bash: "shell",
+    zsh: "shell",
+    fish: "shell",
+    json: "json",
+    jsonc: "json",
+    yml: "yaml",
+    yaml: "yaml",
+    txt: "plain",
+    md: "plain"
+  };
+  if (byExt[ext]) return byExt[ext];
+  const name = filename.trim().toLowerCase();
+  if (name === "dockerfile" || name === "makefile") return "shell";
+  if (/^\s*[{[]/.test(code) && /"\s*:/.test(code)) return "json";
+  if (/^\s*(def |from \S+ import |import \S+$|class \w+:)/m.test(code)) return "python";
+  if (/^\s*(fn |use \w+::|let mut |impl )/m.test(code)) return "rust";
+  if (/^\s*(package \w+|func )/m.test(code)) return "go";
+  if (/^\s*(\$ |npm |npx |pip |cargo |curl |git |brew |docker )/m.test(code)) return "shell";
+  if (/^\s*[\w-]+:\s/m.test(code) && !/[;{}()]/.test(code)) return "yaml";
+  return "ts";
+}
+
+// ../core/src/widgets/pf-code.ts
+var W45 = 840;
+var BAR3 = 40;
+var FS4 = 13.5;
+var LH2 = 22;
+var MAX_ROWS = 36;
+var DEFAULT_CODE = `import { createClient } from "{npm}";
+
+const client = createClient({
+  apiKey: process.env.API_KEY,
+  retries: 3, // back off politely on 429s
+});
+
+const result = await client.run("hello, world");
+console.log(result.output);`;
+function layout(t, lines, max, wrap) {
+  const tw = (s) => textWidth(t, s, FS4);
+  const rows3 = [];
+  const ell = tw("\u2026");
+  lines.forEach((toks, li) => {
+    const total = toks.reduce((a, k) => a + tw(k.s), 0);
+    if (total <= max) {
+      rows3.push({ n: li + 1, src: li + 1, toks, cut: false });
+      return;
+    }
+    if (!wrap) {
+      const out = [];
+      let w2 = 0;
+      for (const k of toks) {
+        const kw = tw(k.s);
+        if (w2 + kw <= max - ell) {
+          out.push(k);
+          w2 += kw;
+          continue;
+        }
+        const s = fitText(t, k.s, FS4, max - w2);
+        const body = s.endsWith("\u2026") ? s.slice(0, -1) : s;
+        if (body.trim()) out.push({ s: body, c: k.c });
+        break;
+      }
+      rows3.push({ n: li + 1, src: li + 1, toks: out, cut: true });
+      return;
+    }
+    const lead = /^\s*/.exec(toks.map((k) => k.s).join(""))[0];
+    const indent = `${lead}    `;
+    const indentW = tw(indent);
+    const pieces = toks.flatMap((k) => k.s.split(/(\s+)/).filter(Boolean).map((s) => ({ s, c: k.c })));
+    let cur = [];
+    let w = 0;
+    let first = true;
+    const flush = () => {
+      while (cur.length && !cur[cur.length - 1].s.trim()) cur.pop();
+      rows3.push({ n: first ? li + 1 : 0, src: li + 1, toks: cur, cut: false });
+      first = false;
+      cur = [{ s: indent, c: "t" }];
+      w = indentW;
+    };
+    for (const p of pieces) {
+      let pw = tw(p.s);
+      if (w + pw <= max) {
+        cur.push(p);
+        w += pw;
+        continue;
+      }
+      if (!p.s.trim()) {
+        flush();
+        continue;
+      }
+      if (cur.some((k) => k.s.trim()) && pw <= max - indentW) {
+        flush();
+        cur.push(p);
+        w += pw;
+        continue;
+      }
+      let rest = p.s;
+      while (rest) {
+        const chars = [...rest];
+        let k = chars.length;
+        while (k > 1 && tw(chars.slice(0, k).join("")) > max - w) k--;
+        const head = chars.slice(0, k).join("");
+        cur.push({ s: head, c: p.c });
+        rest = chars.slice(k).join("");
+        if (rest) flush();
+        else w += tw(head);
+        pw = 0;
+      }
+    }
+    if (cur.some((k) => k.s.trim())) flush();
+  });
+  return rows3;
+}
+function palette(t) {
+  const dark = t.name === "dark";
+  return {
+    t: t.text,
+    kw: t.accent,
+    str: t.accent2,
+    num: t.glow,
+    com: t.muted,
+    fn: mix(t.text, t.glow, dark ? 0.35 : 0.4),
+    ty: mix(t.accent2, t.text, dark ? 0.35 : 0.3),
+    pun: mix(t.muted, t.text, 0.25),
+    prop: mix(t.text, t.accent2, dark ? 0.22 : 0.3),
+    var: t.glow
+  };
+}
+var pfCode = defineWidget({
+  type: "code",
+  title: "Code snippet",
+  description: "A syntax-highlighted code card with a file tab, line numbers, highlighted lines and a line-by-line reveal: perfect for a usage example.",
+  scope: "project",
+  category: "Content",
+  kind: "svg",
+  width: "full",
+  defaults: {
+    code: DEFAULT_CODE,
+    language: "auto",
+    filename: "example.ts",
+    lineNumbers: true,
+    highlight: "8",
+    reveal: true,
+    overflow: "wrap"
+  },
+  fields: [
+    { key: "code", label: "Code", type: "text", multiline: true, max: 4e3, help: "Placeholders: {npm} {pypi} {crate} {bin} {repo} {project} {version}. Up to 36 rows are shown." },
+    { key: "language", label: "Language", type: "select", options: LANGS2 },
+    { key: "filename", label: "File name", type: "text", placeholder: "example.ts", max: 60 },
+    { key: "lineNumbers", label: "Line numbers", type: "toggle" },
+    { key: "highlight", label: "Highlight lines", type: "text", placeholder: "3-5, 8", max: 40, help: "Line numbers or ranges to emphasise." },
+    { key: "reveal", label: "Line-by-line reveal", type: "toggle" },
+    {
+      key: "overflow",
+      label: "Long lines",
+      type: "segmented",
+      options: [
+        { value: "wrap", label: "Wrap" },
+        { value: "clip", label: "Clip" }
+      ]
+    }
+  ],
+  alt: (ctx, o) => {
+    const file = str(o.filename);
+    return `${file ? `${file}: ` : ""}code example for ${pkgNames(ctx).name}`;
+  },
+  href: (ctx) => repoUrl2(ctx),
+  render(ctx, o) {
+    const t = ctx.theme;
+    const raw = fillStrict(typeof o.code === "string" ? o.code : "", ctx).replace(/\r\n?/g, "\n").replace(/^\n+|\s+$/g, "");
+    const file = fillStrict(str(o.filename), ctx);
+    const langOpt = pick(o.language, ["auto", "ts", "python", "rust", "go", "shell", "json", "yaml", "plain"], "auto");
+    const lang = langOpt === "auto" ? detectLang(file, raw) : langOpt;
+    const nums = o.lineNumbers !== false;
+    const marks = lineSet(str(o.highlight));
+    const reveal = o.reveal !== false && t.motion !== "off";
+    const wrap = pick(o.overflow, ["wrap", "clip"], "wrap") === "wrap";
+    const pal = palette(t);
+    const srcLines = raw ? highlight(raw, lang) : [];
+    const lastNo = srcLines.length;
+    const numW = nums ? textWidth(t, String(Math.max(10, lastNo)), 12.5) : 0;
+    const gx = 24 + numW;
+    const cx = nums ? gx + 22 : 28;
+    const max = W45 - cx - 28;
+    let rows3 = layout(t, srcLines, max, wrap);
+    const more = rows3.length > MAX_ROWS;
+    if (more) rows3 = rows3.slice(0, MAX_ROWS - 1);
+    const top = BAR3 + 18;
+    const bodyH = rows3.length ? rows3.length * LH2 + (more ? LH2 : 0) : 64;
+    const H13 = top + bodyH + 16;
+    const barFill = t.surface ? t.raised : "none";
+    const tabFile = fitText(t, file || `snippet.${lang === "plain" ? "txt" : lang === "python" ? "py" : lang === "rust" ? "rs" : lang === "shell" ? "sh" : lang === "yaml" ? "yml" : lang}`, 12.5, 360, { bold: true });
+    const tabW = 18 + 14 + 9 + textWidth(t, tabFile, 12.5, { bold: true }) + 20;
+    const iconId = LANG_ICON[lang];
+    const icon2 = mark(t, iconId, 18, BAR3 / 2 - 7, 14, "brand", t.card);
+    const right = `${LANG_NAME[lang]}${raw ? `  \xB7  ${lastNo} line${lastNo === 1 ? "" : "s"}` : ""}`;
+    const header2 = `<rect x="0" y="0" width="${W45}" height="${BAR3}" fill="${barFill}"/>
+<path d="M0 ${BAR3 - 0.5}H${W45}" stroke="${t.border}"/>
+<rect x="0" y="0" width="${n1(tabW)}" height="${BAR3}" fill="${t.surface ? t.card : "none"}"/>
+<path d="M${n1(tabW + 0.5)} 0V${BAR3}" stroke="${t.border}"/>
+<rect x="0" y="0" width="${n1(tabW)}" height="2" fill="${t.accent}" class="bar"/>`;
+    const headerText = `<g class="fade">${icon2}<text x="${18 + 14 + 9}" y="${BAR3 / 2 + 4.5}" font-size="12.5" class="t b">${esc(tabFile)}</text>
+<text x="${W45 - 50}" y="${BAR3 / 2 + 4}" font-size="11" text-anchor="end" letter-spacing=".4" class="m">${esc(right)}</text>
+${xglyph2("copy", W45 - 36, BAR3 / 2 - 7, 14, t.muted)}</g>`;
+    const step = rows3.length > 18 ? 0.035 : 0.055;
+    const d0 = 0.25;
+    const out = [];
+    const bands = [];
+    rows3.forEach((r, i) => {
+      const y = top + i * LH2;
+      const base = y + 15.5;
+      const hot = marks.has(r.src);
+      const d = d0 + i * step;
+      if (hot) {
+        const prevHot = i > 0 && marks.has(rows3[i - 1].src);
+        const nextHot = i < rows3.length - 1 && marks.has(rows3[i + 1].src);
+        bands.push(
+          `<rect x="0" y="${y}" width="${W45}" height="${LH2}" fill="${tint(t, t.accent, t.name === "dark" ? 0.13 : 0.08)}" class="hl" style="animation-delay:${(d0 + rows3.length * step + 0.1).toFixed(2)}s"/><rect x="0" y="${y + (prevHot ? 0 : 2)}" width="3" height="${LH2 - (prevHot ? 0 : 2) - (nextHot ? 0 : 2)}" fill="${t.accent}" class="fade" style="animation-delay:${(d0 + rows3.length * step + 0.1).toFixed(2)}s"/>`
+        );
+      }
+      const numMarkup = nums && r.n ? `<text x="${n1(gx)}" y="${base}" font-size="12.5" text-anchor="end" fill="${hot ? t.accent : t.subtle}"${hot ? ' class="b"' : ""}>${r.n}</text>` : "";
+      const spans = r.toks.map((k) => `<tspan fill="${pal[k.c]}">${esc(k.s)}</tspan>`).join("");
+      const ell = r.cut ? `<tspan fill="${t.muted}">\u2026</tspan>` : "";
+      const code = r.toks.length || r.cut ? `<text x="${n1(cx)}" y="${base}" font-size="${FS4}" xml:space="preserve">${spans}${ell}</text>` : "";
+      if (!numMarkup && !code) return;
+      out.push(`<g${reveal ? ` class="ln" style="animation-delay:${d.toFixed(2)}s"` : ""}>${numMarkup}${code}</g>`);
+    });
+    if (more) {
+      const y = top + rows3.length * LH2 + 15.5;
+      out.push(`<text x="${n1(cx)}" y="${y}" font-size="12" class="m fade" style="animation-delay:${(d0 + rows3.length * step).toFixed(2)}s">${esc(`\u2026 ${srcLines.length - (rows3[rows3.length - 1]?.src ?? 0)} more lines`)}</text>`);
+    }
+    let caret = "";
+    if (rows3.length && !more) {
+      const last = rows3[rows3.length - 1];
+      const lw = last.toks.reduce((a, k) => a + textWidth(t, k.s, FS4), 0);
+      const y = top + (rows3.length - 1) * LH2;
+      if (cx + lw + 12 < W45 - 20)
+        caret = `<rect x="${n1(cx + lw + 3)}" y="${y + 3.5}" width="2" height="${FS4 + 2}" fill="${t.accent}" class="caret loop"/>`;
+    }
+    const empty = !rows3.length ? `<text x="${W45 / 2}" y="${top + 38}" font-size="13" text-anchor="middle" class="m in">${esc("Paste a usage example in the inspector")}</text>` : "";
+    const css = `
+.ln{animation:lnIn .55s cubic-bezier(.2,.7,.2,1) both}
+@keyframes lnIn{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:none}}
+.hl{transform-box:fill-box;transform-origin:left;animation:growX .7s cubic-bezier(.2,.7,.2,1) both}
+.bar{transform-box:fill-box;transform-origin:left;animation:growX .8s cubic-bezier(.2,.7,.2,1) .1s both}
+.caret{animation:fadeIn .3s ease ${(d0 + rows3.length * step + 0.2).toFixed(2)}s both,blink 1.1s step-end ${(d0 + rows3.length * step + 0.5).toFixed(2)}s infinite}`;
+    const defs = `<clipPath id="win"><rect x=".5" y=".5" width="${W45 - 1}" height="${H13 - 1}" rx="${t.radius}"/></clipPath>`;
+    const body = `${card(t, { width: W45, height: H13 })}
+<g clip-path="url(#win)">${header2}${bands.join("")}</g>
+${cardStroke(t, W45, H13)}
+${headerText}
+${out.join("\n")}
+${caret}${empty}`;
+    return svg({ width: W45, height: H13, theme: t, title: this.alt(ctx, o), css, defs, body });
+  }
+});
+
+// ../core/src/widgets/pf-features.ts
+var W46 = 840;
+var PAD = 24;
+var GAP2 = 14;
+var DEFAULT_FEATURES = [
+  { icon: "bolt", title: "Blazing fast", text: "Incremental builds finish in milliseconds, even in monorepos with thousands of files." },
+  { icon: "sparkle", title: "Zero config", text: "Sensible defaults out of the box. Reach for a config file only when you need one." },
+  { icon: "code", title: "Fully typed", text: "First-class TypeScript types and autocompletion for every option and plugin hook." },
+  { icon: "terminal", title: "Friendly CLI", text: "Readable errors, coloured diffs and a watch mode that stays out of your way." },
+  { icon: "globe", title: "Runs anywhere", text: "Node, Deno, Bun and the browser, with no native dependencies or install scripts." },
+  { icon: "users", title: "Plugin ecosystem", text: "A growing set of community plugins for frameworks, design tools and CI." }
+];
+var pfFeatures = defineWidget({
+  type: "features",
+  title: "Feature grid",
+  description: "Your project's highlights as a two- or three-column grid of icon tiles, titles and short descriptions, revealed one by one.",
+  scope: "project",
+  category: "Content",
+  kind: "svg",
+  width: "full",
+  defaults: {
+    label: "why {project}",
+    columns: "3",
+    style: "cards",
+    numbered: false,
+    items: DEFAULT_FEATURES
+  },
+  fields: [
+    { key: "label", label: "Title", type: "text", placeholder: "features", help: PLACEHOLDER_HELP },
+    {
+      key: "columns",
+      label: "Columns",
+      type: "segmented",
+      options: [
+        { value: "2", label: "Two" },
+        { value: "3", label: "Three" }
+      ]
+    },
+    {
+      key: "style",
+      label: "Style",
+      type: "segmented",
+      options: [
+        { value: "cards", label: "Cards" },
+        { value: "plain", label: "Plain" }
+      ]
+    },
+    { key: "numbered", label: "Numbered", type: "toggle", help: "Adds 01, 02, \u2026 to each feature." },
+    {
+      key: "items",
+      label: "Features",
+      type: "list",
+      itemLabel: "Feature",
+      titleKey: "title",
+      max: 9,
+      newItem: { icon: "sparkle", title: "New feature", text: "" },
+      item: [
+        { key: "icon", label: "Icon", type: "icon", help: "A line glyph (bolt, sparkle, code, globe, \u2026) or a brand icon." },
+        { key: "title", label: "Title", type: "text", max: 48 },
+        { key: "text", label: "Description", type: "text", multiline: true, max: 180 }
+      ]
+    }
+  ],
+  alt: (ctx, o) => {
+    const list = items(o.items).map((f2) => fillPlaceholders(str(f2.title), ctx)).filter(Boolean);
+    const lbl = fillPlaceholders(str(o.label), ctx);
+    return list.length ? `${lbl || "Features"}: ${list.join(", ")}` : lbl || "Features";
+  },
+  href: (ctx) => repoUrl2(ctx),
+  render(ctx, o) {
+    const t = ctx.theme;
+    const fill2 = (s) => fillPlaceholders(s, ctx);
+    const feats = items(o.items).map((f2) => ({ icon: str(f2.icon), title: fill2(str(f2.title)), text: fill2(str(f2.text)) })).filter((f2) => f2.title || f2.text).slice(0, 9);
+    const lbl = fill2(str(o.label));
+    const cards = pick(o.style, ["cards", "plain"], "cards") === "cards";
+    const top = lbl ? 50 : cards ? PAD : 8;
+    const numbered = o.numbered === true;
+    let cols = pick(o.columns, ["2", "3"], "3") === "3" ? 3 : 2;
+    if (feats.length && feats.length < cols) cols = feats.length;
+    if (!feats.length) {
+      const H14 = top + 76;
+      const body2 = `${card(t, { width: W46, height: H14 })}
+${lbl ? label(t, PAD, 30, lbl) : ""}
+${emptyHint(t, W46 / 2, top + 34, "sparkle", "Add your project's highlights in the inspector")}`;
+      return svg({ width: W46, height: H14, theme: t, title: "Features", body: body2 });
+    }
+    const gap = cards ? GAP2 : 0;
+    const cw = (W46 - PAD * 2 - gap * (cols - 1)) / cols;
+    const inner = cards ? 20 : 22;
+    const stacked = cols === 3 || cw < 330;
+    const TILE = 38;
+    const anyIcon = feats.some((f2) => hasMark(f2.icon)) || numbered;
+    const tx = stacked || !anyIcon ? inner : inner + TILE + 16;
+    const textW = cw - tx - inner;
+    const tFs = 15;
+    const dFs = 12.5;
+    const dLh = 18.5;
+    const laid = feats.map((f2) => {
+      const title = f2.title ? wrapText(t, f2.title, tFs, textW - (numbered && !stacked ? 0 : 0), 2, { bold: true, heading: true }) : [];
+      const lines = f2.text ? balancedWrap(t, f2.text, dFs, textW, 4) : [];
+      const headH = stacked && anyIcon ? TILE + 16 : 0;
+      const titleH = title.length * 20;
+      const h = inner + headH + titleH + (lines.length ? 6 + lines.length * dLh : 0) + inner - 4;
+      return { ...f2, titleLines: title, lines, h: Math.max(h, !stacked && anyIcon ? inner * 2 + TILE : 0) };
+    });
+    const rowsN = Math.ceil(laid.length / cols);
+    const rowH = [];
+    for (let r = 0; r < rowsN; r++) rowH.push(Math.max(...laid.slice(r * cols, r * cols + cols).map((f2) => f2.h)));
+    const rowGap = cards ? GAP2 : 0;
+    const gridH = rowH.reduce((a, b) => a + b, 0) + rowGap * (rowsN - 1);
+    const H13 = top + gridH + (cards ? PAD : 8);
+    const tileR = Math.min(10, Math.max(6, t.radius - 2));
+    const cellR = Math.max(4, Math.min(t.radius, 12) - 2);
+    const out = [];
+    const period2 = laid.length * 0.9 + 2;
+    let yAcc = top;
+    for (let r = 0; r < rowsN; r++) {
+      for (let c = 0; c < cols; c++) {
+        const i = r * cols + c;
+        const f2 = laid[i];
+        if (!f2) continue;
+        const x = PAD + c * (cw + gap);
+        const y = yAcc;
+        const h = rowH[r];
+        const d = 0.15 + i * 0.09;
+        const parts = [];
+        if (cards) parts.push(`<rect x="${n1(x + 0.5)}" y="${n1(y + 0.5)}" width="${n1(cw - 1)}" height="${n1(h - 1)}" rx="${cellR}" fill="${t.raised}" fill-opacity="${t.name === "dark" ? 0.55 : 0.7}" stroke="${t.border}"/>`);
+        else {
+          if (c > 0) parts.push(`<path d="M${n1(x + 0.5)} ${y + 14}V${n1(y + h - 14)}" stroke="${t.border}"/>`);
+          if (r > 0) parts.push(`<path d="M${n1(x + (c > 0 ? 14 : 0))} ${n1(y + 0.5)}H${n1(x + cw - (c < cols - 1 ? 14 : 0))}" stroke="${t.border}"/>`);
+        }
+        const num3 = String(i + 1).padStart(2, "0");
+        const hasIcon2 = hasMark(f2.icon);
+        const ix = x + inner;
+        const iy = y + inner;
+        if (hasIcon2 || numbered) {
+          const content = hasIcon2 ? mark(t, f2.icon, ix + (TILE - 18) / 2, iy + (TILE - 18) / 2, 18, t.accent, tint(t, t.accent)) : `<text x="${n1(ix + TILE / 2)}" y="${n1(iy + TILE / 2 + 4.5)}" font-size="13" text-anchor="middle" class="a b">${num3}</text>`;
+          parts.push(`<g class="fx" style="animation:pop .6s ease ${(d + 0.12).toFixed(2)}s both">
+<rect x="${n1(ix)}" y="${n1(iy)}" width="${TILE}" height="${TILE}" rx="${tileR}" fill="${tint(t, t.accent)}" stroke="${t.accent}" stroke-opacity=".35"/>
+<rect x="${n1(ix)}" y="${n1(iy)}" width="${TILE}" height="${TILE}" rx="${tileR}" stroke="${t.accent}" stroke-width="1.5" class="ring loop loop-only" style="animation-delay:${(2 + i * 0.9).toFixed(1)}s;animation-duration:${n1(period2)}s"/>
+${content}</g>`);
+        }
+        if (numbered && hasIcon2) {
+          parts.push(`<text x="${n1(x + cw - inner + 2)}" y="${n1(y + inner + 13)}" font-size="11" text-anchor="end" letter-spacing="1" class="s b">${num3}</text>`);
+        }
+        let ty = stacked && (hasIcon2 || numbered || anyIcon) ? iy + TILE + 16 + 14 : y + inner + 14;
+        const textX = x + tx;
+        for (const l of f2.titleLines) {
+          parts.push(`<text x="${n1(textX)}" y="${n1(ty)}" font-size="${tFs}" class="t b h">${esc(l)}</text>`);
+          ty += 20;
+        }
+        ty += f2.titleLines.length ? 6 - 20 + dLh : 0;
+        for (const l of f2.lines) {
+          parts.push(`<text x="${n1(textX)}" y="${n1(ty)}" font-size="${dFs}" class="m">${esc(l)}</text>`);
+          ty += dLh;
+        }
+        out.push(`<g class="in" style="animation-delay:${d.toFixed(2)}s">${parts.join("")}</g>`);
+      }
+      yAcc += rowH[r] + rowGap;
+    }
+    const css = `
+.ring{opacity:0;transform-box:fill-box;transform-origin:center;animation:ring 6s ease-out infinite}
+@keyframes ring{0%{opacity:.7;transform:scale(1)}12%{opacity:0;transform:scale(1.45)}100%{opacity:0;transform:scale(1.45)}}`;
+    const body = `${card(t, { width: W46, height: H13 })}
+${lbl ? label(t, PAD, 30, lbl) : ""}
+${out.join("\n")}`;
+    return svg({ width: W46, height: H13, theme: t, title: this.alt(ctx, o), css, body });
+  }
+});
+
+// ../core/src/widgets/pf-changelog.ts
+var W47 = 840;
+function semver(tag) {
+  const m = /^(?:[\w.-]*?[-@/])?v?(\d+)\.(\d+)(?:\.(\d+))?(-[\w.]+)?/.exec(tag.trim());
+  return m ? [Number(m[1]), Number(m[2]), Number(m[3] ?? 0), !!m[4]] : null;
+}
+function bump(tag, prev) {
+  const a = semver(tag);
+  if (!a) return "";
+  if (a[3]) return "pre";
+  const b = prev ? semver(prev) : null;
+  if (!b) return a[1] === 0 && a[2] === 0 ? "major" : a[2] === 0 ? "minor" : "patch";
+  if (a[0] !== b[0]) return "major";
+  if (a[1] !== b[1]) return "minor";
+  return "patch";
+}
+function validIso(s) {
+  return s && /^\d{4}-\d{2}-\d{2}/.test(s) && !Number.isNaN(Date.parse(s)) ? s : "";
+}
+function entries(ctx, o) {
+  const pd = projectData(ctx);
+  const all = [...pd?.releases ?? []].filter((r) => r && r.tag).sort((a, b) => (b.publishedAt || "").localeCompare(a.publishedAt || ""));
+  const notes = pd?.releaseNotes ?? {};
+  const only = optPick(o.only, ["all", "minor", "major"], "all");
+  const list = all.map((r, i) => ({ r, bump: bump(r.tag, all[i + 1]?.tag), notes: String(notes[r.tag] || "").replace(/\s+/g, " ").trim() }));
+  const keep = list.filter((e) => only === "all" || (only === "major" ? e.bump === "major" : e.bump === "major" || e.bump === "minor"));
+  return keep.slice(0, optNum(o.count, 4, 1, 8));
+}
+var pfChangelog = defineWidget({
+  type: "changelog",
+  title: "Changelog",
+  description: "Your latest releases on a timeline: version pills, dates, a line or two of release notes and a pulsing marker on the newest one.",
+  scope: "project",
+  category: "Projects",
+  kind: "svg",
+  width: "full",
+  needs: ["project", "releases"],
+  defaults: { label: "changelog", count: 4, lines: "2", only: "all", kinds: true },
+  fields: [
+    { key: "label", label: "Title", type: "text", placeholder: "changelog" },
+    { key: "count", label: "Releases", type: "number", min: 1, max: 8, step: 1 },
+    {
+      key: "lines",
+      label: "Release notes",
+      type: "segmented",
+      options: [
+        { value: "0", label: "None" },
+        { value: "1", label: "1 line" },
+        { value: "2", label: "2 lines" }
+      ]
+    },
+    {
+      key: "only",
+      label: "Show",
+      type: "segmented",
+      options: [
+        { value: "all", label: "Every release" },
+        { value: "minor", label: "Major + minor" },
+        { value: "major", label: "Major only" }
+      ]
+    },
+    { key: "kinds", label: "Release kind tags", type: "toggle", help: "Marks each version as major, minor or patch." }
+  ],
+  alt: (ctx, o) => {
+    const list = entries(ctx, o);
+    const name = pkgNames(ctx).name;
+    return list.length ? `${name} changelog: ${list.map((e) => e.r.tag).join(", ")}` : `${name} changelog`;
+  },
+  href: (ctx) => `${repoUrl2(ctx)}/releases`,
+  render(ctx, o) {
+    const t = ctx.theme;
+    const pd = projectData(ctx);
+    const list = entries(ctx, o);
+    const lbl = optStr(o.label);
+    const nLines = Number(optPick(o.lines, ["0", "1", "2"], "2"));
+    const kinds = o.kinds !== false;
+    const top = lbl ? 56 : 26;
+    const total = pd?.releases?.length ?? 0;
+    const right = total ? `${total} release${total === 1 ? "" : "s"}${validIso(list[0]?.r.publishedAt) ? `  \xB7  last ${ago(list[0].r.publishedAt, ctx.date)}` : ""}` : "";
+    if (!list.length) {
+      const H14 = top + 132;
+      const sub = total ? "No releases match this filter yet." : "Publish a GitHub release and it will appear here.";
+      const body2 = `${card(t, { width: W47, height: H14 })}
+${lbl ? header(t, W47, lbl) : ""}
+${emptyState(t, 24, top, W47 - 48, 104, "tag", "No releases yet", sub)}`;
+      return svg({ width: W47, height: H14, theme: t, title: this.alt(ctx, o), body: body2 });
+    }
+    const dateX = 24;
+    const dateOf = (e) => validIso(e.r.publishedAt) ? longDate(e.r.publishedAt.slice(0, 10)) : "";
+    const dateW = Math.max(60, ...list.map((e) => Math.max(textWidth(t, dateOf(e), 12.5, { bold: true }), validIso(e.r.publishedAt) ? textWidth(t, ago(e.r.publishedAt, ctx.date), 11.5) : 0)));
+    const railX = Math.round(dateX + Math.min(dateW, 150) + 28);
+    const cx = railX + 26;
+    const textW = W47 - cx - 28;
+    const noteFs = 13;
+    const noteLh = 19;
+    const rows3 = [];
+    let y = top;
+    const nodes = [];
+    list.forEach((e, i) => {
+      const latest = i === 0;
+      const d = 0.2 + i * 0.12;
+      const head = y + 14;
+      nodes.push(head - 4);
+      const iso2 = validIso(e.r.publishedAt);
+      const date = iso2 ? longDate(iso2.slice(0, 10)) : "";
+      const rel = iso2 ? ago(iso2, ctx.date) : "";
+      const tag = fitText(t, e.r.tag, 12, 160, { bold: true });
+      const pw = textWidth(t, tag, 12, { bold: true }) + 20;
+      const pill = latest ? `<rect x="${cx}" y="${head - 15}" width="${n1(pw)}" height="22" rx="11" fill="${t.accent}"/><text x="${n1(cx + pw / 2)}" y="${head}" font-size="12" text-anchor="middle" class="b" fill="${onAccent(t)}">${esc(tag)}</text>` : `<rect x="${cx + 0.5}" y="${head - 14.5}" width="${n1(pw - 1)}" height="21" rx="10.5" fill="${t.raised}" stroke="${t.border}"/><text x="${n1(cx + pw / 2)}" y="${head}" font-size="12" text-anchor="middle" class="t b">${esc(tag)}</text>`;
+      let x = cx + pw + 10;
+      let chips = "";
+      if (latest) {
+        const lw = textWidth(t, "LATEST", 9.5, { bold: true, letterSpacing: 1.2 }) + 26;
+        chips += `<rect x="${n1(x + 0.5)}" y="${head - 13.5}" width="${n1(lw)}" height="19" rx="9.5" fill="${t.accent}" fill-opacity=".1" stroke="${t.accent}" stroke-opacity=".45"/>
+<circle cx="${n1(x + 11)}" cy="${head - 4}" r="3" fill="${t.accent}"/><circle cx="${n1(x + 11)}" cy="${head - 4}" r="3" fill="${t.accent}" class="ping loop loop-only"/>
+<text x="${n1(x + 19)}" y="${head - 0.5}" font-size="9.5" letter-spacing="1.2" class="a b">LATEST</text>`;
+        x += lw + 10;
+      }
+      const kindTxt = kinds && e.bump ? e.bump.toUpperCase() : "";
+      const kindW = kindTxt ? textWidth(t, kindTxt, 9.5, { bold: true, letterSpacing: 1.2 }) + 16 : 0;
+      const title = (e.r.name || "").trim();
+      const showTitle = title && title !== e.r.tag && title.replace(/^v/, "") !== e.r.tag.replace(/^v/, "");
+      const titleMax = W47 - 28 - x - (kindW ? kindW + 12 : 0);
+      const titleTxt = showTitle && titleMax > 40 ? fitText(t, title, 14, titleMax, { bold: true }) : "";
+      const kind = kindTxt ? `<rect x="${n1(W47 - 28 - kindW + 0.5)}" y="${head - 13.5}" width="${n1(kindW - 1)}" height="18" rx="4" fill="none" stroke="${e.bump === "major" ? t.accent : t.border}"${e.bump === "patch" || e.bump === "pre" ? ' stroke-dasharray="3 2"' : ""}/><text x="${n1(W47 - 28 - kindW / 2)}" y="${head - 1}" font-size="9.5" text-anchor="middle" letter-spacing="1.2" class="${e.bump === "major" ? "a" : "m"} b">${kindTxt}</text>` : "";
+      const notes = nLines ? e.notes ? balancedWrap(t, e.notes, noteFs, textW, nLines) : [] : [];
+      const noteMarkup = notes.map((l, k) => `<text x="${cx}" y="${n1(head + 26 + k * noteLh)}" font-size="${noteFs}" class="m">${esc(l)}</text>`).join("");
+      const emptyNote = nLines && !notes.length ? `<text x="${cx}" y="${n1(head + 26)}" font-size="12" class="s">${esc("No release notes")}</text>` : "";
+      const node = latest ? `<circle cx="${railX}" cy="${head - 4}" r="11" fill="${t.accent}" opacity=".25" class="fx ping2 loop loop-only"/><circle cx="${railX}" cy="${head - 4}" r="6.5" fill="${t.accent}"/><circle cx="${railX}" cy="${head - 4}" r="2.5" fill="${onAccent(t)}"/>` : `<circle cx="${railX}" cy="${head - 4}" r="5" fill="${t.card}" stroke="${e.bump === "major" ? t.accent : t.subtle}" stroke-width="2"/>`;
+      rows3.push(`<g class="in" style="${dl(d)}">
+${date ? `<text x="${dateX}" y="${head}" font-size="12.5" class="t b">${esc(fitText(t, date, 12.5, 150, { bold: true }))}</text>` : ""}
+${rel ? `<text x="${dateX}" y="${head + 18}" font-size="11.5" class="m">${esc(rel)}</text>` : ""}
+${node}${pill}${chips}
+${titleTxt ? `<text x="${n1(x)}" y="${head}" font-size="14" class="t b">${esc(titleTxt)}</text>` : ""}
+${kind}
+${noteMarkup}${emptyNote}
+</g>`);
+      const contentH = 26 + Math.max(nLines ? 1 : 0, notes.length) * noteLh;
+      y += Math.max(44, contentH + 14) + (i < list.length - 1 ? 10 : 0);
+      if (i < list.length - 1) rows3.push(`<path d="M${cx} ${n1(y - 12.5)}H${W47 - 28}" stroke="${t.border}" class="fade" style="${dl(d + 0.2)}"/>`);
+    });
+    const H13 = y + 14;
+    const rail = nodes.length > 1 ? `<path d="M${railX} ${nodes[0]}V${nodes[nodes.length - 1]}" stroke="${t.border}" stroke-width="2" stroke-linecap="round"/><path d="M${railX} ${nodes[0]}V${nodes[nodes.length - 1]}" stroke="url(#railG)" stroke-width="2" stroke-linecap="round" class="rail"/>` : "";
+    const css = `
+.ping{transform-box:fill-box;transform-origin:center;animation:ping 2s cubic-bezier(0,0,.2,1) infinite}
+@keyframes ping{0%{transform:scale(1);opacity:.8}75%,100%{transform:scale(2.6);opacity:0}}
+.ping2{animation:ping2 2.4s ease-out 1.2s infinite}
+@keyframes ping2{0%{transform:scale(.6);opacity:.6}100%{transform:scale(2);opacity:0}}
+.rail{transform-box:fill-box;transform-origin:top;animation:grow 1.4s cubic-bezier(.2,.7,.2,1) .3s both}`;
+    const defs = `<linearGradient id="railG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${t.accent}"/><stop offset="1" stop-color="${t.accent}" stop-opacity="0"/></linearGradient>`;
+    const body = `${card(t, { width: W47, height: H13 })}
+${lbl ? header(t, W47, lbl, right) : ""}
+${rail}
+${rows3.join("\n")}`;
+    return svg({ width: W47, height: H13, theme: t, title: this.alt(ctx, o), css, defs, body });
+  }
+});
+
+// ../core/src/widgets/pf-roadmap.ts
+var W48 = 840;
+var STATUS_LABEL = { done: "Done", progress: "In progress", planned: "Planned" };
+var DEFAULT_ITEMS = [
+  { title: "v1.0: stable API", progress: 100, status: "done", note: "Frozen public API, migration guide and codemods." },
+  { title: "Plugin system", progress: 65, status: "progress", note: "Lifecycle hooks, typed options and a plugin registry." },
+  { title: "Windows & ARM builds", progress: 30, status: "progress", note: "Native binaries for every platform in CI." },
+  { title: "Web playground", progress: 0, status: "planned", note: "Try it in the browser, share snippets by URL." }
+];
+function daysBetween(a, isoDay) {
+  const d = /* @__PURE__ */ new Date(`${isoDay.slice(0, 10)}T00:00:00Z`);
+  return Math.round((d.getTime() - Date.UTC(a.getUTCFullYear(), a.getUTCMonth(), a.getUTCDate())) / 864e5);
+}
+function rows2(ctx, o) {
+  const src = optPick(o.source, ["auto", "github", "manual"], "auto");
+  const ms = (projectData(ctx)?.milestones ?? []).filter((m) => m && m.title);
+  const now = ctx.date ?? /* @__PURE__ */ new Date();
+  if (src === "github" || src === "auto" && ms.length) {
+    const hideDone = o.hideDone === true;
+    const list2 = ms.map((m) => {
+      const open = Math.max(0, m.open || 0);
+      const closed = Math.max(0, m.closed || 0);
+      const total = open + closed;
+      const pct2 = total ? closed / total * 100 : 0;
+      const status = total && !open ? "done" : closed ? "progress" : "planned";
+      const days = m.dueOn ? daysBetween(now, m.dueOn) : null;
+      const overdue = days !== null && days < 0 && status !== "done";
+      const due = m.dueOn ? overdue ? `overdue by ${-days} d` : days === 0 ? "due today" : `due ${longDate(m.dueOn.slice(0, 10))}` : "";
+      return { title: m.title, pct: pct2, status, note: "", count: `${closed} / ${total} issue${total === 1 ? "" : "s"}`, due, overdue };
+    }).filter((m) => !hideDone || m.status !== "done");
+    return { list: list2.slice(0, 6), source: "github" };
+  }
+  const list = items(o.items).map((it) => {
+    const pct2 = Math.max(0, Math.min(100, Number(it.progress) || 0));
+    const st = optPick(it.status, ["done", "progress", "planned", "auto"], "auto");
+    const status = st === "auto" ? pct2 >= 100 ? "done" : pct2 > 0 ? "progress" : "planned" : st;
+    return { title: fillPlaceholders(str(it.title), ctx), pct: status === "done" ? 100 : pct2, status, note: fillPlaceholders(str(it.note), ctx), count: "", due: fillPlaceholders(str(it.due), ctx), overdue: false };
+  }).filter((it) => it.title).slice(0, 6);
+  return { list, source: "manual" };
+}
+function chip(t, x, y, s) {
+  const txt = STATUS_LABEL[s].toUpperCase();
+  const w = textWidth(t, txt, 9.5, { bold: true, letterSpacing: 1.1 }) + (s === "planned" ? 16 : 26);
+  const ok = okColor(t);
+  const c = s === "done" ? ok : s === "progress" ? t.accent : t.muted;
+  const dot = s === "done" ? `<path d="M${n1(x + 8)} ${n1(y + 9.5)}l2.2 2.2 4-4.4" stroke="${c}" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>` : s === "progress" ? `<circle cx="${n1(x + 11)}" cy="${n1(y + 9.5)}" r="3" fill="${c}"/><circle cx="${n1(x + 11)}" cy="${n1(y + 9.5)}" r="3" fill="${c}" class="ping loop loop-only"/>` : "";
+  return {
+    w,
+    svg: `<rect x="${n1(x + 0.5)}" y="${n1(y + 0.5)}" width="${n1(w - 1)}" height="18" rx="9" fill="${s === "planned" ? "none" : c}" fill-opacity="${t.name === "dark" ? 0.12 : 0.08}" stroke="${c}" stroke-opacity=".45"${s === "planned" ? ' stroke-dasharray="3 2"' : ""}/>
+${dot}<text x="${n1(x + (s === "planned" ? 8 : 19))}" y="${n1(y + 13)}" font-size="9.5" letter-spacing="1.1" class="b" fill="${s === "planned" ? t.muted : t.name === "dark" ? c : t.text}">${txt}</text>`
+  };
+}
+var pfRoadmap = defineWidget({
+  type: "roadmap",
+  title: "Roadmap",
+  description: "Milestones as progress rows with status chips, issue counts and due dates, from GitHub milestones or a list you write.",
+  scope: "project",
+  category: "Projects",
+  kind: "svg",
+  width: "full",
+  needs: ["project"],
+  defaults: { label: "roadmap", source: "auto", hideDone: false, items: DEFAULT_ITEMS },
+  fields: [
+    { key: "label", label: "Title", type: "text", placeholder: "roadmap" },
+    {
+      key: "source",
+      label: "Source",
+      type: "segmented",
+      options: [
+        { value: "auto", label: "Automatic" },
+        { value: "github", label: "GitHub milestones" },
+        { value: "manual", label: "My list" }
+      ],
+      help: "Automatic uses the repository's open milestones when there are any, otherwise your list."
+    },
+    { key: "hideDone", label: "Hide finished milestones", type: "toggle", when: { key: "source", is: ["auto", "github"] } },
+    {
+      key: "items",
+      label: "Roadmap items",
+      type: "list",
+      itemLabel: "Item",
+      titleKey: "title",
+      max: 6,
+      newItem: { title: "Next big thing", progress: 0, status: "planned", note: "" },
+      when: { key: "source", is: ["auto", "manual"] },
+      item: [
+        { key: "title", label: "Title", type: "text", max: 60, help: PLACEHOLDER_HELP },
+        { key: "progress", label: "Progress", type: "number", min: 0, max: 100, step: 5, unit: "%" },
+        {
+          key: "status",
+          label: "Status",
+          type: "segmented",
+          options: [
+            { value: "done", label: "Done" },
+            { value: "progress", label: "In progress" },
+            { value: "planned", label: "Planned" }
+          ]
+        },
+        { key: "note", label: "Note", type: "text", max: 120 },
+        { key: "due", label: "When (optional)", type: "text", max: 24, placeholder: "Q2 2026" }
+      ]
+    }
+  ],
+  alt: (ctx, o) => {
+    const { list } = rows2(ctx, o);
+    return list.length ? `Roadmap: ${list.map((r) => `${r.title} (${Math.round(r.pct)}%)`).join(", ")}` : "Roadmap";
+  },
+  href: (ctx, o) => rows2(ctx, o).source === "github" ? `${repoUrl2(ctx)}/milestones` : repoUrl2(ctx),
+  render(ctx, o) {
+    const t = ctx.theme;
+    const { list, source } = rows2(ctx, o);
+    const lbl = optStr(o.label);
+    const top = lbl ? 54 : 22;
+    const ok = okColor(t);
+    let right = "";
+    if (list.length && source === "github") {
+      const ms = projectData(ctx)?.milestones ?? [];
+      const closed = ms.reduce((a, m) => a + (m.closed || 0), 0);
+      const total = ms.reduce((a, m) => a + (m.open || 0) + (m.closed || 0), 0);
+      right = `${ms.length} milestone${ms.length === 1 ? "" : "s"}  \xB7  ${closed} of ${total} issues closed`;
+    } else if (list.length) {
+      const done = list.filter((r) => r.status === "done").length;
+      right = `${done} of ${list.length} shipped`;
+    }
+    if (!list.length) {
+      const H14 = top + 132;
+      const body2 = `${card(t, { width: W48, height: H14 })}
+${lbl ? header(t, W48, lbl) : ""}
+${emptyState(t, 24, top, W48 - 48, 104, "calendar", source === "github" ? "No milestones yet" : "Nothing on the roadmap yet", source === "github" ? "Create a milestone on GitHub, or switch the source to your own list." : "Add a few roadmap items in the inspector.")}`;
+      return svg({ width: W48, height: H14, theme: t, title: "Roadmap", body: body2 });
+    }
+    const x = 28;
+    const bw = W48 - x * 2;
+    const out = [];
+    let y = top;
+    list.forEach((r, i) => {
+      const d = 0.2 + i * 0.12;
+      const base = y + 16;
+      const metaParts = [r.count, r.due].filter(Boolean);
+      const pctTxt = `${Math.round(r.pct)}%`;
+      const pctW = textWidth(t, pctTxt, 15, { bold: true, heading: true });
+      const meta2 = metaParts.join("  \xB7  ");
+      const metaMax = 260;
+      const metaTxt = meta2 ? fitText(t, meta2, 11.5, metaMax) : "";
+      const metaW = metaTxt ? textWidth(t, metaTxt, 11.5) : 0;
+      const c = chip(t, 0, 0, r.status);
+      const titleMax = bw - pctW - (metaW ? metaW + 20 : 0) - c.w - 30;
+      const title = fitText(t, r.title, 14.5, titleMax, { bold: true });
+      const tw = textWidth(t, title, 14.5, { bold: true });
+      const cx = x + tw + 12;
+      const chipSvg = chip(t, cx, base - 13, r.status).svg;
+      const overdueCls = r.overdue ? `fill="${t.name === "dark" ? "#f0883e" : "#bc4c00"}"` : 'class="m"';
+      const metaMarkup = metaTxt ? `<text x="${n1(x + bw - pctW - 14)}" y="${base}" font-size="11.5" text-anchor="end" ${overdueCls}>${esc(metaTxt)}</text>` : "";
+      const by = base + (r.note ? 30 : 14);
+      const bh = 8;
+      const fw = Math.max(r.pct > 0 ? bh : 0, bw * r.pct / 100);
+      const fillC = r.status === "done" ? ok : "url(#rmG)";
+      const id = `rb${i}`;
+      const bar = `<rect x="${x}" y="${by}" width="${bw}" height="${bh}" rx="${bh / 2}" fill="${t.heat[0]}"${r.status === "planned" ? ` stroke="${t.subtle}" stroke-dasharray="3 3"` : ` stroke="${t.border}" stroke-width=".6"`}/>
+${fw > 0 ? `<clipPath id="${id}"><rect x="${x}" y="${by}" width="${n1(fw)}" height="${bh}" rx="${bh / 2}"/></clipPath><g clip-path="url(#${id})"><rect x="${x}" y="${by}" width="${n1(fw)}" height="${bh}" fill="${fillC}" class="fill" style="${dl(d + 0.25)}"/>${r.status === "progress" ? `<rect x="${x}" y="${by}" width="80" height="${bh}" fill="url(#shine)" class="sh loop loop-only" style="animation-delay:${(2.2 + i * 0.6).toFixed(1)}s"/>` : ""}</g>` : ""}`;
+      out.push(`<g class="in" style="${dl(d)}">
+<text x="${x}" y="${base}" font-size="14.5" class="t b">${esc(title)}</text>
+${chipSvg}
+${metaMarkup}
+<text x="${x + bw}" y="${base + 0.5}" font-size="15" text-anchor="end" class="${r.status === "planned" ? "m" : "t"} b h">${pctTxt}</text>
+${r.note ? `<text x="${x}" y="${base + 20}" font-size="12.5" class="m">${esc(fitText(t, r.note, 12.5, bw))}</text>` : ""}
+${bar}
+</g>`);
+      y = by + bh + (i < list.length - 1 ? 26 : 0);
+    });
+    const H13 = y + 26;
+    const css = `
+.fill{transform-box:fill-box;transform-origin:left;animation:growX 1.4s cubic-bezier(.2,.7,.2,1) both}
+.sh{animation:rmSh 4.2s ease-in-out infinite}
+@keyframes rmSh{0%{transform:translateX(-80px)}60%,100%{transform:translateX(${bw + 10}px)}}
+.ping{transform-box:fill-box;transform-origin:center;animation:ping 2s cubic-bezier(0,0,.2,1) infinite}
+@keyframes ping{0%{transform:scale(1);opacity:.8}75%,100%{transform:scale(2.6);opacity:0}}`;
+    const defs = `<linearGradient id="rmG" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="${accentDeep(t)}"/><stop offset="1" stop-color="${t.glow}"/></linearGradient>`;
+    const body = `${card(t, { width: W48, height: H13 })}
+${lbl ? header(t, W48, lbl, right) : ""}
+${out.join("\n")}`;
+    return svg({ width: W48, height: H13, theme: t, title: this.alt(ctx, o), css, defs, body });
+  }
+});
+
+// ../core/src/widgets/pf-downloads.ts
+var W49 = 415;
+var H12 = 226;
+var REG = {
+  npm: { name: "npm", icon: "npm", url: (n) => `https://www.npmjs.com/package/${n}` },
+  pypi: { name: "PyPI", icon: "python", url: (n) => `https://pypi.org/project/${n}/` },
+  crates: { name: "crates.io", icon: "rust", url: (n) => `https://crates.io/crates/${n}` }
+};
+function pickPkg(ctx, o) {
+  const list = (projectData(ctx)?.downloads ?? []).filter((d) => d && REG[d.registry] && d.name);
+  const want = optPick(o.registry, ["auto", "npm", "pypi", "crates"], "auto");
+  if (want !== "auto") return list.find((d) => d.registry === want);
+  return [...list].sort((a, b) => (b.lastWeek ?? -1) - (a.lastWeek ?? -1))[0];
+}
+function sum(a) {
+  return a.reduce((x, y) => x + (Number.isFinite(y) ? y : 0), 0);
+}
+var pfDownloads = defineWidget({
+  type: "downloads",
+  title: "Package downloads",
+  description: "Weekly, monthly or all-time downloads from npm, PyPI or crates.io on a rolling counter, with a year-long sparkline and the month-on-month trend.",
+  scope: "project",
+  category: "Stats",
+  kind: "svg",
+  width: "half",
+  needs: ["project", "downloads"],
+  defaults: { label: "downloads", period: "week", registry: "auto" },
+  fields: [
+    { key: "label", label: "Label", type: "text", placeholder: "downloads" },
+    {
+      key: "period",
+      label: "Count",
+      type: "segmented",
+      options: [
+        { value: "week", label: "Weekly" },
+        { value: "month", label: "Monthly" },
+        { value: "total", label: "All time" }
+      ]
+    },
+    {
+      key: "registry",
+      label: "Registry",
+      type: "segmented",
+      options: [
+        { value: "auto", label: "Automatic" },
+        { value: "npm", label: "npm" },
+        { value: "pypi", label: "PyPI" },
+        { value: "crates", label: "crates.io" }
+      ],
+      help: "Package names come from the project settings."
+    }
+  ],
+  alt: (ctx, o) => {
+    const p = pickPkg(ctx, o);
+    if (!p) return "Package downloads";
+    const v = p.lastWeek ?? p.lastMonth ?? p.total;
+    return `${p.name} on ${REG[p.registry].name}${v !== null ? `: ${groupDigits(v)} downloads` : ""}`;
+  },
+  href: (ctx, o) => {
+    const p = pickPkg(ctx, o);
+    return p ? REG[p.registry].url(p.name) : repoUrl2(ctx);
+  },
+  render(ctx, o) {
+    const t = ctx.theme;
+    const lbl = optStr(o.label);
+    const p = pickPkg(ctx, o);
+    const top = lbl ? 0 : -26;
+    const HH = H12 + top;
+    if (!p) {
+      const want = optPick(o.registry, ["auto", "npm", "pypi", "crates"], "auto");
+      const where = want === "auto" ? "an npm, PyPI or crates.io package" : `a ${REG[want].name} package`;
+      const body2 = `${card(t, { width: W49, height: HH })}
+${lbl ? header(t, W49, lbl) : ""}
+${emptyState(t, 24, 50 + top, W49 - 48, HH - 74 - top, "chart", "No download stats yet", `Set ${where} in the project settings.`)}`;
+      return svg({ width: W49, height: HH, theme: t, title: "Package downloads", body: body2 });
+    }
+    const reg = REG[p.registry];
+    const weekly = (Array.isArray(p.weekly) ? p.weekly : []).filter((v2) => Number.isFinite(v2)).slice(-52);
+    const period2 = optPick(o.period, ["week", "month", "total"], "week");
+    let value = null;
+    let unit = "";
+    if (period2 === "week") {
+      value = p.lastWeek ?? (weekly.length ? weekly[weekly.length - 1] : null);
+      unit = "/ week";
+    } else if (period2 === "month") {
+      value = p.lastMonth ?? (weekly.length >= 4 ? sum(weekly.slice(-4)) : null);
+      unit = "/ month";
+    } else {
+      value = p.total;
+      unit = "all time";
+      if (value === null && weekly.length) {
+        value = sum(weekly);
+        unit = "past year";
+      }
+    }
+    const v = Math.max(0, Math.round(value ?? 0));
+    const valueTxt = value === null ? "\u2014" : groupDigits(v);
+    const regW = textWidth(t, reg.name, 11.5, { bold: true }) + 14 + 8 + 18;
+    const regBadge = `<g class="fade" style="${dl(0.2)}"><rect x="${n1(W49 - 24 - regW + 0.5)}" y="${16.5}" width="${n1(regW - 1)}" height="23" rx="11.5" fill="${t.raised}" stroke="${t.border}"/>
+${mark(t, reg.icon, W49 - 24 - regW + 9, 21, 14, "brand", t.raised)}<text x="${n1(W49 - 24 - regW + 29)}" y="${32.5}" font-size="11.5" class="t b">${esc(reg.name)}</text></g>`;
+    const numY = 94 + top;
+    let size = 42;
+    const unitW = textWidth(t, unit, 13);
+    while (size > 24 && odometerWidth(t, valueTxt, size, true, true) + unitW + 10 > W49 - 48 - 110) size -= 2;
+    const vw = odometerWidth(t, valueTxt, size, true, true);
+    const num3 = value === null ? `<text x="24" y="${numY}" font-size="${size}" class="m b h">\u2014</text>` : `<g class="tn">${odometer(t, valueTxt, { x: 22, y: numY, fontSize: size, delay: 0.3, duration: 2, heading: true })}</g>`;
+    let trend = "";
+    if (weekly.length >= 8) {
+      const a = sum(weekly.slice(-4));
+      const b = sum(weekly.slice(-8, -4));
+      if (b > 0) {
+        const pct2 = (a / b - 1) * 100;
+        const up = pct2 >= 0;
+        const c = up ? okColor(t) : t.name === "dark" ? "#f85149" : "#cf222e";
+        const txt = `${up ? "+" : "\u2212"}${Math.abs(pct2) >= 100 ? Math.round(Math.abs(pct2)) : Math.abs(pct2).toFixed(1)}%`;
+        const tw = textWidth(t, txt, 12, { bold: true }) + 30;
+        const tx = W49 - 24 - tw;
+        const ty = numY - 22;
+        const arrow = up ? `M${n1(tx + 11)} ${ty + 13}l4-4.5 4 4.5M${n1(tx + 15)} ${ty + 8.5}v7` : `M${n1(tx + 11)} ${ty + 9}l4 4.5 4-4.5M${n1(tx + 15)} ${ty + 13.5}v-7`;
+        trend = `<g class="in" style="${dl(0.5)}"><rect x="${n1(tx + 0.5)}" y="${ty + 0.5}" width="${n1(tw - 1)}" height="21" rx="10.5" fill="${c}" fill-opacity="${t.name === "dark" ? 0.14 : 0.1}" stroke="${c}" stroke-opacity=".4"/>
+<path d="${arrow}" stroke="${c}" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="${n1(tx + 24)}" y="${ty + 15}" font-size="12" class="b" fill="${c}">${txt}</text>
+<text x="${W49 - 24}" y="${ty + 38}" font-size="11" text-anchor="end" class="m">vs last month</text></g>`;
+      }
+    }
+    const ver = p.version ? `v${p.version.replace(/^v/, "")}` : "";
+    const pkgName = fitText(t, p.name, 12.5, 200, { bold: true });
+    const pkgW = textWidth(t, pkgName, 12.5, { bold: true });
+    const pkgLine = `<g class="in" style="${dl(0.35)}"><text x="24" y="${numY + 24}" font-size="12.5" class="t b">${esc(pkgName)}</text>${ver ? `<text x="${n1(24 + pkgW + 8)}" y="${numY + 24}" font-size="12" class="m">${esc(fitText(t, ver, 12, W49 - 48 - pkgW - 8 - 110))}</text>` : ""}</g>`;
+    let spark = "";
+    const sx0 = 24;
+    const sx1 = W49 - 24;
+    const sy0 = numY + 44;
+    const sy1 = HH - 32;
+    if (weekly.length >= 2) {
+      const max = Math.max(...weekly, 1);
+      const min = Math.min(...weekly);
+      const lo = Math.max(0, min - (max - min) * 0.35);
+      const pts = weekly.map((w, i) => [sx0 + (sx1 - sx0) * i / (weekly.length - 1), sy1 - (w - lo) / Math.max(1, max - lo) * (sy1 - sy0)]);
+      let d = `M${n1(pts[0][0])} ${n1(pts[0][1])}`;
+      for (let i = 0; i < pts.length - 1; i++) {
+        const p0 = pts[Math.max(0, i - 1)];
+        const p1 = pts[i];
+        const p2 = pts[i + 1];
+        const p3 = pts[Math.min(pts.length - 1, i + 2)];
+        const c1 = [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6];
+        const c2 = [p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6];
+        d += `C${n1(c1[0])} ${n1(c1[1])} ${n1(c2[0])} ${n1(c2[1])} ${n1(p2[0])} ${n1(p2[1])}`;
+      }
+      const last = pts[pts.length - 1];
+      const area2 = `${d}L${n1(sx1)} ${sy1}L${sx0} ${sy1}Z`;
+      const top2 = Math.max(...weekly);
+      const peak = top2 > 0 ? weekly.indexOf(top2) : pts.length - 1;
+      const pk = pts[peak];
+      spark = `<path d="M${sx0} ${sy1 + 0.5}H${sx1}" stroke="${t.border}"/>
+<path d="${area2}" fill="url(#dlA)" class="fade" style="${dl(0.9)}"/>
+<path d="${d}" stroke="${t.accent}" stroke-width="1.8" fill="none" stroke-linejoin="round" stroke-linecap="round" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1" class="line"/>
+${peak !== pts.length - 1 ? `<g class="fade" style="${dl(1.8)}"><circle cx="${n1(pk[0])}" cy="${n1(pk[1])}" r="2.5" fill="${t.card}" stroke="${t.accent}" stroke-width="1.4"/></g>` : ""}
+<g class="fade" style="${dl(1.9)}"><circle cx="${n1(last[0])}" cy="${n1(last[1])}" r="7" fill="${t.accent}" opacity=".25" class="fx pulse2 loop loop-only"/><circle cx="${n1(last[0])}" cy="${n1(last[1])}" r="3.5" fill="${t.accent}" stroke="${t.card}" stroke-width="1.5"/></g>
+<text x="${sx0}" y="${HH - 14}" font-size="10.5" class="m fade" style="${dl(1)}">${weekly.length} weeks ago</text>
+<text x="${sx1}" y="${HH - 14}" font-size="10.5" text-anchor="end" class="m fade" style="${dl(1)}">${esc(top2 > 0 ? `peak ${groupDigits(top2)} / wk` : "no downloads yet")}</text>`;
+    } else {
+      spark = `<text x="${W49 / 2}" y="${n1((sy0 + sy1) / 2 + 4)}" font-size="11.5" text-anchor="middle" class="m fade" style="${dl(0.6)}">Weekly history appears after a few weeks of data.</text>`;
+    }
+    const css = `${TNUM}
+.line{animation:draw 2s cubic-bezier(.4,0,.2,1) .6s forwards}
+.pulse2{animation:dlPulse 2.4s ease-out 2.4s infinite}
+@keyframes dlPulse{0%{transform:scale(.6);opacity:.6}100%{transform:scale(2);opacity:0}}`;
+    const defs = `<linearGradient id="dlA" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${t.accent}" stop-opacity="${t.name === "dark" ? 0.32 : 0.2}"/><stop offset="1" stop-color="${t.accent}" stop-opacity="0"/></linearGradient>`;
+    const body = `${card(t, { width: W49, height: HH })}
+${lbl ? header(t, W49, lbl) : ""}
+${regBadge}
+<g class="in" style="${dl(0.15)}">${num3}<text x="${n1(24 + vw + 8)}" y="${numY}" font-size="13" class="m">${esc(unit)}</text></g>
+${trend}
+${pkgLine}
+${spark}`;
+    return svg({ width: W49, height: HH, theme: t, title: this.alt(ctx, o), css, defs, body });
+  }
+});
+
+// ../core/src/widgets/pf-support.ts
+var W50 = 840;
+var KINDS = [
+  { value: "sponsors", label: "GitHub Sponsors" },
+  { value: "kofi", label: "Ko-fi" },
+  { value: "bmc", label: "Buy Me a Coffee" },
+  { value: "opencollective", label: "Open Collective" },
+  { value: "patreon", label: "Patreon" },
+  { value: "paypal", label: "PayPal" },
+  { value: "custom", label: "Custom" }
+];
+var KIND_LABEL = {
+  sponsors: "Sponsor",
+  kofi: "Ko-fi",
+  bmc: "Buy me a coffee",
+  opencollective: "Open Collective",
+  patreon: "Patreon",
+  paypal: "PayPal",
+  custom: "Support"
+};
+var HEART2 = "M12 21.2s-7.6-4.6-9.7-9.3C.8 8.5 2.8 4.5 6.6 4.2c2.2-.2 4 1 5.4 3 1.4-2 3.2-3.2 5.4-3 3.8.3 5.8 4.3 4.3 7.7-2.1 4.7-9.7 9.3-9.7 9.3z";
+function owner(ctx) {
+  if (ctx.kind === "project") {
+    const o = (ctx.project?.repo || "").split("/")[0];
+    if (o) return o;
+  }
+  return ctx.profile.login;
+}
+function defaultUrl(ctx, k) {
+  const who = owner(ctx);
+  const proj = pkgNames(ctx).bin;
+  switch (k) {
+    case "sponsors":
+      return `https://github.com/sponsors/${who}`;
+    case "kofi":
+      return `https://ko-fi.com/${who}`;
+    case "bmc":
+      return `https://buymeacoffee.com/${who}`;
+    case "opencollective":
+      return `https://opencollective.com/${ctx.kind === "project" ? proj : who}`;
+    case "patreon":
+      return `https://www.patreon.com/${who}`;
+    case "paypal":
+      return `https://paypal.me/${who}`;
+    case "custom":
+      return "";
+  }
+}
+function fill(ctx, s) {
+  return fillPlaceholders(s.replace(/\{owner\}/gi, owner(ctx)), ctx);
+}
+function buttons(ctx, o) {
+  return items(o.buttons).map((b) => {
+    const kind = pick(b.kind, KINDS.map((k) => k.value), "custom");
+    return { kind, label: fill(ctx, str(b.label)) || KIND_LABEL[kind], url: fill(ctx, str(b.url)) || defaultUrl(ctx, kind), icon: str(b.icon) };
+  }).slice(0, 3);
+}
+function btnIcon(t, b, x, y, size, color, bg) {
+  switch (b.kind) {
+    case "sponsors": {
+      const c = color === "brand" ? t.name === "dark" ? "#db61a2" : "#bf3989" : color;
+      return `<svg x="${n1(x)}" y="${n1(y)}" width="${size}" height="${size}" viewBox="0 0 24 24"><path d="${HEART2}" fill="none" stroke="${c}" stroke-width="2.2" stroke-linejoin="round"/></svg>`;
+    }
+    case "kofi":
+      return mark(t, "kofi", x, y, size, color, bg);
+    case "bmc":
+      return mark(t, "buymeacoffee", x, y, size, color, bg);
+    case "patreon":
+      return mark(t, "patreon", x, y, size, color, bg);
+    case "paypal":
+      return mark(t, "paypal", x, y, size, color, bg);
+    case "opencollective":
+      return xglyph2("collective", x, y, size, color === "brand" ? t.name === "dark" ? "#7fadf2" : "#1f6feb" : color);
+    case "custom":
+      return hasMark(b.icon) ? mark(t, b.icon, x, y, size, color === "brand" ? t.accent : color, bg) : "";
+  }
+}
+var pfSupport = defineWidget({
+  type: "support",
+  title: "Support & sponsor",
+  description: "A warm call to action for sponsors: headline, a short pitch, up to three drawn buttons (GitHub Sponsors, Ko-fi, Open Collective, \u2026) and a beating heart.",
+  scope: "any",
+  category: "Identity",
+  kind: "svg",
+  width: "full",
+  defaults: {
+    label: "support",
+    headline: "",
+    text: "",
+    buttons: [
+      { kind: "sponsors", label: "Sponsor", url: "" },
+      { kind: "opencollective", label: "Open Collective", url: "" },
+      { kind: "kofi", label: "Buy a coffee", url: "" }
+    ],
+    backers: "Thank you to everyone who already chips in.",
+    emblem: true
+  },
+  fields: [
+    { key: "label", label: "Label", type: "text", placeholder: "support" },
+    { key: "headline", label: "Headline", type: "text", max: 80, placeholder: "Automatic", help: PLACEHOLDER_HELP },
+    { key: "text", label: "Text", type: "text", multiline: true, max: 300, placeholder: "Automatic" },
+    {
+      key: "buttons",
+      label: "Buttons",
+      type: "list",
+      itemLabel: "Button",
+      titleKey: "label",
+      max: 3,
+      newItem: { kind: "custom", label: "Support", url: "", icon: "heart" },
+      help: "Drawn into the image; the card links to the first button's URL. URLs default to your account on each platform ({owner} is the repository owner).",
+      item: [
+        { key: "kind", label: "Platform", type: "select", options: KINDS },
+        { key: "label", label: "Label", type: "text", max: 28 },
+        { key: "url", label: "URL", type: "text", placeholder: "Automatic" },
+        { key: "icon", label: "Icon", type: "icon", when: { key: "kind", is: ["custom"] } }
+      ]
+    },
+    { key: "backers", label: "Backers line", type: "text", max: 90, placeholder: "Backed by 120+ sponsors", help: "A short line under the buttons, e.g. how many people back the work." },
+    { key: "emblem", label: "Heart emblem", type: "toggle" }
+  ],
+  alt: (ctx, o) => {
+    const h = fill(ctx, str(o.headline)) || autoHeadline(ctx);
+    const b = buttons(ctx, o).map((x) => x.label);
+    return b.length ? `${h} \u2014 ${b.join(", ")}` : h;
+  },
+  href: (ctx, o) => buttons(ctx, o).find((b) => b.url)?.url || void 0,
+  render(ctx, o) {
+    const t = ctx.theme;
+    const lbl = fill(ctx, str(o.label));
+    const headline = fill(ctx, str(o.headline)) || autoHeadline(ctx);
+    const text = fill(ctx, str(o.text)) || autoText(ctx);
+    const btns = buttons(ctx, o);
+    const backers = fill(ctx, str(o.backers));
+    const emblem = o.emblem !== false;
+    const x = 32;
+    const sx = W50 - 138;
+    const contentW = emblem ? sx - 136 - x : W50 - x * 2;
+    const top = lbl ? 62 : 34;
+    const hOpts = { bold: true, heading: true, letterSpacing: -0.6 };
+    let hSize = fitSize(t, headline, 30, contentW, 24, hOpts);
+    let hLines = [headline];
+    if (textWidth(t, headline, hSize, hOpts) > contentW) {
+      hSize = 26;
+      hLines = balancedWrap(t, headline, hSize, contentW, 2, hOpts);
+    }
+    const hLh = hSize * 1.18;
+    const hy = top + hSize * 0.78;
+    const head = hLines.map((l, i) => `<text x="${x}" y="${n1(hy + i * hLh)}" font-size="${hSize}" letter-spacing="-0.6" class="t b h in" style="animation-delay:${(0.1 + i * 0.08).toFixed(2)}s">${esc(l)}</text>`).join("");
+    let y = hy + (hLines.length - 1) * hLh;
+    const tLines = text ? balancedWrap(t, text, 14.5, Math.min(contentW, 560), 3) : [];
+    const textMarkup = tLines.map((l, i) => {
+      y += i === 0 ? 30 : 23;
+      return `<text x="${x}" y="${n1(y)}" font-size="14.5" class="m in" style="animation-delay:${(0.25 + i * 0.06).toFixed(2)}s">${esc(l)}</text>`;
+    }).join("");
+    const by = y + 26;
+    const BH2 = 40;
+    let bx = x;
+    const out = [];
+    btns.forEach((b, i) => {
+      const primary = i === 0;
+      const lab = fitText(t, b.label, 13.5, 200, { bold: true });
+      const hasIc = b.kind !== "custom" || hasMark(b.icon);
+      const w = 18 + (hasIc ? 16 + (lab ? 9 : 0) : 0) + textWidth(t, lab, 13.5, { bold: true }) + 18;
+      if (bx + w > x + contentW + (emblem ? 60 : 0)) return;
+      const ink = primary ? onAccent(t) : t.text;
+      const bg = primary ? t.accent : t.raised;
+      const icon2 = hasIc ? btnIcon(t, b, bx + 18, by + 12, 16, primary ? ink : "brand", bg) : "";
+      out.push(`<g class="in" style="animation-delay:${(0.42 + i * 0.1).toFixed(2)}s">
+${primary ? `<rect x="${n1(bx)}" y="${n1(by)}" width="${n1(w)}" height="${BH2}" rx="${BH2 / 2}" fill="url(#spG)"/><clipPath id="spC"><rect x="${n1(bx)}" y="${n1(by)}" width="${n1(w)}" height="${BH2}" rx="${BH2 / 2}"/></clipPath><g clip-path="url(#spC)"><rect class="sh loop loop-only" x="${n1(bx - 70)}" y="${n1(by)}" width="70" height="${BH2}" fill="url(#shine)"/></g>` : `<rect x="${n1(bx + 0.5)}" y="${n1(by + 0.5)}" width="${n1(w - 1)}" height="${BH2 - 1}" rx="${(BH2 - 1) / 2}" fill="${t.raised}" stroke="${t.border}"/>`}
+${icon2}
+${lab ? `<text x="${n1(bx + 18 + (hasIc ? 25 : 0))}" y="${n1(by + 24.5)}" font-size="13.5" class="b" fill="${ink}">${esc(lab)}</text>` : ""}
+</g>`);
+      bx += w + 10;
+    });
+    let bottom = out.length ? by + BH2 : y + 6;
+    let backersMarkup = "";
+    if (backers) {
+      const ly = bottom + 30;
+      const dots = [t.accent, t.accent2, t.glow, t.subtle].map((c, i) => `<circle cx="${x + 9 + i * 13}" cy="${ly - 4.5}" r="9" fill="${c}" stroke="${t.card}" stroke-width="2"/>`).join("");
+      const hx = x + 9 + 3 * 13 - 6;
+      const heart = `<svg x="${hx}" y="${ly - 10.5}" width="12" height="12" viewBox="0 0 24 24"><path d="${HEART2}" fill="${t.card}"/></svg>`;
+      const tx = x + 9 + 3 * 13 + 20;
+      backersMarkup = `<g class="in" style="animation-delay:.7s">${dots}${heart}<text x="${tx}" y="${ly}" font-size="12.5" class="m">${esc(fitText(t, backers, 12.5, contentW + (emblem ? 60 : 0) - (tx - x)))}</text></g>`;
+      bottom = ly + 6;
+    }
+    const H13 = Math.round(Math.max(emblem ? 270 : 0, bottom + 34));
+    const dy = Math.max(0, (H13 - (bottom + 34)) / 2);
+    let emb = "";
+    if (emblem) {
+      const cy = H13 / 2 + (lbl ? 8 : 0);
+      const R = 38;
+      const ex0 = sx - 132;
+      const ex1 = W50 - 1;
+      const spike = (c) => `H${c - 22}l5 -5 5 5H${c - 6}l4 10 6 -34 6 30 4 -6H${c + 22}l5 -6 6 6`;
+      const ecg = `M${ex0} ${cy}${spike(sx - 78)}H${sx + 60}${spike(sx + 90)}H${ex1}`;
+      const rings2 = [62, 86, 110].map((r, i) => `<circle cx="${sx}" cy="${n1(cy)}" r="${r}" stroke="${t.subtle}" stroke-opacity="${(0.8 - i * 0.22).toFixed(2)}"${i % 2 ? ' stroke-dasharray="2 6"' : ""}/>`).join("");
+      const waves = [0, 1].map((i) => `<circle class="wave loop loop-only" style="animation-delay:${(0.3 + i * 0.25).toFixed(2)}s" cx="${sx}" cy="${n1(cy)}" r="${R}" stroke="${t.accent}" stroke-width="1.5" opacity="0"/>`).join("");
+      const floaters = [
+        [-46, -20, 9, 0],
+        [40, -30, 7, 1.6],
+        [-20, -44, 6, 3.1]
+      ].map(([dx, dy2, s, d]) => `<g class="float loop-only loop" style="animation-delay:${d}s"><svg x="${n1(sx + dx - s / 2)}" y="${n1(cy + dy2 - s / 2)}" width="${s}" height="${s}" viewBox="0 0 24 24"><path d="${HEART2}" fill="${t.glow}"/></svg></g>`).join("");
+      emb = `<g clip-path="url(#spClip)"><g class="fade" style="animation-delay:.3s">${rings2}
+<g mask="url(#ecgM)"><path d="${ecg}" stroke="${t.subtle}" stroke-width="1.4" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="${ecg}" stroke="${t.accent}" stroke-width="2" fill="none" stroke-linejoin="round" stroke-linecap="round" pathLength="100" stroke-dasharray="16 100" class="ecg loop loop-only" filter="url(#glow)"/></g>
+${waves}${floaters}</g></g>
+<g class="fx" style="animation:pop .7s ease .35s both"><g class="fx beat loop">
+<circle cx="${sx}" cy="${n1(cy)}" r="${R}" fill="url(#spG)"/>
+<circle cx="${sx}" cy="${n1(cy)}" r="${R}" fill="${t.accent}" filter="url(#softglow)" opacity=".4"/>
+<circle cx="${sx}" cy="${n1(cy)}" r="${R - 0.5}" stroke="#fff" stroke-opacity="${t.name === "dark" ? 0.2 : 0.35}"/>
+<svg x="${sx - 16}" y="${n1(cy - 15)}" width="32" height="32" viewBox="0 0 24 24"><path d="${HEART2}" fill="${onAccent(t)}"/></svg>
+</g></g>`;
+    }
+    const css = `
+.sh{animation:shimmer 3.6s ease-in-out 2s infinite}
+.beat{animation:beat 1.6s ease-in-out 1.2s infinite}
+@keyframes beat{0%,100%{transform:scale(1)}12%{transform:scale(1.12)}24%{transform:scale(1)}36%{transform:scale(1.07)}52%{transform:scale(1)}}
+.wave{transform-box:fill-box;transform-origin:center;animation:spWave 1.6s cubic-bezier(.2,.6,.4,1) 1.2s infinite}
+@keyframes spWave{0%{transform:scale(1);opacity:.6}70%,100%{transform:scale(2.3);opacity:0}}
+.ecg{animation:ecg 3.2s linear infinite}
+@keyframes ecg{from{stroke-dashoffset:116}to{stroke-dashoffset:0}}
+.float{opacity:0;animation:float 4.8s ease-out infinite}
+@keyframes float{0%{opacity:0;transform:translateY(8px)}20%{opacity:.9}100%{opacity:0;transform:translateY(-34px)}}`;
+    const defs = `<linearGradient id="spG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${t.glow}"/><stop offset="1" stop-color="${accentDeep(t)}"/></linearGradient>
+<linearGradient id="ecgF" gradientUnits="userSpaceOnUse" x1="${sx - 132}" y1="0" x2="${sx - 62}" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#fff"/></linearGradient>
+<mask id="ecgM" maskUnits="userSpaceOnUse" x="0" y="0" width="${W50}" height="${H13}"><rect x="0" y="0" width="${W50}" height="${H13}" fill="url(#ecgF)"/></mask>
+<clipPath id="spClip"><rect x=".5" y=".5" width="${W50 - 1}" height="${H13 - 1}" rx="${t.radius}"/></clipPath>`;
+    const body = `${card(t, { width: W50, height: H13 })}
+${lbl ? label(t, x, 34, lbl) : ""}
+${emb}
+<g transform="translate(0 ${n1(dy)})">${head}
+${textMarkup}
+${out.join("\n")}
+${backersMarkup}</g>`;
+    return svg({ width: W50, height: H13, theme: t, title: this.alt(ctx, o), css, defs, body });
+  }
+});
+function autoHeadline(ctx) {
+  return ctx.kind === "project" ? `Support ${pkgNames(ctx).name}` : "Support my open-source work";
+}
+function autoText(ctx) {
+  return ctx.kind === "project" ? `${pkgNames(ctx).name} is free, open source and maintained in spare evenings. Sponsorship pays for CI, docs and the time to keep it healthy.` : "Everything I publish is free and open source. Sponsorship keeps it maintained, documented and fun to work on.";
+}
+
+// ../core/src/widgets/pf-toc.ts
+var DEFAULT_ENTRIES = [
+  { title: "Installation", anchor: "", level: "1" },
+  { title: "Usage", anchor: "", level: "1" },
+  { title: "Features", anchor: "", level: "1" },
+  { title: "Roadmap", anchor: "", level: "1" },
+  { title: "Contributing", anchor: "", level: "1" },
+  { title: "License", anchor: "", level: "1" }
+];
+function mdLabel(s) {
+  return s.replace(/\\/g, "\\\\").replace(/([[\]])/g, "\\$1");
+}
+var pfToc = defineWidget({
+  type: "toc",
+  title: "Table of contents",
+  description: "A markdown table of contents with links to your README's sections, numbered or bulleted, with optional sub-entries.",
+  scope: "any",
+  category: "Content",
+  kind: "markdown",
+  width: "full",
+  defaults: {
+    title: "## Contents",
+    numbered: false,
+    entries: DEFAULT_ENTRIES
+  },
+  fields: [
+    { key: "title", label: "Heading", type: "text", placeholder: "## Contents", max: 80, help: "Markdown, e.g. `## Contents` or `**On this page**`. Leave empty for just the list." },
+    { key: "numbered", label: "Numbered", type: "toggle" },
+    {
+      key: "entries",
+      label: "Entries",
+      type: "list",
+      itemLabel: "Entry",
+      titleKey: "title",
+      max: 30,
+      newItem: { title: "New section", anchor: "", level: "1" },
+      help: "Anchors default to GitHub's heading slug, so `## Getting started` becomes #getting-started.",
+      item: [
+        { key: "title", label: "Title", type: "text", max: 80, help: PLACEHOLDER_HELP },
+        { key: "anchor", label: "Anchor", type: "text", placeholder: "Automatic from the title", max: 80 },
+        {
+          key: "level",
+          label: "Level",
+          type: "segmented",
+          options: [
+            { value: "1", label: "Section" },
+            { value: "2", label: "Sub-section" }
+          ]
+        }
+      ]
+    }
+  ],
+  alt: () => "Table of contents",
+  render(ctx, o) {
+    const numbered = o.numbered === true;
+    const list = items(o.entries).map((e) => {
+      const title = fillPlaceholders(str(e.title), ctx).replace(/\s+/g, " ").trim();
+      const raw = str(e.anchor).replace(/^#/, "").trim();
+      const anchor = raw ? raw.replace(/\s+/g, "-") : ghSlug(title);
+      return { title, anchor, sub: str(e.level) === "2" };
+    }).filter((e) => e.title).slice(0, 30);
+    const lines = [];
+    const heading2 = fillPlaceholders(str(o.title), ctx).trim();
+    if (heading2) lines.push(heading2, "");
+    let n = 0;
+    let m = 0;
+    let seenTop = false;
+    for (const e of list) {
+      const link = e.anchor ? `[${mdLabel(e.title)}](#${encodeURI(e.anchor)})` : mdLabel(e.title);
+      if (e.sub && seenTop) {
+        m++;
+        lines.push(numbered ? `${" ".repeat(`${n}. `.length)}${m}. ${link}` : `  - ${link}`);
+      } else {
+        n++;
+        m = 0;
+        seenTop = true;
+        lines.push(numbered ? `${n}. ${link}` : `- ${link}`);
+      }
+    }
+    if (!list.length) lines.push("<!-- Add entries to the table of contents in the inspector -->");
+    return lines.join("\n");
+  }
+});
+
+// ../core/src/widgets/set-f.ts
+var setF = [pfInstall, pfCode, pfFeatures, pfChangelog, pfRoadmap, pfDownloads, pfSupport, pfToc];
+
 // ../core/src/widgets/registry.ts
 var ORDER = ["Header", "Identity", "Stats", "Activity", "Projects", "Content", "Decoration"];
-var widgetList = [...setCore, ...setA, ...setB, ...setC, ...setD].sort(
+var widgetList = [...setCore, ...setA, ...setB, ...setC, ...setD, ...setE, ...setF].sort(
   (a, b) => ORDER.indexOf(a.category) - ORDER.indexOf(b.category)
 );
 var byType = new Map(widgetList.map((w) => [w.type, w]));
@@ -7470,6 +11341,14 @@ var DEFAULT_PROFILE = {
     { icon: "website", label: "Website", url: "https://github.blog", handle: "github.blog" }
   ]
 };
+var DEFAULT_PROJECT = {
+  repo: "octocat/aurora",
+  name: "",
+  tagline: "A tiny, fast design-token compiler for multi-brand UI kits.",
+  logo: "",
+  homepage: "",
+  packages: { npm: "", pypi: "", crates: "" }
+};
 var DEFAULT_OUTPUT = { branch: "output", modes: ["dark", "light"], repository: "", schedule: "17 2 * * *" };
 var counter = 0;
 function uid2(prefix = "r") {
@@ -7478,18 +11357,22 @@ function uid2(prefix = "r") {
 }
 function nextBlockId(type, taken) {
   const set = new Set(taken);
-  const base = slug(type);
+  const base = slug2(type);
   if (!set.has(base)) return base;
   for (let i = 2; ; i++) if (!set.has(`${base}-${i}`)) return `${base}-${i}`;
 }
-function slug(s) {
+function slug2(s) {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40) || "block";
 }
 function allBlocks(c) {
   return c.layout.flatMap((r) => r.blocks);
 }
 function assetRepository(c) {
-  return c.output.repository.trim() || `${c.profile.login}/${c.profile.login}`;
+  if (c.output.repository.trim()) return c.output.repository.trim();
+  return c.kind === "project" ? c.project.repo : `${c.profile.login}/${c.profile.login}`;
+}
+function projectName(p) {
+  return p.name.trim() || p.repo.split("/")[1] || p.repo;
 }
 function assetBase(c) {
   return `https://raw.githubusercontent.com/${assetRepository(c)}/${c.output.branch}`;
@@ -7570,7 +11453,7 @@ function normOptions(type, v) {
 function normLayout(v, w) {
   if (!Array.isArray(v)) return [];
   const ids = /* @__PURE__ */ new Set();
-  const rows2 = [];
+  const rows3 = [];
   for (const r of v) {
     if (!isObj(r)) continue;
     const blocks = [];
@@ -7581,7 +11464,7 @@ function normLayout(v, w) {
         w.push(`Skipped unknown widget type "${type}".`);
         continue;
       }
-      let id = slug(str2(b.id, type, 40));
+      let id = slug2(str2(b.id, type, 40));
       if (ids.has(id)) id = nextBlockId(id, ids);
       ids.add(id);
       const block = { id, type, options: normOptions(type, b.options) };
@@ -7590,9 +11473,25 @@ function normLayout(v, w) {
       blocks.push(block);
     }
     if (!blocks.length) continue;
-    rows2.push({ id: str2(r.id, "", 40) || uid2(), align: oneOf(r.align, ["center", "left", "right"], "center"), blocks });
+    rows3.push({ id: str2(r.id, "", 40) || uid2(), align: oneOf(r.align, ["center", "left", "right"], "center"), blocks });
   }
-  return rows2;
+  return rows3;
+}
+var REPO_RE = /^[\w.-]+\/[\w.-]+$/;
+function normProject(v, login) {
+  const p = isObj(v) ? v : {};
+  const d = DEFAULT_PROJECT;
+  const pk = isObj(p.packages) ? p.packages : {};
+  const repo = str2(p.repo, "", 140).trim().replace(/^https?:\/\/github\.com\//, "").replace(/\.git$/, "").replace(/\/+$/, "");
+  const pkg = (x) => str2(x, "", 214).trim();
+  return {
+    repo: REPO_RE.test(repo) ? repo : `${login || "octocat"}/aurora`,
+    name: str2(p.name, d.name, 80),
+    tagline: str2(p.tagline, d.tagline, 200),
+    logo: str2(p.logo, d.logo, 40),
+    homepage: str2(p.homepage, d.homepage, 300),
+    packages: { npm: pkg(pk.npm), pypi: pkg(pk.pypi), crates: pkg(pk.crates) }
+  };
 }
 function normOutput(v) {
   const o = isObj(v) ? v : {};
@@ -7612,10 +11511,13 @@ function normalizeConfig(raw) {
   const warnings = [];
   const c = isObj(raw) ? raw : {};
   if (!isObj(raw)) warnings.push("Config is not an object; using defaults.");
+  const profile = normProfile(c.profile, warnings);
   const config = {
     $schema: SCHEMA_URL,
     version: CONFIG_VERSION,
-    profile: normProfile(c.profile, warnings),
+    kind: oneOf(c.kind, ["profile", "project"], "profile"),
+    profile,
+    project: normProject(c.project, profile.login),
     theme: normTheme(c.theme),
     layout: normLayout(c.layout, warnings),
     output: normOutput(c.output)
@@ -7630,15 +11532,26 @@ function serializeConfig(c) {
 // ../core/src/render.ts
 function createCtx(config, data13, mode, env = {}) {
   const date = env.date ?? /* @__PURE__ */ new Date();
+  const d = viewData(config, data13);
   return {
     theme: resolveTheme(config.theme, mode),
-    data: data13,
-    d: derive(data13),
+    data: d,
+    d: derive(d),
     now: localParts(date, config.profile.location.timezone),
     date,
     profile: config.profile,
+    kind: config.kind,
+    project: config.project,
     run: env.run ?? null
   };
+}
+function viewData(config, data13) {
+  const p = data13.project;
+  if (config.kind !== "project" || !p) return data13;
+  return { ...data13, languages: p.languages, releases: p.releases };
+}
+function metaCtx(config, data13) {
+  return { profile: config.profile, data: viewData(config, data13), project: config.project, kind: config.kind };
 }
 function blockParts(block, ctx) {
   const def = getWidget(block.type);
@@ -7704,7 +11617,7 @@ function renderFrames(part, ctx) {
   return { width: m ? +m[1] : 840, height: m ? +m[2] : 200, frames: [{ svg: s, delay: 1e3 }] };
 }
 function layoutParts(config, data13) {
-  const ctx = { profile: config.profile, data: data13 };
+  const ctx = metaCtx(config, data13);
   return config.layout.map((row) => row.blocks.filter((b) => !b.hidden).flatMap((b) => blockParts(b, ctx)));
 }
 function assetFileName(name, mode, kind) {
@@ -7727,7 +11640,7 @@ function picture(base, part, modes, size) {
 function renderReadme(config, data13, o = {}) {
   const base = (o.assetBase ?? assetBase(config)).replace(/\/+$/, "");
   const modes = o.modes ?? config.output.modes;
-  const rows2 = layoutParts(config, data13);
+  const rows3 = layoutParts(config, data13);
   const out = [];
   if (o.banner !== false) {
     out.push(
@@ -7740,7 +11653,7 @@ function renderReadme(config, data13, o = {}) {
   }
   let mdCtx = null;
   config.layout.forEach((row, ri) => {
-    const parts = rows2[ri];
+    const parts = rows3[ri];
     if (!parts.length) return;
     const align = row.align;
     let run = [];
@@ -7773,10 +11686,10 @@ ${md}
 
 // ../core/src/lib/gif.ts
 var avg = (e) => [Math.round(e.r / e.n), Math.round(e.g / e.n), Math.round(e.b / e.n)];
-function medianCut(entries, max) {
-  if (max <= 0 || !entries.length) return [];
-  if (entries.length <= max) return entries.map(avg);
-  let boxes = [entries];
+function medianCut(entries2, max) {
+  if (max <= 0 || !entries2.length) return [];
+  if (entries2.length <= max) return entries2.map(avg);
+  let boxes = [entries2];
   while (boxes.length < max) {
     let best = -1;
     let bestScore = -1;
@@ -7911,7 +11824,7 @@ function encodeGif(width, height, frames) {
       } else hist.set(k, { n: 1, r, g, b });
     }
   }
-  const palette = buildPalette(hist, 255);
+  const palette2 = buildPalette(hist, 255);
   const cache2 = /* @__PURE__ */ new Map();
   const nearest = (r, g, b) => {
     const k = r >> 2 << 12 | g >> 2 << 6 | b >> 2;
@@ -7919,8 +11832,8 @@ function encodeGif(width, height, frames) {
     if (idx === void 0) {
       let best = Infinity;
       idx = 1;
-      for (let i = 0; i < palette.length; i++) {
-        const p = palette[i];
+      for (let i = 0; i < palette2.length; i++) {
+        const p = palette2[i];
         const d = (p[0] - r) ** 2 * 0.3 + (p[1] - g) ** 2 * 0.59 + (p[2] - b) ** 2 * 0.11;
         if (d < best) {
           best = d;
@@ -7939,7 +11852,7 @@ function encodeGif(width, height, frames) {
   out.byte(0);
   out.byte(0);
   out.bytes([0, 0, 0]);
-  for (let i = 0; i < 255; i++) out.bytes(palette[i] ?? [0, 0, 0]);
+  for (let i = 0; i < 255; i++) out.bytes(palette2[i] ?? [0, 0, 0]);
   out.bytes([33, 255, 11]);
   out.str("NETSCAPE2.0");
   out.bytes([3, 1, 0, 0, 0]);
@@ -8185,15 +12098,124 @@ var layoutPresets = [
       [{ type: "socials", options: { style: "compact" } }],
       [{ type: "quote", options: { rotate: false } }]
     ]
+  },
+  // ---------------------------------------------------------------- project READMEs
+  {
+    id: "oss-library",
+    kind: "project",
+    name: "Open-Source Library",
+    description: "The full treatment for a published package: hero, live shields, install terminal, usage, stars and the people who built it.",
+    tags: ["package", "npm", "complete"],
+    theme: { preset: "github", font: "geist-sans", headingFont: "geist-sans", texture: "none", radius: 10 },
+    rows: [
+      [{ type: "project-hero" }],
+      [{ type: "shields" }],
+      [{ type: "install" }],
+      [{ type: "toc" }],
+      [{ type: "features" }],
+      [{ type: "code" }],
+      [{ type: "repo-stats" }],
+      [{ type: "star-history" }],
+      [{ type: "contributors" }],
+      [{ type: "changelog" }],
+      [{ type: "footer", options: { message: "{project} \xB7 {license} licensed", waves: false } }]
+    ]
+  },
+  {
+    id: "cli-tool",
+    kind: "project",
+    name: "CLI Tool",
+    description: "Terminal-first: amber phosphor, a typed install, a usage snippet and the commit pulse of the project.",
+    tags: ["cli", "monospace", "retro"],
+    theme: { preset: "amber", font: "jetbrains-mono", headingFont: "jetbrains-mono", texture: "lines", radius: 6 },
+    rows: [
+      [{ type: "project-hero", options: { emblemStyle: "plain" } }],
+      [{ type: "shields" }],
+      [{ type: "install" }],
+      [{ type: "code" }],
+      [{ type: "commit-activity" }],
+      [{ type: "repo-health" }, { type: "downloads" }],
+      [{ type: "footer", options: { message: "{project} \xB7 built in the open", barcode: true } }]
+    ]
+  },
+  {
+    id: "product-launch",
+    kind: "project",
+    name: "Product Launch",
+    description: "Bold and visual for apps and frameworks: statement banner, feature grid, roadmap progress and a sponsor card.",
+    tags: ["app", "bold", "roadmap"],
+    theme: { preset: "ultraviolet", font: "space-grotesk", headingFont: "space-grotesk", texture: "dots", radius: 16 },
+    rows: [
+      [{ type: "project-hero", options: { align: "center" } }],
+      [{ type: "shields" }],
+      [{ type: "features" }],
+      [{ type: "star-history" }],
+      [{ type: "roadmap" }],
+      [{ type: "contributors" }],
+      [{ type: "support" }],
+      [{ type: "footer" }]
+    ]
+  },
+  {
+    id: "python-package",
+    kind: "project",
+    name: "Python Package",
+    description: "Calm Nord palette for a PyPI package: pip install, a code sample, releases and repository vitals.",
+    tags: ["pypi", "calm", "docs"],
+    theme: { preset: "nord", font: "inter", headingFont: "ibm-plex-serif", texture: "none", radius: 10, motion: "subtle" },
+    rows: [
+      [{ type: "project-hero" }],
+      [{ type: "shields" }],
+      [{ type: "install" }],
+      [{ type: "code", options: { language: "python" } }],
+      [{ type: "changelog" }],
+      [{ type: "repo-health" }, { type: "donut" }],
+      [{ type: "contributors" }]
+    ]
+  },
+  {
+    id: "minimal-oss",
+    kind: "project",
+    name: "Minimal OSS",
+    description: "Monochrome and quiet: a title, a row of shields, real markdown docs and nothing that shouts.",
+    tags: ["minimal", "monochrome", "markdown"],
+    theme: { preset: "mono", font: "geist-sans", headingFont: "geist-sans", texture: "none", radius: 8, motion: "subtle" },
+    rows: [
+      [{ type: "project-hero", options: { emblemStyle: "none" } }],
+      [{ type: "shields" }],
+      [{ type: "markdown", options: { text: "## Getting started\n\nInstall the package, import it and you're done. Issues and ideas are welcome on [GitHub](https://github.com/{repo})." } }],
+      [{ type: "commit-activity" }],
+      [{ type: "contributors", options: {} }]
+    ]
+  },
+  {
+    id: "maintainers-dashboard",
+    kind: "project",
+    name: "Maintainer's Dashboard",
+    description: "Everything a maintainer watches, at a glance: stats, health, downloads, star growth, commit rhythm and milestones.",
+    tags: ["data", "health", "dashboard"],
+    theme: { preset: "ocean", font: "geist-mono", headingFont: "space-grotesk", texture: "grid", radius: 10 },
+    rows: [
+      [{ type: "project-hero" }],
+      [{ type: "repo-stats" }],
+      [{ type: "repo-health" }, { type: "downloads" }],
+      [{ type: "star-history" }],
+      [{ type: "commit-activity" }],
+      [{ type: "roadmap" }],
+      [{ type: "changelog" }],
+      [{ type: "contributors" }]
+    ]
   }
 ];
 function getLayoutPreset(id) {
   return layoutPresets.find((p) => p.id === id) ?? layoutPresets[0];
 }
-function presetConfig(id, profile = {}) {
+function presetConfig(id, profile = {}, project2 = {}) {
   const p = getLayoutPreset(id);
   const raw = {
+    kind: p.kind ?? "profile",
     profile: { ...DEFAULT_PROFILE, ...profile },
+    project: { ...DEFAULT_PROJECT, ...project2 },
     theme: { ...DEFAULT_THEME, ...p.theme },
     layout: p.rows.map((r) => Array.isArray(r) ? { align: "center", blocks: r } : r),
     output: DEFAULT_OUTPUT
@@ -8343,11 +12365,17 @@ var Http = class {
     };
   }
   async gh(path) {
-    const url = path.startsWith("http") ? path : `https://api.github.com${path}`;
-    let res = await this.raw(url, { headers: this.headers() });
-    if ((res.status === 401 || res.status === 403) && this.o.token) res = await this.raw(url, { headers: this.headers(false) });
+    const res = await this.ghRes(path);
     if (!res.ok) throw new Error(`GET ${path} \u2192 ${res.status}`);
     return await res.json();
+  }
+  /** Raw GitHub REST response (for headers such as Link, or 202 polling). */
+  async ghRes(path, accept) {
+    const url = path.startsWith("http") ? path : `https://api.github.com${path}`;
+    const h = (auth) => ({ ...this.headers(auth), ...accept ? { accept } : {} });
+    let res = await this.raw(url, { headers: h(true) });
+    if ((res.status === 401 || res.status === 403) && this.o.token) res = await this.raw(url, { headers: h(false) });
+    return res;
   }
   async graphql(query, variables) {
     if (!this.o.token) throw new Error("no GitHub token for GraphQL");
@@ -8682,6 +12710,264 @@ async function commitHoursOf(http, login, repos2, tz, now) {
     }
   }
   return total >= 10 ? hours : null;
+}
+
+// ../core/src/data/project.ts
+function lastPage(link) {
+  const m = link ? /[?&]page=(\d+)[^>]*>;\s*rel="last"/.exec(link) : null;
+  return m ? Number(m[1]) : 1;
+}
+function base64(bytes) {
+  const B = globalThis.Buffer;
+  if (B) return B.from(bytes).toString("base64");
+  let s = "";
+  for (let i = 0; i < bytes.length; i += 32768) s += String.fromCharCode(...bytes.subarray(i, i + 32768));
+  return btoa(s);
+}
+function summarizeNotes(body, max = 220) {
+  const lines = body.replace(/<!--[\s\S]*?-->/g, "").replace(/```[\s\S]*?```/g, "").split(/\r?\n/).map(
+    (l) => l.replace(/^#+\s*/, "").replace(/^[-*+]\s+/, "").replace(/!\[[^\]]*\]\([^)]*\)/g, "").replace(/\[([^\]]+)\]\([^)]*\)/g, "$1").replace(/[*_`>]/g, "").replace(/https?:\/\/\S+/g, "").trim()
+  ).filter((l) => l && !/^(what'?s changed|full changelog|new contributors|changes|changelog)\b/i.test(l));
+  const text = lines.slice(0, 3).join(" \xB7 ");
+  return text.length > max ? `${text.slice(0, max - 1).trimEnd()}\u2026` : text;
+}
+async function sleep(ms) {
+  await new Promise((r) => setTimeout(r, ms));
+}
+function weeklyFromDaily(days) {
+  const weeks = [];
+  for (let i = days.length; i > 0; i -= 7) weeks.unshift(days.slice(Math.max(0, i - 7), i).reduce((a, d) => a + d.downloads, 0));
+  return weeks.slice(-52);
+}
+async function npmDownloads(http, name) {
+  const enc = name.startsWith("@") ? `@${encodeURIComponent(name.slice(1))}` : encodeURIComponent(name);
+  const [range, latest] = await Promise.all([
+    http.raw(`https://api.npmjs.org/downloads/range/last-year/${enc}`).then((r) => r.ok ? r.json() : null),
+    http.raw(`https://registry.npmjs.org/${enc}/latest`).then((r) => r.ok ? r.json() : null)
+  ]);
+  const days = range?.downloads ?? [];
+  if (!days.length && !latest) throw new Error(`npm package ${name} not found`);
+  const sum2 = (n) => days.slice(-n).reduce((a, d) => a + d.downloads, 0);
+  return { registry: "npm", name, lastWeek: days.length ? sum2(7) : null, lastMonth: days.length ? sum2(30) : null, total: days.length ? sum2(days.length) : null, weekly: weeklyFromDaily(days), version: latest?.version ?? "" };
+}
+async function pypiDownloads(http, name) {
+  const [recent, info] = await Promise.all([
+    http.raw(`https://pypistats.org/api/packages/${encodeURIComponent(name.toLowerCase())}/recent`).then((r) => r.ok ? r.json() : null),
+    http.raw(`https://pypi.org/pypi/${encodeURIComponent(name)}/json`).then((r) => r.ok ? r.json() : null)
+  ]);
+  if (!recent && !info) throw new Error(`PyPI package ${name} not found`);
+  return { registry: "pypi", name, lastWeek: recent?.data?.last_week ?? null, lastMonth: recent?.data?.last_month ?? null, total: null, weekly: [], version: info?.info?.version ?? "" };
+}
+async function cratesDownloads(http, name) {
+  const res = await http.raw(`https://crates.io/api/v1/crates/${encodeURIComponent(name)}`, { headers: { accept: "application/json" } });
+  if (!res.ok) throw new Error(`crate ${name} \u2192 ${res.status}`);
+  const j = await res.json();
+  return { registry: "crates", name, lastWeek: null, lastMonth: j.crate.recent_downloads ? Math.round(j.crate.recent_downloads / 3) : null, total: j.crate.downloads, weekly: [], version: j.crate.max_stable_version || j.crate.max_version };
+}
+async function fetchProjectData(o) {
+  const http = new Http({ login: "", token: o.token, fetch: o.fetch, log: o.log, timeoutMs: o.timeoutMs });
+  const [owner2, name] = o.repo.split("/");
+  const R = `/repos/${encodeURIComponent(owner2)}/${encodeURIComponent(name)}`;
+  const repo = await http.gh(R);
+  if (repo.private) throw new Error(`${o.repo} is private; project READMEs only read public repositories`);
+  const count = async (q) => (await http.gh(`/search/issues?per_page=1&q=${encodeURIComponent(`repo:${repo.full_name} ${q}`)}`)).total_count;
+  const [languages2, contributorsRes, contributorCount, commitWeeks, lastCommit, releasesRaw, issues, ci, milestones2, starHistory2] = await Promise.all([
+    http.soft("languages", () => http.gh(`${R}/languages`), {}),
+    http.soft("contributors", () => http.gh(`${R}/contributors?per_page=100`), []),
+    http.soft(
+      "contributor count",
+      async () => {
+        const res = await http.ghRes(`${R}/contributors?per_page=1&anon=1`);
+        if (!res.ok) throw new Error(`contributors \u2192 ${res.status}`);
+        return lastPage(res.headers.get("link"));
+      },
+      0
+    ),
+    http.soft(
+      "commit activity",
+      async () => {
+        for (let i = 0; i < 4; i++) {
+          const res = await http.ghRes(`${R}/stats/commit_activity`);
+          if (res.status === 200) return (await res.json()).map((w) => w.total).slice(-52);
+          if (res.status !== 202) throw new Error(`commit activity \u2192 ${res.status}`);
+          await sleep(1500 * (i + 1));
+        }
+        return [];
+      },
+      []
+    ),
+    http.soft(
+      "last commit",
+      async () => {
+        const [c] = await http.gh(`${R}/commits?per_page=1`);
+        return c ? { message: c.commit.message.split("\n")[0], sha: c.sha.slice(0, 7), date: c.commit.author.date, author: c.author?.login ?? c.commit.author.name } : null;
+      },
+      null
+    ),
+    http.soft("releases", () => http.gh(`${R}/releases?per_page=12`), []),
+    http.soft(
+      "issue counts",
+      async () => {
+        const [openIssues, closedIssues, openPulls, mergedPulls] = await Promise.all([count("is:issue is:open"), count("is:issue is:closed"), count("is:pr is:open"), count("is:pr is:merged")]);
+        return { openIssues, closedIssues, openPulls, mergedPulls };
+      },
+      null
+    ),
+    http.soft(
+      "ci status",
+      async () => {
+        const j = await http.gh(`${R}/actions/runs?per_page=1&exclude_pull_requests=true&branch=${encodeURIComponent(repo.default_branch)}`);
+        const r = j.workflow_runs[0];
+        if (!r) return null;
+        const status = r.status !== "completed" ? "running" : r.conclusion === "success" ? "passing" : r.conclusion === "failure" || r.conclusion === "timed_out" ? "failing" : "unknown";
+        return { name: r.name, status, url: r.html_url };
+      },
+      null
+    ),
+    http.soft(
+      "milestones",
+      async () => (await http.gh(`${R}/milestones?state=all&per_page=20&sort=due_on`)).sort((a, b) => a.state === b.state ? 0 : a.state === "open" ? -1 : 1).slice(0, 10).map((m) => ({ title: m.title, open: m.open_issues, closed: m.closed_issues, dueOn: m.due_on?.slice(0, 10) ?? "", url: m.html_url })),
+      []
+    ),
+    http.soft("star history", () => starHistoryOf(http, R, repo.stargazers_count, o.starPages ?? 10), [])
+  ]);
+  const humans = contributorsRes.filter((c) => c.type !== "Bot" && !c.login.endsWith("[bot]"));
+  const contributors = await Promise.all(
+    humans.map(async (c, i) => {
+      let avatar2 = "";
+      if (i < (o.avatars ?? 48)) {
+        avatar2 = await http.soft(
+          `avatar ${c.login}`,
+          async () => {
+            const res = await http.raw(`${c.avatar_url}${c.avatar_url.includes("?") ? "&" : "?"}s=64`);
+            if (!res.ok) throw new Error(`${res.status}`);
+            const type = res.headers.get("content-type") || "image/png";
+            return `data:${type};base64,${base64(new Uint8Array(await res.arrayBuffer()))}`;
+          },
+          ""
+        );
+      }
+      return { login: c.login, avatar: avatar2, contributions: c.contributions };
+    })
+  );
+  const published = releasesRaw.filter((r) => !r.draft && r.published_at);
+  const releases2 = published.map((r) => ({ repo: repo.name, tag: r.tag_name, name: r.name ?? "", url: r.html_url, publishedAt: r.published_at }));
+  const releaseNotes = Object.fromEntries(published.map((r) => [r.tag_name, summarizeNotes(r.body ?? "")]));
+  const pk = o.packages ?? {};
+  const downloads = (await Promise.all([
+    pk.npm ? http.soft(`npm ${pk.npm}`, () => npmDownloads(http, pk.npm), null) : null,
+    pk.pypi ? http.soft(`pypi ${pk.pypi}`, () => pypiDownloads(http, pk.pypi), null) : null,
+    pk.crates ? http.soft(`crates ${pk.crates}`, () => cratesDownloads(http, pk.crates), null) : null
+  ])).filter((d) => d !== null);
+  const langs = Object.entries(languages2).map(([n, bytes]) => ({ name: n, color: languageColor(n), bytes })).sort((a, b) => b.bytes - a.bytes);
+  const openIssuesFallback = Math.max(0, repo.open_issues_count - (issues?.openPulls ?? 0));
+  return {
+    owner: repo.owner.login,
+    name: repo.name,
+    fullName: repo.full_name,
+    description: repo.description ?? "",
+    homepage: repo.homepage ?? "",
+    url: repo.html_url,
+    topics: repo.topics ?? [],
+    license: repo.license ? repo.license.spdx_id && repo.license.spdx_id !== "NOASSERTION" ? repo.license.spdx_id : repo.license.name : "",
+    defaultBranch: repo.default_branch,
+    createdAt: repo.created_at,
+    pushedAt: repo.pushed_at,
+    stars: repo.stargazers_count,
+    forks: repo.forks_count,
+    watchers: repo.subscribers_count ?? repo.watchers_count,
+    openIssues: issues?.openIssues ?? openIssuesFallback,
+    closedIssues: issues?.closedIssues ?? 0,
+    openPulls: issues?.openPulls ?? 0,
+    mergedPulls: issues?.mergedPulls ?? 0,
+    size: repo.size,
+    language: repo.language ? { name: repo.language, color: languageColor(repo.language) } : null,
+    languages: langs,
+    contributors,
+    contributorCount: Math.max(contributorCount, contributors.length),
+    commitWeeks,
+    lastCommit,
+    releases: releases2,
+    releaseNotes,
+    starHistory: starHistory2.length ? starHistory2 : [{ date: (/* @__PURE__ */ new Date()).toISOString().slice(0, 10), stars: repo.stargazers_count }],
+    ci,
+    milestones: milestones2,
+    downloads
+  };
+}
+async function starHistoryOf(http, R, total, maxPages) {
+  if (total === 0) return [];
+  const accept = "application/vnd.github.star+json";
+  const first = await http.ghRes(`${R}/stargazers?per_page=100&page=1`, accept);
+  if (!first.ok) throw new Error(`stargazers \u2192 ${first.status}`);
+  const pages = Math.min(lastPage(first.headers.get("link")), 400);
+  const firstList = await first.json();
+  const wanted = /* @__PURE__ */ new Set();
+  for (let i = 1; i < maxPages; i++) wanted.add(Math.max(2, Math.round(i / (maxPages - 1) * pages)));
+  wanted.delete(1);
+  const lists = await Promise.all(
+    [...wanted].filter((p) => p <= pages).map(async (p) => {
+      const res = await http.ghRes(`${R}/stargazers?per_page=100&page=${p}`, accept);
+      return res.ok ? { page: p, list: await res.json() } : { page: p, list: [] };
+    })
+  );
+  const points = [];
+  const add = (page, list) => {
+    if (!list.length) return;
+    points.push({ date: list[0].starred_at.slice(0, 10), stars: (page - 1) * 100 + 1 });
+    if (page === 1 && list.length > 1) points.push({ date: list[list.length - 1].starred_at.slice(0, 10), stars: list.length });
+  };
+  add(1, firstList);
+  for (const l of lists.sort((a, b) => a.page - b.page)) add(l.page, l.list);
+  points.push({ date: (/* @__PURE__ */ new Date()).toISOString().slice(0, 10), stars: total });
+  const out = [];
+  for (const p of points.sort((a, b) => a.date.localeCompare(b.date))) {
+    const prev = out[out.length - 1];
+    if (prev && prev.date === p.date) prev.stars = Math.max(prev.stars, p.stars);
+    else out.push({ date: p.date, stars: Math.max(p.stars, prev?.stars ?? 0) });
+  }
+  return out;
+}
+function emptyProfileData(login, now = /* @__PURE__ */ new Date()) {
+  return {
+    source: "rest",
+    generatedAt: now.toISOString(),
+    login,
+    name: login,
+    createdAt: null,
+    avatarUrl: "",
+    bio: "",
+    company: "",
+    location: "",
+    blog: "",
+    followers: 0,
+    following: 0,
+    repoCount: 0,
+    weeks: [],
+    lastYearTotal: 0,
+    yearTotal: 0,
+    allTimeTotal: 0,
+    totals: { commits: null, pullRequests: null, issues: null, reviews: null, stars: null, forks: null, privateContributions: null },
+    languages: [],
+    projects: [],
+    repos: [],
+    yearTotals: {},
+    events: [],
+    commitHours: null,
+    weather: null,
+    releases: [],
+    feeds: {}
+  };
+}
+async function fetchProjectProfile(o) {
+  const http = new Http({ login: o.login, token: o.token, fetch: o.fetch, log: o.log, timeoutMs: o.timeoutMs });
+  const now = o.now ?? /* @__PURE__ */ new Date();
+  const [project2, weather, feedEntries] = await Promise.all([
+    fetchProjectData(o),
+    o.weather && o.location ? http.soft("weather", () => fetchWeather(http, o.location, o.timeZone ?? "UTC"), null) : Promise.resolve(null),
+    Promise.all((o.feeds ?? []).filter(Boolean).map(async (url) => [url, await http.soft(`feed ${url}`, () => fetchFeed(http, url), [])]))
+  ]);
+  return { ...emptyProfileData(o.login, now), source: o.token ? "graphql" : "rest", weather, feeds: Object.fromEntries(feedEntries), project: project2 };
 }
 
 // src/build.ts
@@ -9483,8 +13769,23 @@ function dataNeeds(config) {
 async function loadData(o) {
   const now = o.now ?? /* @__PURE__ */ new Date();
   const p = o.config.profile;
-  if (o.mock) return mockData(now, p.login, p.name, p.location.timezone);
+  if (o.mock) return mockData(now, p.login, p.name, p.location.timezone, o.config.kind === "project" ? o.config.project.repo : void 0);
   const needs = dataNeeds(o.config);
+  if (o.config.kind === "project") {
+    const pr = o.config.project;
+    return fetchProjectProfile({
+      repo: pr.repo,
+      packages: pr.packages,
+      login: pr.repo.split("/")[0],
+      token: o.token,
+      timeZone: p.location.timezone,
+      location: { latitude: p.location.latitude, longitude: p.location.longitude },
+      weather: needs.weather,
+      feeds: needs.feeds,
+      now,
+      log: o.log
+    });
+  }
   return fetchProfileData({
     login: p.login,
     token: o.token,
@@ -9512,10 +13813,10 @@ async function build(o) {
   const errors = [];
   const assets = [];
   const fonts = [config.theme.font, config.theme.headingFont];
-  const rows2 = layoutParts(config, data13);
+  const rows3 = layoutParts(config, data13);
   for (const mode of config.output.modes) {
     const ctx = createCtx(config, data13, mode, { date: now, run: o.run ?? null });
-    for (const part of rows2.flat()) {
+    for (const part of rows3.flat()) {
       if (part.kind === "markdown") continue;
       if (o.only && !o.only.includes(part.block.id)) continue;
       const file = assetFileName(part.name, mode, part.kind);

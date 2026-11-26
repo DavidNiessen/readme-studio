@@ -252,7 +252,7 @@ function renderBadge(ctx: Ctx, o: Record<string, unknown>, b: Badge, index: numb
 
 export const shields = defineWidget({
   type: "shields",
-  title: "Badges",
+  title: "Shields",
   description: "Shield-style badges for version, licence, build status, stars, downloads and more, each its own image linking to the right page.",
   scope: "project",
   category: "Identity",

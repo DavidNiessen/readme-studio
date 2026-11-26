@@ -23,6 +23,9 @@ export const PLACEHOLDERS: { token: string; help: string }[] = [
   { token: "{forks}", help: "repository forks" },
   { token: "{contributors}", help: "contributor count" },
   { token: "{npm}", help: "npm package name" },
+  { token: "{pypi}", help: "PyPI package name" },
+  { token: "{crate}", help: "crates.io crate name" },
+  { token: "{owner}", help: "repository owner" },
 ];
 
 /** Inspector help text listing the supported placeholders. */
@@ -78,6 +81,9 @@ export function fillPlaceholders(text: string, ctx: PlaceholderCtx): string {
     forks: () => (pd ? groupDigits(pd.forks) : ""),
     contributors: () => (pd ? groupDigits(pd.contributorCount) : ""),
     npm: () => pi?.packages?.npm || "",
+    pypi: () => pi?.packages?.pypi || "",
+    crate: () => pi?.packages?.crates || "",
+    owner: () => (pi?.repo || pd?.fullName || "").split("/")[0] || p?.login || "",
   };
   return text.replace(/\{\s*([a-zA-Z]+)\s*\}/g, (m, key: string) => {
     const f = values[key.toLowerCase()];
