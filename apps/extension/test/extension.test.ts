@@ -203,20 +203,20 @@ describe("saving a design", () => {
 
   it("skips unchanged files and opens a pull request from a new branch", async () => {
     const { gh, writes } = fakeGitHub({ [CONFIG_PATH]: serializeConfig(config), [WORKFLOW_PATH]: "old" });
-    const r = await saveDesign(gh, { repo, branch: "main", config, message: "docs: design", addWorkflow: false, target: "pull-request", prBranch: "readme-studio/x" });
+    const r = await saveDesign(gh, { repo, branch: "main", config, message: "docs: design", addWorkflow: false, target: "pull-request", prBranch: "readme-studio-x" });
     expect(r).toEqual({ kind: "pull-request", url: "https://github.com/mona/aurora/pull/7" });
     expect(writes.map((w) => [w.method, w.path])).toEqual([
       ["POST", "/repos/mona/aurora/git/refs"],
       ["POST", "/repos/mona/aurora/pulls"],
     ]);
-    expect(writes[0].body).toEqual({ ref: "refs/heads/readme-studio/x", sha: "base-sha" });
-    expect(writes[1].body).toMatchObject({ head: "readme-studio/x", base: "main" });
+    expect(writes[0].body).toEqual({ ref: "refs/heads/readme-studio-x", sha: "base-sha" });
+    expect(writes[1].body).toMatchObject({ head: "readme-studio-x", base: "main" });
   });
 
   it("lists the files a save writes and names pull request branches by time", () => {
     expect(filesFor({ config, addWorkflow: false }).map((f) => f.path)).toEqual([CONFIG_PATH]);
     expect(filesFor({ config, addWorkflow: true })[1].text).toContain("DavidNiessen/readme-studio@v1");
-    expect(defaultPrBranch(new Date("2026-11-26T13:05:00Z"))).toBe("readme-studio/202611261305");
+    expect(defaultPrBranch(new Date("2026-11-26T13:05:00Z"))).toBe("readme-studio-202611261305");
   });
 });
 

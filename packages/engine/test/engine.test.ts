@@ -137,5 +137,11 @@ describe("publish", () => {
     expect(commitReadme({ source: md, target: "README.md", workspace: ws })).toBe(true);
     expect(git(remote, "show", "main:README.md")).toBe("new");
     expect(commitReadme({ source: md, target: "README.md", workspace: ws })).toBe(false);
+
+    // a pull request branch "pages/…" blocks an asset branch "pages": the error says why
+    git(ws, "push", "-q", "origin", "main:refs/heads/pages/202611261626");
+    const again = tmp();
+    writeFileSync(join(again, "a-dark.svg"), "<svg/>");
+    expect(() => publishAssets({ dir: again, repository: "mona/mona", branch: "pages", token: "ghs_fake", remote })).toThrow(/branches named "pages\/…"/);
   });
 });

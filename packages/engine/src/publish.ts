@@ -37,8 +37,18 @@ export function publishAssets(o: PublishAssetsOptions): void {
   git(["add", "-A"], o.dir);
   git(["commit", "-q", "-m", o.message ?? `chore(readme-studio): render the README images ${new Date().toISOString().slice(0, 10)}`], o.dir);
   const remote = o.remote ?? `https://x-access-token:${o.token}@${server}/${o.repository}.git`;
-  git(["push", "-q", "--force", remote, `${o.branch}:${o.branch}`], o.dir, o.token);
-  rmSync(join(o.dir, ".git"), { recursive: true, force: true });
+  try {
+    git(["push", "-q", "--force", remote, `${o.branch}:${o.branch}`], o.dir, o.token);
+  } catch (e) {
+    // a branch "x" cannot exist next to branches "x/…" (git keeps them as a file and a folder)
+    if (/directory file conflict|cannot lock ref/i.test((e as Error).message))
+      throw new Error(
+        `The asset branch "${o.branch}" cannot be created because the repository has branches named "${o.branch}/…" (git cannot have both). Delete those branches, for example merged pull request branches, or set a different asset-branch. ${(e as Error).message}`,
+      );
+    throw e;
+  } finally {
+    rmSync(join(o.dir, ".git"), { recursive: true, force: true });
+  }
 }
 
 export interface CommitReadmeOptions {

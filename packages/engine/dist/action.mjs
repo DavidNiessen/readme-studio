@@ -13892,8 +13892,17 @@ function publishAssets(o) {
   git(["add", "-A"], o.dir);
   git(["commit", "-q", "-m", o.message ?? `chore(readme-studio): render the README images ${(/* @__PURE__ */ new Date()).toISOString().slice(0, 10)}`], o.dir);
   const remote = o.remote ?? `https://x-access-token:${o.token}@${server}/${o.repository}.git`;
-  git(["push", "-q", "--force", remote, `${o.branch}:${o.branch}`], o.dir, o.token);
-  rmSync2(join4(o.dir, ".git"), { recursive: true, force: true });
+  try {
+    git(["push", "-q", "--force", remote, `${o.branch}:${o.branch}`], o.dir, o.token);
+  } catch (e) {
+    if (/directory file conflict|cannot lock ref/i.test(e.message))
+      throw new Error(
+        `The asset branch "${o.branch}" cannot be created because the repository has branches named "${o.branch}/\u2026" (git cannot have both). Delete those branches, for example merged pull request branches, or set a different asset-branch. ${e.message}`
+      );
+    throw e;
+  } finally {
+    rmSync2(join4(o.dir, ".git"), { recursive: true, force: true });
+  }
 }
 function commitReadme(o) {
   const target = join4(o.workspace, o.target);

@@ -215,7 +215,8 @@ export function filesFor(r: Pick<SaveRequest, "config" | "addWorkflow">): { path
 
 export function defaultPrBranch(now = new Date()): string {
   const stamp = now.toISOString().slice(0, 16).replace(/[-:T]/g, "");
-  return `readme-studio/${stamp}`;
+  // flat, not readme-studio/…: git cannot keep "readme-studio/x" next to the readme-studio asset branch
+  return `readme-studio-${stamp}`;
 }
 
 /**
