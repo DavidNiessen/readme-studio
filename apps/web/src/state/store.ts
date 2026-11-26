@@ -18,6 +18,9 @@ interface StudioState {
   source: string | null;
   /** for a source's draft: the source's design it started from (see SavedDesign.base) */
   base: StudioConfig | null;
+  /** unsaved changes that came back when a source was opened again; the studio offers to reset them */
+  restoredDraft: { stale: boolean; committed: StudioConfig } | null;
+  setRestoredDraft: (d: { stale: boolean; committed: StudioConfig } | null) => void;
   name: string;
   config: StudioConfig;
   past: StudioConfig[];
@@ -119,6 +122,10 @@ export const useStudio = create<StudioState>((set, get) => ({
   designId: init.id,
   source: init.source,
   base: init.base,
+  restoredDraft: null,
+  setRestoredDraft(d) {
+    set({ restoredDraft: d });
+  },
   name: init.name,
   config: init.config,
   past: [],
@@ -186,7 +193,7 @@ export const useStudio = create<StudioState>((set, get) => ({
       selected: null,
       lastKey: null,
       ...(name ? { name } : {}),
-      ...(newDesign ? { designId: newId(), source: null, base: null } : {}),
+      ...(newDesign ? { designId: newId(), source: null, base: null, restoredDraft: null } : {}),
       ...(s.dataMode === "sample" ? { data: sampleFor(config) } : {}),
     });
   },
@@ -323,6 +330,7 @@ export const useStudio = create<StudioState>((set, get) => ({
       designId: newId(),
       source: null,
       base: null,
+      restoredDraft: null,
       name: "Untitled design",
       config,
       past: [],
@@ -332,7 +340,7 @@ export const useStudio = create<StudioState>((set, get) => ({
     });
   },
   openDesign(d) {
-    set((s) => ({ designId: d.id, source: d.source ?? null, base: d.base ?? null, name: d.name, config: d.config, past: [], future: [], selected: null, ...(s.dataMode === "sample" ? { data: sampleFor(d.config) } : {}) }));
+    set((s) => ({ designId: d.id, source: d.source ?? null, base: d.base ?? null, restoredDraft: null, name: d.name, config: d.config, past: [], future: [], selected: null, ...(s.dataMode === "sample" ? { data: sampleFor(d.config) } : {}) }));
   },
   openSource(source, committed, name) {
     const kept = findDesignBySource(source);
@@ -351,7 +359,9 @@ export const useStudio = create<StudioState>((set, get) => ({
       ...(s.dataMode === "sample" ? { data: sampleFor(config) } : {}),
     }));
     const restored = !!kept && !sameConfig(kept.config, committed);
-    return { restored, stale: restored && !!kept?.base && !sameConfig(kept.base, committed) };
+    const stale = restored && !!kept?.base && !sameConfig(kept.base, committed);
+    set({ restoredDraft: restored ? { stale, committed } : null });
+    return { restored, stale };
   },
   rebase(committed) {
     set({ base: normalizeConfig(committed).config });

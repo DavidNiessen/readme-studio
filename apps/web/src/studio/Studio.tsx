@@ -37,6 +37,9 @@ import { Dialogs } from "./Dialogs";
 import { Inspector } from "./Inspector";
 import { Rail } from "./Rail";
 import { DraftNotice, SaveButton, SaveDialog } from "./github/SaveToGitHub";
+import { openedMessage, openFailure, openRepository } from "./github/openRepo";
+import { getSession, setSession, useSession } from "./github/session";
+import { repoRef } from "../github/repo";
 import { OpenFailed } from "./github/OpenFailed";
 import { webPlatform } from "./github/webPlatform";
 import { StudioHostContext, useStudioHost, type StudioHost } from "./host";
@@ -307,8 +310,6 @@ function StudioShell() {
   // design is in, the editor stays hidden: whatever design the store held is not this one.
   const [opening, setOpening] = useState<{ state: "loading" } | { state: "ready" } | { state: "failed"; error: unknown }>({ state: host?.open ? "loading" : "ready" });
   const [attempt, setAttempt] = useState(0);
-  // unsaved changes that came back when the host opened its design
-  const [draft, setDraft] = useState<{ stale: boolean; committed: StudioConfig } | null>(null);
   useEffect(() => {
     if (!host?.open) return;
     let cancelled = false;
@@ -320,9 +321,8 @@ function StudioShell() {
         setOpening({ state: "ready" });
         if (!r) return;
         if (r.source) {
-          const { restored, stale } = useStudio.getState().openSource(r.source, r.config, r.name);
-          if (restored) setDraft({ stale, committed: r.config });
-          else if (r.message) toast(r.message);
+          const { restored } = useStudio.getState().openSource(r.source, r.config, r.name);
+          if (!restored && r.message) toast(r.message);
         } else {
           useStudio.getState().replace(r.config, r.name, true);
           if (r.message) toast(r.message);
@@ -335,6 +335,13 @@ function StudioShell() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [host, attempt]);
+  // Save to GitHub targets the repository a draft belongs to; another design has none
+  // (only when the design changes: a host may name its repository a moment before its draft opens)
+  const source = useStudio((s) => s.source);
+  useEffect(() => {
+    const { opened } = getSession();
+    if (opened && source !== `github:${opened.repo.full.toLowerCase()}`) setSession({ opened: null });
+  }, [source]);
   // shared design links: #/studio?design=<token>
   useEffect(() => {
     if (host) return;
@@ -347,26 +354,40 @@ function StudioShell() {
       if (preset) useStudio.setState({ name: preset.name });
       return;
     }
-    // #/studio?repo=owner/name opens that repository's committed readme.config.json,
-    // #/studio?config=<https url> any config file (both must be publicly readable)
+    // #/studio?repo=owner/name opens that repository's design (else its README) as its draft,
+    // #/studio?config=<https url> any publicly readable config file
     const params = new URLSearchParams(location.hash.split("?")[1] ?? "");
-    const repo = params.get("repo");
+    const repoParam = params.get("repo");
     const cfgUrl = params.get("config");
-    if (repo || cfgUrl) {
+    if (repoParam) {
       history.replaceState(null, "", "#/studio");
-      const url = repo && /^[\w.-]+\/[\w.-]+$/.test(repo) ? `https://raw.githubusercontent.com/${repo}/HEAD/readme.config.json` : cfgUrl && /^https:\/\//.test(cfgUrl) ? cfgUrl : null;
-      if (!url) {
+      const repo = repoRef(repoParam);
+      if (!repo) {
+        toast("That link does not name a repository");
+        return;
+      }
+      openRepository(repo, webPlatform)
+        .then(({ opened, restored }) => {
+          if (restored) return; // the banner says it
+          toast(opened.warnings.length ? `Opened with ${opened.warnings.length} repair(s)` : openedMessage(opened));
+        })
+        .catch((e) => toast(openFailure(e, repo.full)));
+      return;
+    }
+    if (cfgUrl) {
+      history.replaceState(null, "", "#/studio");
+      if (!/^https:\/\//.test(cfgUrl)) {
         toast("That link does not point at a public config");
         return;
       }
-      fetch(url)
+      fetch(cfgUrl)
         .then((r) => (r.ok ? r.text() : Promise.reject(new Error(String(r.status)))))
         .then((text) => {
           const { config, warnings } = parseConfig(text);
-          useStudio.getState().replace(config, repo ? `${repo} README` : "Imported design", true);
-          toast(warnings.length ? `Opened with ${warnings.length} repair(s)` : `Opened ${repo ?? "the config"}`);
+          useStudio.getState().replace(config, "Imported design", true);
+          toast(warnings.length ? `Opened with ${warnings.length} repair(s)` : "Opened the config");
         })
-        .catch((e) => toast(repo ? `No readme.config.json found in ${repo} (${(e as Error).message})` : `Could not load that config (${(e as Error).message})`));
+        .catch((e) => toast(`Could not load that config (${(e as Error).message})`));
       return;
     }
     const m = /design=([^&]+)/.exec(location.hash);
@@ -410,7 +431,7 @@ function StudioShell() {
         <Inspector />
       </div>
       <MobileTabs />
-      {draft && <DraftBanner {...draft} context={host?.context} onDone={() => setDraft(null)} />}
+      <DraftBanner />
       <Dialogs />
       <SaveDialog platform={host?.github ?? webPlatform} />
       <ContextMenuHost />
@@ -424,7 +445,14 @@ function StudioShell() {
  * step); when the source changed since the changes were made, the banner says the draft is out
  * of date.
  */
-function DraftBanner({ stale, committed, context, onDone }: { stale: boolean; committed: StudioConfig; context?: string; onDone: () => void }) {
+function DraftBanner() {
+  const draft = useStudio((s) => s.restoredDraft);
+  const host = useStudioHost();
+  const { opened } = useSession();
+  if (!draft) return null;
+  const { stale, committed } = draft;
+  const onDone = () => useStudio.getState().setRestoredDraft(null);
+  const context = host?.context ?? opened?.repo.full;
   const where = context ?? "the repository";
   return (
     <div className={cn("draft-banner", stale && "draft-banner--stale")} role="status">

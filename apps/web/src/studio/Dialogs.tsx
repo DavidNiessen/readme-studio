@@ -41,10 +41,10 @@ import { Button, CodeBlock, CopyButton, Dialog, Field, Kbd, MOD, Segmented, Sele
 import { assetsZip, download, projectFiles, projectZip } from "../lib/export";
 import { shareUrl } from "../lib/share";
 import { deleteDesign, loadDesigns, type SavedDesign } from "../lib/storage";
-import { GitHub } from "../github/api";
-import { designFromReadme, openDesign, RepoUnavailable } from "../github/design";
+import { designFromReadme } from "../github/design";
 import { repoRef } from "../github/repo";
 import { useStudio } from "../state/store";
+import { openedMessage, openFailure, openRepository } from "./github/openRepo";
 import { suggestedRepo } from "./github/SaveToGitHub";
 import { webPlatform } from "./github/webPlatform";
 import { useStudioHost } from "./host";
@@ -344,15 +344,14 @@ function ImportDialog() {
     setBusy(true);
     setError(null);
     try {
-      const auth = await (host?.github ?? webPlatform).loadAuth();
-      const opened = await openDesign(new GitHub(auth?.token ?? null), repo);
-      if (!opened.configExists && !opened.importedReadme) return setError(`${repo.full} has no README yet.`);
-      replace(opened.config, opened.name, true);
-      done(opened.configExists ? `Opened the design in ${repo.full}` : `Started from ${repo.full}'s ${opened.importedReadme}`);
+      // the repository's own draft: unsaved changes from last time come back with the reset banner
+      const { opened, restored } = await openRepository(repo, host?.github ?? webPlatform);
+      if (restored) {
+        openDialog(null);
+        setError(null);
+      } else done(openedMessage(opened));
     } catch (e) {
-      if (e instanceof RepoUnavailable && e.rateLimited) setError("GitHub is limiting requests without signing in. Add a token under Save to GitHub, or try again later.");
-      else if (e instanceof RepoUnavailable) setError(e.signedIn ? `${repo.full} was not found, or your token cannot see it.` : `${repo.full} was not found. If it is private, add a token under Save to GitHub first.`);
-      else setError((e as Error).message);
+      setError(openFailure(e, repo.full));
     } finally {
       setBusy(false);
     }
