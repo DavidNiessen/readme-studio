@@ -147,7 +147,7 @@ function TopBar() {
           items={[
             { label: "Presets", icon: <LayoutTemplate />, onSelect: () => s.openDialog("presets") },
             { label: "My designs", icon: <FolderOpen />, onSelect: () => s.openDialog("designs") },
-            { label: "Import config", icon: <Upload />, onSelect: () => s.openDialog("import") },
+            { label: "Import design", icon: <Upload />, onSelect: () => s.openDialog("import") },
             { label: "Edit as JSON", icon: <FileJson />, onSelect: () => s.openDialog("json") },
             { label: "Export manually", icon: <Download />, shortcut: `${MOD} E`, onSelect: () => s.openDialog("export") },
             {
