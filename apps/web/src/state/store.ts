@@ -4,7 +4,7 @@ import { addBlock, duplicateBlock, findBlock, moveBlock, removeBlock, renameBloc
 import { findDesignBySource, getCurrentId, getPref, loadDesigns, saveDesign, setCurrentId, setPref, type SavedDesign } from "../lib/storage";
 
 export type InspectorTab = "block" | "profile" | "project" | "theme" | "data";
-export type DialogId = "export" | "presets" | "import" | "json" | "shortcuts" | "designs" | "palette" | "add" | null;
+export type DialogId = "export" | "save" | "presets" | "import" | "json" | "shortcuts" | "designs" | "palette" | "add" | null;
 export type MobilePane = "layers" | "canvas" | "inspect";
 
 export interface DataStatus {
@@ -16,6 +16,8 @@ interface StudioState {
   designId: string;
   /** where the design saves back to (e.g. "github:owner/repo"); null for designs of the studio itself */
   source: string | null;
+  /** for a source's draft: the source's design it started from (see SavedDesign.base) */
+  base: StudioConfig | null;
   name: string;
   config: StudioConfig;
   past: StudioConfig[];
@@ -71,17 +73,21 @@ interface StudioState {
    * Opens the design of a source: its kept draft when there is one, else `committed` as a new
    * draft. Returns whether the draft differs from `committed` (unsaved changes came back).
    */
-  openSource: (source: string, committed: StudioConfig, name: string) => { restored: boolean };
+  openSource: (source: string, committed: StudioConfig, name: string) => { restored: boolean; stale: boolean };
+  /** Records `committed` as what the source now holds (after a save, or keeping a stale draft). */
+  rebase: (committed: StudioConfig) => void;
+  /** Replaces the draft with the source's design, as one undoable step. */
+  resetToSource: (committed: StudioConfig) => void;
 }
 
 const sampleFor = (c: StudioConfig) => mockData(new Date(), c.profile.login, c.profile.name, c.profile.location.timezone, c.kind === "project" ? c.project.repo : undefined);
 
-function initial(): { id: string; name: string; config: StudioConfig; source: string | null } {
+function initial(): { id: string; name: string; config: StudioConfig; source: string | null; base: StudioConfig | null } {
   const designs = loadDesigns();
   const current = getCurrentId();
   const found = designs.find((d) => d.id === current) ?? designs[0];
-  if (found) return { id: found.id, name: found.name, config: found.config, source: found.source ?? null };
-  return { id: newId(), name: "My profile", config: presetConfig("command-center"), source: null };
+  if (found) return { id: found.id, name: found.name, config: found.config, source: found.source ?? null, base: found.base ?? null };
+  return { id: newId(), name: "My profile", config: presetConfig("command-center"), source: null, base: null };
 }
 
 /** Two configs are the same design when they serialise the same way. */
@@ -99,6 +105,7 @@ const HISTORY = 120;
 export const useStudio = create<StudioState>((set, get) => ({
   designId: init.id,
   source: init.source,
+  base: init.base,
   name: init.name,
   config: init.config,
   past: [],
@@ -165,7 +172,7 @@ export const useStudio = create<StudioState>((set, get) => ({
       selected: null,
       lastKey: null,
       ...(name ? { name } : {}),
-      ...(newDesign ? { designId: newId(), source: null } : {}),
+      ...(newDesign ? { designId: newId(), source: null, base: null } : {}),
       ...(s.dataMode === "sample" ? { data: sampleFor(config) } : {}),
     });
   },
@@ -247,6 +254,7 @@ export const useStudio = create<StudioState>((set, get) => ({
     set({
       designId: newId(),
       source: null,
+      base: null,
       name: "Untitled design",
       config,
       past: [],
@@ -256,7 +264,7 @@ export const useStudio = create<StudioState>((set, get) => ({
     });
   },
   openDesign(d) {
-    set((s) => ({ designId: d.id, source: d.source ?? null, name: d.name, config: d.config, past: [], future: [], selected: null, ...(s.dataMode === "sample" ? { data: sampleFor(d.config) } : {}) }));
+    set((s) => ({ designId: d.id, source: d.source ?? null, base: d.base ?? null, name: d.name, config: d.config, past: [], future: [], selected: null, ...(s.dataMode === "sample" ? { data: sampleFor(d.config) } : {}) }));
   },
   openSource(source, committed, name) {
     const kept = findDesignBySource(source);
@@ -264,6 +272,8 @@ export const useStudio = create<StudioState>((set, get) => ({
     set((s) => ({
       designId: kept?.id ?? newId(),
       source,
+      // drafts saved before bases were kept count as started from what the source holds now
+      base: kept?.base ?? committed,
       name: kept?.name ?? name,
       config,
       past: [],
@@ -272,18 +282,27 @@ export const useStudio = create<StudioState>((set, get) => ({
       lastKey: null,
       ...(s.dataMode === "sample" ? { data: sampleFor(config) } : {}),
     }));
-    return { restored: !!kept && !sameConfig(kept.config, committed) };
+    const restored = !!kept && !sameConfig(kept.config, committed);
+    return { restored, stale: restored && !!kept?.base && !sameConfig(kept.base, committed) };
+  },
+  rebase(committed) {
+    set({ base: normalizeConfig(committed).config });
+  },
+  resetToSource(committed) {
+    const config = normalizeConfig(committed).config;
+    get().commit(() => config);
+    set({ base: config, selected: null });
   },
 }));
 
 /** Debounced autosave of the current design. */
 let saveTimer = 0;
 useStudio.subscribe((s, prev) => {
-  if (s.config === prev.config && s.name === prev.name && s.designId === prev.designId) return;
+  if (s.config === prev.config && s.name === prev.name && s.designId === prev.designId && s.base === prev.base) return;
   window.clearTimeout(saveTimer);
   saveTimer = window.setTimeout(() => {
     const st = useStudio.getState();
-    saveDesign({ id: st.designId, name: st.name, updatedAt: Date.now(), config: st.config, ...(st.source ? { source: st.source } : {}) });
+    saveDesign({ id: st.designId, name: st.name, updatedAt: Date.now(), config: st.config, ...(st.source ? { source: st.source, ...(st.base ? { base: st.base } : {}) } : {}) });
     setCurrentId(st.designId);
     useStudio.setState({ savedAt: Date.now() });
   }, 500);

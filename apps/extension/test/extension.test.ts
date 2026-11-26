@@ -1,8 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { fillOutsideCode, normalizeConfig, serializeConfig } from "@readme-studio/core";
-import { GitHub, _private } from "../src/github/api";
+import { CONFIG_PATH, defaultPrBranch, designFromReadme, filesFor, GitHub, _private, openDesign, RepoUnavailable, saveDesign, TokenRejected, splitSections, starterFor, WORKFLOW_PATH, inspectRepo } from "@readme-studio/web/github";
 import { requestDeviceCode, waitForToken } from "../src/github/auth";
-import { CONFIG_PATH, defaultPrBranch, designFromReadme, filesFor, openDesign, saveDesign, splitSections, starterFor, WORKFLOW_PATH } from "../src/github/design";
 import { editorUrl, isFresh, PENDING_TTL } from "../src/github/editor";
 import { buildManifest, manifestVersion } from "../src/manifest";
 import { DEFAULT_SETTINGS, upgradeSettings } from "../src/settings";
@@ -93,13 +92,64 @@ describe("opening a design", () => {
   });
 
   it("starts a profile or project design when the repository has none, and survives the API rate limit", async () => {
-    const http = (async (u: string | URL) => (String(u).startsWith("https://api.github.com") ? json({ message: "rate limit" }, 403) : new Response("", { status: 404 }))) as typeof fetch;
+    // rate-limited API; the raw files show the repository exists (it has the workflow, no design)
+    const http = (async (u: string | URL) =>
+      String(u).startsWith("https://api.github.com") ? json({ message: "rate limit" }, 403) : String(u).endsWith(WORKFLOW_PATH) ? new Response("on: push") : new Response("", { status: 404 })) as typeof fetch;
     const profile = await openDesign(new GitHub(null, http), repoRef("mona/mona")!);
     expect(profile).toMatchObject({ branch: "HEAD", configExists: false });
     expect(profile.config.kind).toBe("profile");
     const project = await openDesign(new GitHub(null, http), repo);
     expect(project.config.kind).toBe("project");
     expect(project.config.project.repo).toBe("mona/aurora");
+  });
+
+  it("reports a repository GitHub answers 404 for, instead of starting a design for it", async () => {
+    const calls: string[] = [];
+    const http = (async (u: string | URL) => {
+      calls.push(String(u));
+      return json({ message: "Not Found" }, 404);
+    }) as typeof fetch;
+    // without a token: probably private, so the studio asks to sign in
+    const anon = await openDesign(new GitHub(null, http), repo).catch((e) => e);
+    expect(anon).toBeInstanceOf(RepoUnavailable);
+    expect(anon).toMatchObject({ signedIn: false, repo: { full: "mona/aurora" } });
+    // with a token: a plain 404; also when a branch was given, so no file is read first
+    const signed = await openDesign(new GitHub("t", http), repo, "main").catch((e) => e);
+    expect(signed).toMatchObject({ signedIn: true });
+    expect(calls.every((c) => c === "https://api.github.com/repos/mona/aurora")).toBe(true);
+  });
+
+  it("does not start a design for a repository it cannot see while rate-limited", async () => {
+    const http = (async (u: string | URL) => (String(u).startsWith("https://api.github.com") ? json({ message: "rate limit" }, 403) : new Response("", { status: 404 }))) as typeof fetch;
+    const e = await openDesign(new GitHub(null, http), repo).catch((x) => x);
+    expect(e).toBeInstanceOf(RepoUnavailable);
+    expect(e).toMatchObject({ signedIn: false, rateLimited: true });
+    // signed in, every API call is limited: the same, not GitHub's raw message
+    const all = (async () => json({ message: "API rate limit exceeded" }, 403)) as typeof fetch;
+    expect(await openDesign(new GitHub("t", all), repo).catch((x) => x)).toMatchObject({ signedIn: true, rateLimited: true });
+  });
+
+  it("asks to sign in again when GitHub rejects the saved token", async () => {
+    const http = (async () => json({ message: "Bad credentials" }, 401)) as typeof fetch;
+    expect(await openDesign(new GitHub("expired", http), repo).catch((e) => e)).toBeInstanceOf(TokenRejected);
+  });
+
+  it("checks a repository the website saves to", async () => {
+    const http = (async (u: string | URL) => {
+      if (String(u).endsWith("/repos/mona/aurora")) return json({ default_branch: "trunk", private: true });
+      if (String(u).includes(`/contents/${CONFIG_PATH}`)) return json({ content: btoa("{}"), sha: "abc" });
+      return json({ message: "Not Found" }, 404);
+    }) as typeof fetch;
+    expect(await inspectRepo(new GitHub("t", http), repo)).toEqual({ repo, branch: "trunk", configExists: true, workflowExists: false });
+    const missing = (async () => json({ message: "Not Found" }, 404)) as typeof fetch;
+    expect(await inspectRepo(new GitHub(null, missing), repo).catch((e) => e)).toBeInstanceOf(RepoUnavailable);
+  });
+
+  it("still fails loudly on other errors", async () => {
+    const http = (async () => json({ message: "Server Error" }, 500)) as typeof fetch;
+    const e = await openDesign(new GitHub("t", http), repo).catch((x) => x);
+    expect(e).not.toBeInstanceOf(RepoUnavailable);
+    expect((e as Error).message).toContain("500");
   });
 });
 
@@ -163,11 +213,17 @@ describe("saving a design", () => {
 describe("GitHub's editor", () => {
   it("pre-fills new files in the URL and opens existing ones for the content script", () => {
     const e = { repo: "mona/aurora", branch: "main", path: ".github/workflows/readme.yml", text: "name: readme\n" };
-    const fresh = new URL(editorUrl(e, false));
+    const link = editorUrl(e, false);
+    const fresh = new URL(link.url);
+    expect(link.prefilled).toBe(true);
     expect(fresh.pathname).toBe("/mona/aurora/new/main/.github/workflows");
     expect(fresh.searchParams.get("filename")).toBe("readme.yml");
     expect(fresh.searchParams.get("value")).toBe("name: readme\n");
-    expect(editorUrl({ ...e, path: CONFIG_PATH }, true)).toBe("https://github.com/mona/aurora/edit/main/readme.config.json");
+    expect(editorUrl({ ...e, path: CONFIG_PATH }, true)).toEqual({ url: "https://github.com/mona/aurora/edit/main/readme.config.json", prefilled: false });
+    // too long for a link: the file opens empty and gets its text another way
+    const long = editorUrl({ ...e, text: "x".repeat(20000) }, false);
+    expect(long.prefilled).toBe(false);
+    expect(new URL(long.url).searchParams.has("value")).toBe(false);
     expect(isFresh({ ...e, at: 0 }, PENDING_TTL - 1)).toBe(true);
     expect(isFresh({ ...e, at: 0 }, PENDING_TTL + 1)).toBe(false);
     expect(isFresh(undefined)).toBe(false);

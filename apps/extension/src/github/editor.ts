@@ -4,6 +4,8 @@
  * the text into the editor, and the user reviews the diff and commits on GitHub.
  */
 
+export { editorUrl } from "@readme-studio/web/github/editor";
+
 export interface PendingEdit {
   repo: string;
   branch: string;
@@ -16,21 +18,6 @@ export interface PendingEdit {
 export const PENDING_TTL = 15 * 60 * 1000;
 
 export const pendingKey = (repo: string, path: string) => `pending:${repo.toLowerCase()}:${path}`;
-
-const encPath = (path: string) => path.split("/").map(encodeURIComponent).join("/");
-
-/**
- * The editor URL for a file. A new file can carry its whole text in `value`; an existing file
- * opens in the editor and is filled in by the content script.
- */
-export function editorUrl(e: Pick<PendingEdit, "repo" | "branch" | "path" | "text">, exists: boolean): string {
-  const branch = encodeURIComponent(e.branch);
-  if (exists) return `https://github.com/${e.repo}/edit/${branch}/${encPath(e.path)}`;
-  const slash = e.path.lastIndexOf("/");
-  const dir = slash >= 0 ? `/${encPath(e.path.slice(0, slash))}` : "";
-  const q = new URLSearchParams({ filename: e.path.slice(slash + 1), value: e.text });
-  return `https://github.com/${e.repo}/new/${branch}${dir}?${q.toString()}`;
-}
 
 export function isFresh(e: PendingEdit | undefined, now = Date.now()): e is PendingEdit {
   return !!e && now - e.at < PENDING_TTL;

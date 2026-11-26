@@ -17,6 +17,7 @@ import {
   AlertTriangle,
   Check,
   Download,
+  UploadCloud,
   FileJson,
   FolderOpen,
   ImageDown,
@@ -445,7 +446,8 @@ function ShortcutsDialog() {
     ["Add widget", <Kbd>A</Kbd>],
     ["Toggle dark / light preview", <Kbd>T</Kbd>],
     ["Replay animations", <Kbd>R</Kbd>],
-    ["Export", <><Kbd>{MOD}</Kbd><Kbd>E</Kbd></>],
+    ["Save to GitHub", <><Kbd>{MOD}</Kbd><Kbd>S</Kbd></>],
+    ["Export manually", <><Kbd>{MOD}</Kbd><Kbd>E</Kbd></>],
     ["Shortcuts", <Kbd>?</Kbd>],
   ];
   return (
@@ -569,7 +571,8 @@ function CommandPalette() {
   }, [open]);
   const cmds: Cmd[] = useMemo(
     () => [
-      { group: "Actions", label: "Export project", icon: <Download />, run: () => s.openDialog("export") },
+      { group: "Actions", label: "Save to GitHub", icon: <UploadCloud />, run: () => s.openDialog("save") },
+      { group: "Actions", label: "Export manually", icon: <Download />, run: () => s.openDialog("export") },
       { group: "Actions", label: "Browse presets", icon: <LayoutTemplate />, run: () => s.openDialog("presets") },
       { group: "Actions", label: "Import config", icon: <Upload />, run: () => s.openDialog("import") },
       { group: "Actions", label: "Edit config as JSON", icon: <FileJson />, run: () => s.openDialog("json") },

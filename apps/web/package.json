@@ -36,6 +36,10 @@
     "./studio/styles": "./src/studio/styles.ts",
     "./state": "./src/state/store.ts",
     "./ui": "./src/components/ui/index.tsx",
-    "./logo": "./src/components/Logo.tsx"
+    "./logo": "./src/components/Logo.tsx",
+    "./github": "./src/github/index.ts",
+    "./github/repo": "./src/github/repo.ts",
+    "./github/editor": "./src/github/editor.ts",
+    "./studio/github": "./src/studio/github/index.ts"
   }
 }

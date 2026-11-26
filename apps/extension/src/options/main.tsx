@@ -7,7 +7,8 @@ import { StrictMode, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { ext, HOSTS } from "../platform";
 import { BUILT_IN_CLIENT_ID, DEFAULT_SETTINGS, loadAuth, loadSettings, saveSettings, type Auth, type SaveMode, type Settings } from "../settings";
-import { AuthPanel } from "../studio/AuthPanel";
+import { AuthPanel } from "@readme-studio/web/studio/github";
+import { extensionPlatform } from "../studio/githubPlatform";
 
 function Options() {
   const toast = useToast();
@@ -59,7 +60,7 @@ function Options() {
       <section>
         <h2>GitHub account</h2>
         <p className="muted">Needed to commit or open pull requests from the studio. Saving through GitHub's own editor works without it.</p>
-        <AuthPanel auth={auth} onChange={setAuth} />
+        <AuthPanel platform={extensionPlatform} auth={auth} onChange={setAuth} />
       </section>
 
       <section>

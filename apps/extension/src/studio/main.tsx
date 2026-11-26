@@ -1,23 +1,23 @@
 import "@readme-studio/web/studio/styles";
 import "../extension.css";
 import { STUDIO_URL } from "@readme-studio/core";
+import { GitHub, openDesign, setSession } from "@readme-studio/web/github";
 import Studio from "@readme-studio/web/studio";
 import type { StudioHost } from "@readme-studio/web/studio/host";
 import { useStudio } from "@readme-studio/web/state";
 import { ToastProvider } from "@readme-studio/web/ui";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { GitHub } from "../github/api";
-import { openDesign } from "../github/design";
 import { repoRef } from "../repo";
 import { loadAuth } from "../settings";
-import { DraftNotice, SaveButton, SaveDialog } from "./SaveToGitHub";
-import { setSession, tellPage } from "./session";
+import { extensionPlatform } from "./githubPlatform";
+import { tellPage } from "./page";
 
 /**
  * The studio page of the extension. `studio.html#repo=owner/name&ref=branch` opens that
  * repository's design (shown over GitHub by the content script); without a repository it is
- * the same studio as the website, in a browser tab.
+ * the same studio as the website, in a browser tab. Either way Save to GitHub signs in and
+ * reaches GitHub's editor the extension's way.
  */
 const params = new URLSearchParams(location.hash.replace(/^#/, ""));
 const repo = repoRef(params.get("repo") ?? "");
@@ -40,20 +40,14 @@ if (embedded) {
 
 const host: StudioHost = {
   siteUrl: STUDIO_URL,
+  github: extensionPlatform,
   onClose: embedded ? () => tellPage({ type: "close" }) : undefined,
 };
 if (repo) {
   host.context = repo.full;
-  host.actions = (
-    <>
-      <DraftNotice />
-      <SaveButton />
-    </>
-  );
-  host.overlays = <SaveDialog />;
   host.open = async () => {
     const auth = await loadAuth();
-    setSession({ auth });
+    setSession({ auth, opened: null });
     const opened = await openDesign(new GitHub(auth?.token ?? null), repo, params.get("ref") ?? undefined);
     setSession({ opened });
     // one draft per repository: closing the studio keeps unsaved changes for next time

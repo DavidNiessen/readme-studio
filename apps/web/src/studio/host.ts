@@ -1,5 +1,6 @@
 import { createContext, useContext, type ReactNode } from "react";
 import type { StudioConfig } from "@readme-studio/core";
+import type { GitHubPlatform } from "../github/platform";
 
 /**
  * Lets another surface embed the studio unchanged: the browser extension opens a repository's
@@ -15,8 +16,19 @@ export interface StudioHost {
    * brings back unsaved changes instead of the committed design.
    */
   open?: () => Promise<{ config: StudioConfig; name: string; warnings?: string[]; source?: string; message?: string } | null>;
-  /** Primary actions for the top bar, placed before Export (e.g. "Save to GitHub"). */
+  /**
+   * Shown instead of the editor when `open` fails (a private repository, a 404), so the studio
+   * never shows an unrelated design in its place. `retry` runs `open` again, e.g. after signing in.
+   * Without it the studio explains GitHub errors itself (sign in for a private repository, 404).
+   */
+  failed?: (error: unknown, retry: () => void) => ReactNode;
+  /** Extra actions for the top bar, placed before Save to GitHub. */
   actions?: ReactNode;
+  /**
+   * How Save to GitHub signs in, stores the sign-in and reaches GitHub's editor on this surface.
+   * The website's (token only, clipboard for the editor) when left out.
+   */
+  github?: GitHubPlatform;
   /** Dialogs or panels the host renders next to the studio's own. */
   overlays?: ReactNode;
   /** Shown as a close button: hands control back to the host (e.g. returns to the GitHub page). */

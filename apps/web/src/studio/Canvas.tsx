@@ -38,7 +38,21 @@ function Markdown({ part, repo, selected, onSelect }: { part: RenderedPart; repo
   // relative images and links resolve against the design's repository, as they do on GitHub
   const html = useMemo(() => resolveRepoLinks(marked.parse(part.markdown ?? "", { async: false }) as string, repo), [part.markdown, repo]);
   return (
-    <div className={cn("cv-md", selected && "is-selected")} onClick={onSelect} data-block={part.meta.block.id}>
+    <div
+      className={cn("cv-md", selected && "is-selected")}
+      data-block={part.meta.block.id}
+      onClick={(e) => {
+        // the canvas behind clears the selection on click, so the click stops here
+        e.stopPropagation();
+        const link = (e.target as HTMLElement).closest("a[href]") as HTMLAnchorElement | null;
+        // a click on a link selects the block like any other click; Ctrl/⌘-click opens it
+        if (link) {
+          e.preventDefault();
+          if (e.metaKey || e.ctrlKey) window.open(link.href, "_blank", "noopener");
+        }
+        onSelect();
+      }}
+    >
       {selected && <div className="cv-tag">{part.meta.block.id}</div>}
       {selected && <Tools id={part.meta.block.id} />}
       <div dangerouslySetInnerHTML={{ __html: html }} />

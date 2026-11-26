@@ -20,12 +20,13 @@ import {
   Upload,
   Layers,
   BookOpen,
+  RotateCcw,
   X,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { layoutPresets, parseConfig } from "@readme-studio/core";
+import { layoutPresets, parseConfig, type StudioConfig } from "@readme-studio/core";
 import { Logo, LogoMark } from "../components/Logo";
-import { Button, IconButton, MOD, Menu, Segmented, copyText, useToast } from "../components/ui";
+import { Button, IconButton, MOD, Menu, Segmented, cn, copyText, useToast } from "../components/ui";
 import { findBlock } from "../lib/layout";
 import { navigate } from "../lib/router";
 import { decodeShare, shareUrl } from "../lib/share";
@@ -35,6 +36,9 @@ import { Canvas } from "./Canvas";
 import { Dialogs } from "./Dialogs";
 import { Inspector } from "./Inspector";
 import { Rail } from "./Rail";
+import { DraftNotice, SaveButton, SaveDialog } from "./github/SaveToGitHub";
+import { OpenFailed } from "./github/OpenFailed";
+import { webPlatform } from "./github/webPlatform";
 import { StudioHostContext, useStudioHost, type StudioHost } from "./host";
 
 function SavedIndicator() {
@@ -145,6 +149,7 @@ function TopBar() {
             { label: "My designs", icon: <FolderOpen />, onSelect: () => s.openDialog("designs") },
             { label: "Import config", icon: <Upload />, onSelect: () => s.openDialog("import") },
             { label: "Edit as JSON", icon: <FileJson />, onSelect: () => s.openDialog("json") },
+            { label: "Export manually", icon: <Download />, shortcut: `${MOD} E`, onSelect: () => s.openDialog("export") },
             {
               label: "Copy share link",
               icon: <Link2 />,
@@ -163,10 +168,9 @@ function TopBar() {
             { label: "Documentation", icon: <BookOpen />, onSelect: docs },
           ]}
         />
+        <DraftNotice />
         {host?.actions}
-        <Button variant={host?.actions ? "secondary" : "accent"} aria-label="Export" onClick={() => s.openDialog("export")}>
-          <Download /> <span className="hide-sm">Export</span>
-        </Button>
+        <SaveButton />
         {host?.onClose && (
           <IconButton label="Close and return" onClick={host.onClose}>
             <X />
@@ -194,6 +198,11 @@ function useShortcuts() {
         return;
       }
       if (s.dialog) return;
+      if (mod && k === "s") {
+        e.preventDefault();
+        s.openDialog("save");
+        return;
+      }
       if (mod && k === "e") {
         e.preventDefault();
         s.openDialog("export");
@@ -279,17 +288,25 @@ function StudioShell() {
   const host = useStudioHost();
   useShortcuts();
   useUiTheme();
-  // a host (the browser extension) decides what opens; the website reads its URL
+  // a host (the browser extension) decides what opens; the website reads its URL. Until that
+  // design is in, the editor stays hidden: whatever design the store held is not this one.
+  const [opening, setOpening] = useState<{ state: "loading" } | { state: "ready" } | { state: "failed"; error: unknown }>({ state: host?.open ? "loading" : "ready" });
+  const [attempt, setAttempt] = useState(0);
+  // unsaved changes that came back when the host opened its design
+  const [draft, setDraft] = useState<{ stale: boolean; committed: StudioConfig } | null>(null);
   useEffect(() => {
     if (!host?.open) return;
     let cancelled = false;
+    setOpening({ state: "loading" });
     host
       .open()
       .then((r) => {
-        if (cancelled || !r) return;
+        if (cancelled) return;
+        setOpening({ state: "ready" });
+        if (!r) return;
         if (r.source) {
-          const { restored } = useStudio.getState().openSource(r.source, r.config, r.name);
-          if (restored) toast("Your unsaved changes are back");
+          const { restored, stale } = useStudio.getState().openSource(r.source, r.config, r.name);
+          if (restored) setDraft({ stale, committed: r.config });
           else if (r.message) toast(r.message);
         } else {
           useStudio.getState().replace(r.config, r.name, true);
@@ -297,12 +314,12 @@ function StudioShell() {
         }
         if (r.warnings?.length) toast(`Opened with ${r.warnings.length} repair(s)`);
       })
-      .catch((e) => !cancelled && toast((e as Error).message));
+      .catch((error) => !cancelled && setOpening({ state: "failed", error }));
     return () => {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [host]);
+  }, [host, attempt]);
   // shared design links: #/studio?design=<token>
   useEffect(() => {
     if (host) return;
@@ -347,6 +364,27 @@ function StudioShell() {
     } else toast("That share link is broken or incomplete");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+  if (opening.state !== "ready") {
+    return (
+      <div className="studio-gate">
+        {host?.onClose && (
+          <IconButton className="studio-gate__close" label="Close" onClick={host.onClose}>
+            <X />
+          </IconButton>
+        )}
+        <div className="studio-gate__body" aria-live="polite">
+          {opening.state === "loading" ? (
+            <p className="studio-gate__loading" role="status">
+              <span className="spinner" />
+              Opening {host?.context ?? "the design"}…
+            </p>
+          ) : (
+            (host?.failed?.(opening.error, () => setAttempt((n) => n + 1)) ?? <OpenFailed platform={host?.github ?? webPlatform} error={opening.error} retry={() => setAttempt((n) => n + 1)} />)
+          )}
+        </div>
+      </div>
+    );
+  }
   // selecting on the canvas on phones jumps to the inspector only on explicit request
   return (
     <div className="studio" data-pane={pane}>
@@ -357,8 +395,57 @@ function StudioShell() {
         <Inspector />
       </div>
       <MobileTabs />
+      {draft && <DraftBanner {...draft} context={host?.context} onDone={() => setDraft(null)} />}
       <Dialogs />
+      <SaveDialog platform={host?.github ?? webPlatform} />
       {host?.overlays}
+    </div>
+  );
+}
+
+/**
+ * Unsaved changes came back on reopening. Reset goes back to what the source holds (one undoable
+ * step); when the source changed since the changes were made, the banner says the draft is out
+ * of date.
+ */
+function DraftBanner({ stale, committed, context, onDone }: { stale: boolean; committed: StudioConfig; context?: string; onDone: () => void }) {
+  const where = context ?? "the repository";
+  return (
+    <div className={cn("draft-banner", stale && "draft-banner--stale")} role="status">
+      <p>
+        {stale ? (
+          <>
+            <b>Your unsaved changes are out of date.</b> The design in {where} changed after you made them.
+          </>
+        ) : (
+          <>
+            <b>Your unsaved changes are back.</b> They differ from the design in {where}.
+          </>
+        )}
+      </p>
+      <div className="draft-banner__actions">
+        <Button
+          size="sm"
+          variant={stale ? "accent" : "secondary"}
+          onClick={() => {
+            useStudio.getState().resetToSource(committed);
+            onDone();
+          }}
+        >
+          <RotateCcw /> Reset changes
+        </Button>
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={() => {
+            // keeping them means they now build on what the source holds
+            useStudio.getState().rebase(committed);
+            onDone();
+          }}
+        >
+          Keep mine
+        </Button>
+      </div>
     </div>
   );
 }

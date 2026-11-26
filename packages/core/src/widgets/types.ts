@@ -31,7 +31,7 @@ interface FieldBase {
 }
 
 export type Field =
-  | (FieldBase & { type: "text"; placeholder?: string; multiline?: boolean; max?: number })
+  | (FieldBase & { type: "text"; placeholder?: string; multiline?: boolean; max?: number; /** visible lines of a multiline field */ rows?: number })
   | (FieldBase & { type: "number"; min: number; max: number; step?: number; unit?: string })
   | (FieldBase & { type: "toggle" })
   | (FieldBase & { type: "select"; options: { value: string; label: string }[] })

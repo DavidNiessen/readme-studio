@@ -328,8 +328,8 @@ export function Landing() {
             </li>
             <li className="how__step">
               <span className="how__n mono">02</span>
-              <h3>Export</h3>
-              <p>Download a tiny project: your design as JSON, a scheduled workflow and the README itself. Re-import the JSON any time to keep editing.</p>
+              <h3>Save to GitHub</h3>
+              <p>Commit a tiny project straight to your repository, or download it: your design as JSON, a scheduled workflow and the README itself. Re-import the JSON any time to keep editing.</p>
               <div className="how__visual how__tree mono">
                 <div>{sample.profile.login}/</div>
                 <div>├─ .github/workflows/readme.yml</div>

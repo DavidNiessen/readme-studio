@@ -47,6 +47,11 @@ export class GitHub {
     this.http = http ?? ((input, init) => fetch(input, init));
   }
 
+  /** Whether requests carry a token. */
+  get signedIn(): boolean {
+    return !!this.token;
+  }
+
   private async call<T>(method: string, path: string, body?: unknown): Promise<T> {
     const res = await this.http(`https://api.github.com${path}`, {
       method,

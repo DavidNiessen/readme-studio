@@ -1197,6 +1197,203 @@
   height: 22px;
 }
 
+/* ------------------------------------------------------ save to GitHub */
+
+.gh-save {
+  display: grid;
+  gap: 14px;
+}
+.gh-note {
+  margin: 0;
+  font-size: var(--t-xs);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.gh-row {
+  display: flex;
+  gap: 8px;
+}
+.gh-row > :first-child {
+  flex: 1;
+  min-width: 0;
+}
+.gh-auth {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--paper-2, transparent);
+}
+.gh-auth > .btn {
+  justify-self: start;
+}
+.gh-auth--in {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.gh-device {
+  display: grid;
+  gap: 10px;
+}
+.gh-device p {
+  margin: 0;
+}
+.gh-device__code {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.gh-device__code code {
+  font: 600 22px/1 var(--font-mono);
+  letter-spacing: 0.12em;
+  padding: 8px 12px;
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+}
+.gh-done {
+  margin: 0;
+  line-height: 1.55;
+}
+
+
+.gh-manual {
+  margin-right: auto;
+}
+.gh-error {
+  color: var(--danger, #d1242f);
+}
+
+/* draft state in the top bar */
+.draft-notice {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--t-xs);
+  color: var(--muted);
+  white-space: nowrap;
+}
+.draft-notice__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+.draft-notice button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+.draft-notice button:hover {
+  background: var(--line);
+}
+
+/* ------------------------------------------- unsaved changes on reopening */
+
+.draft-banner {
+  position: fixed;
+  z-index: 40;
+  top: calc(var(--topbar-h) + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(620px, calc(100vw - 32px));
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 10px 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-3);
+  background: var(--surface);
+  box-shadow: var(--shadow-2, 0 8px 24px rgb(0 0 0 / 0.18));
+  font-size: var(--t-sm);
+}
+.draft-banner--stale {
+  border-color: var(--accent);
+}
+.draft-banner p {
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+  line-height: 1.45;
+}
+.draft-banner__actions {
+  display: flex;
+  gap: 6px;
+  flex: none;
+}
+@media (max-width: 560px) {
+  .draft-banner {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .draft-banner__actions {
+    justify-content: flex-end;
+  }
+}
+
+/* ------------------------------------------------- opening / could not open */
+
+.studio-gate {
+  position: relative;
+  height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 24px 16px;
+  background: var(--paper);
+  color: var(--ink);
+  overflow: auto;
+}
+.studio-gate__close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+}
+.studio-gate__body {
+  width: min(440px, 100%);
+  display: grid;
+  gap: 14px;
+}
+.studio-gate__body h2 {
+  margin: 0;
+  font-size: var(--t-lg);
+}
+.studio-gate__body p {
+  margin: 0;
+  line-height: 1.55;
+}
+.studio-gate__body > .btn {
+  justify-self: start;
+}
+.studio-gate__loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--muted);
+}
+.studio-gate__loading .spinner {
+  width: 20px;
+  height: 20px;
+  border-width: 2px;
+  color: var(--accent);
+}
+.studio-gate__code {
+  font: 700 56px/1 var(--font-mono);
+  letter-spacing: -0.02em;
+  color: var(--muted);
+}
+
 /* ---------------------------------------------------------------- mobile */
 
 .mobile-tabs {

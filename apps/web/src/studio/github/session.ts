@@ -1,8 +1,11 @@
 import { useSyncExternalStore } from "react";
-import type { Opened } from "../github/design";
-import type { Auth } from "../settings";
+import type { Opened } from "../../github/design";
+import type { Auth } from "../../github/platform";
 
-/** State of the extension's studio page: which repository is open and who is signed in. */
+/**
+ * Saving to GitHub: who is signed in, and the repository the design was opened from (a host
+ * such as the browser extension sets it; on the website the save dialog asks for one).
+ */
 interface Session {
   opened: Opened | null;
   auth: Auth | null;
@@ -28,10 +31,4 @@ export function useSession(): Session {
     },
     () => state,
   );
-}
-
-/** Messages to the GitHub page when the studio is shown over it. */
-export function tellPage(message: { type: "close" } | { type: "saved"; url: string; kind: "commit" | "pull-request" }): void {
-  if (window.parent === window) return;
-  window.parent.postMessage({ source: "readme-studio", ...message }, "https://github.com");
 }

@@ -1,4 +1,7 @@
 /** Where on GitHub the user is, worked out from the URL and the page's own metadata. */
+import { isProfileRepo, repoRef, type RepoRef } from "@readme-studio/web/github/repo";
+
+export { isProfileRepo, repoRef, type RepoRef };
 
 /** First path segments that are GitHub pages, not users or organisations. */
 const RESERVED = new Set([
@@ -7,21 +10,6 @@ const RESERVED = new Set([
   "notifications", "orgs", "organizations", "pricing", "pulls", "search", "security", "settings", "signup",
   "site", "sponsors", "stars", "team", "topics", "trending", "users",
 ]);
-
-const NAME = /^[\w.-]+$/;
-
-export interface RepoRef {
-  owner: string;
-  name: string;
-  /** owner/name */
-  full: string;
-}
-
-export function repoRef(full: string): RepoRef | null {
-  const [owner, name, extra] = full.split("/");
-  if (!owner || !name || extra !== undefined || !NAME.test(owner) || !NAME.test(name)) return null;
-  return { owner, name, full: `${owner}/${name}` };
-}
 
 /** The repository a github.com URL belongs to, if any. */
 export function repoFromUrl(url: string): RepoRef | null {
@@ -66,11 +54,6 @@ export function isReadmeSurface(url: string): boolean {
   if (rest[0] === "tree") return rest.length === 2;
   if (rest[0] === "blob") return rest.length >= 3 && README_FILE.test(decodeURIComponent(rest[rest.length - 1]));
   return false;
-}
-
-/** A profile README lives in the repository named exactly like its owner. */
-export function isProfileRepo(r: RepoRef): boolean {
-  return r.owner.toLowerCase() === r.name.toLowerCase();
 }
 
 /** GitHub's web editor page for a file: `/owner/name/edit/branch/path` or `/new/branch?filename=`. */
