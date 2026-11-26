@@ -20,10 +20,11 @@ import {
   Upload,
   Layers,
   BookOpen,
+  X,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { layoutPresets, parseConfig } from "@readme-studio/core";
-import { Logo } from "../components/Logo";
+import { Logo, LogoMark } from "../components/Logo";
 import { Button, IconButton, MOD, Menu, Segmented, copyText, useToast } from "../components/ui";
 import { findBlock } from "../lib/layout";
 import { navigate } from "../lib/router";
@@ -34,6 +35,7 @@ import { Canvas } from "./Canvas";
 import { Dialogs } from "./Dialogs";
 import { Inspector } from "./Inspector";
 import { Rail } from "./Rail";
+import { StudioHostContext, useStudioHost, type StudioHost } from "./host";
 
 function SavedIndicator() {
   const savedAt = useStudio((s) => s.savedAt);
@@ -71,14 +73,27 @@ export function useUiTheme(): ["light" | "dark" | "system", (t: "light" | "dark"
 function TopBar() {
   const s = useStudio();
   const toast = useToast();
+  const host = useStudioHost();
   const [ui, setUi] = useUiTheme();
+  const docs = () => (host?.siteUrl ? window.open(`${host.siteUrl}#/docs`, "_blank", "noopener") : navigate("/docs"));
   return (
     <header className="topbar">
-      <Logo compact />
+      {host ? (
+        <a className="logo" href={host.siteUrl ?? "#"} target="_blank" rel="noopener" aria-label="Readme Studio website">
+          <LogoMark />
+        </a>
+      ) : (
+        <Logo compact />
+      )}
       <div className="topbar__sep hide-sm" />
       <div className="design-name">
         <input aria-label="Design name" value={s.name} onChange={(e) => s.setName(e.target.value)} onBlur={(e) => !e.target.value.trim() && s.setName("Untitled design")} />
         <SavedIndicator />
+        {host?.context && (
+          <span className="host-context hide-sm" title={`Editing ${host.context}`}>
+            {host.context}
+          </span>
+        )}
       </div>
       <div className="topbar__center">
         <div className="topbar__group hide-sm">
@@ -145,12 +160,18 @@ function TopBar() {
             { label: `App theme: ${ui}`, icon: <SunMoon />, onSelect: () => setUi(ui === "system" ? "dark" : ui === "dark" ? "light" : "system") },
             "sep",
             { label: "Keyboard shortcuts", icon: <Keyboard />, shortcut: "?", onSelect: () => s.openDialog("shortcuts") },
-            { label: "Documentation", icon: <BookOpen />, onSelect: () => navigate("/docs") },
+            { label: "Documentation", icon: <BookOpen />, onSelect: docs },
           ]}
         />
-        <Button variant="accent" aria-label="Export" onClick={() => s.openDialog("export")}>
+        {host?.actions}
+        <Button variant={host?.actions ? "secondary" : "accent"} aria-label="Export" onClick={() => s.openDialog("export")}>
           <Download /> <span className="hide-sm">Export</span>
         </Button>
+        {host?.onClose && (
+          <IconButton label="Close and return" onClick={host.onClose}>
+            <X />
+          </IconButton>
+        )}
       </div>
     </header>
   );
@@ -244,13 +265,40 @@ function MobileTabs() {
   );
 }
 
-export default function Studio() {
+export default function Studio({ host }: { host?: StudioHost } = {}) {
+  return (
+    <StudioHostContext.Provider value={host ?? null}>
+      <StudioShell />
+    </StudioHostContext.Provider>
+  );
+}
+
+function StudioShell() {
   const pane = useStudio((s) => s.pane);
   const toast = useToast();
+  const host = useStudioHost();
   useShortcuts();
   useUiTheme();
+  // a host (the browser extension) decides what opens; the website reads its URL
+  useEffect(() => {
+    if (!host?.open) return;
+    let cancelled = false;
+    host
+      .open()
+      .then((r) => {
+        if (cancelled || !r) return;
+        useStudio.getState().replace(r.config, r.name, true);
+        if (r.warnings?.length) toast(`Opened with ${r.warnings.length} repair(s)`);
+      })
+      .catch((e) => !cancelled && toast((e as Error).message));
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [host]);
   // shared design links: #/studio?design=<token>
   useEffect(() => {
+    if (host) return;
     const pm = /preset=([\w-]+)/.exec(location.hash);
     if (pm) {
       history.replaceState(null, "", "#/studio");
@@ -303,6 +351,7 @@ export default function Studio() {
       </div>
       <MobileTabs />
       <Dialogs />
+      {host?.overlays}
     </div>
   );
 }
