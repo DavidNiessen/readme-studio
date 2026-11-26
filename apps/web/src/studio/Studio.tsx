@@ -287,7 +287,10 @@ function StudioShell() {
       .open()
       .then((r) => {
         if (cancelled || !r) return;
-        useStudio.getState().replace(r.config, r.name, true);
+        if (r.source) {
+          const { restored } = useStudio.getState().openSource(r.source, r.config, r.name);
+          if (restored) toast("Your unsaved changes are back");
+        } else useStudio.getState().replace(r.config, r.name, true);
         if (r.warnings?.length) toast(`Opened with ${r.warnings.length} repair(s)`);
       })
       .catch((e) => !cancelled && toast((e as Error).message));
