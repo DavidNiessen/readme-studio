@@ -14,6 +14,20 @@ export interface ProjectFetchOptions extends Pick<FetchOptions, "token" | "fetch
   avatars?: number;
   /** how many stargazer pages to sample for the star history */
   starPages?: number;
+  /**
+   * Workflow file whose runs the build badge ignores: the README's own workflow, so the
+   * badge shows the project's CI rather than the run that renders it.
+   */
+  skipWorkflow?: string;
+}
+
+/** The workflow file Readme Studio writes; its runs never count as the project's build. */
+export const README_WORKFLOW = ".github/workflows/readme.yml";
+
+/** Path of a workflow inside its repository, from GITHUB_WORKFLOW_REF ("owner/repo/.github/workflows/x.yml@refs/heads/main"). */
+export function workflowPath(ref: string | undefined): string | undefined {
+  const m = /^[^/]+\/[^/]+\/(.+?)@/.exec(ref ?? "");
+  return m?.[1];
 }
 
 interface RestRepo {
@@ -168,8 +182,12 @@ export async function fetchProjectData(o: ProjectFetchOptions): Promise<ProjectD
     http.soft(
       "ci status",
       async () => {
-        const j = await http.gh<{ workflow_runs: { name: string; status: string; conclusion: string | null; html_url: string }[] }>(`${R}/actions/runs?per_page=1&exclude_pull_requests=true&branch=${encodeURIComponent(repo.default_branch)}`);
-        const r = j.workflow_runs[0];
+        const j = await http.gh<{ workflow_runs: { name: string; path?: string; status: string; conclusion: string | null; html_url: string }[] }>(
+          `${R}/actions/runs?per_page=20&exclude_pull_requests=true&branch=${encodeURIComponent(repo.default_branch)}`,
+        );
+        // the README's own workflow is not the project's build (and is running right now)
+        const skip = new Set([README_WORKFLOW, o.skipWorkflow].filter(Boolean));
+        const r = j.workflow_runs.find((x) => !x.path || !skip.has(x.path.replace(/@.*$/, "")));
         if (!r) return null;
         const status = r.status !== "completed" ? "running" : r.conclusion === "success" ? "passing" : r.conclusion === "failure" || r.conclusion === "timed_out" ? "failing" : "unknown";
         return { name: r.name, status, url: r.html_url } as ProjectData["ci"];
@@ -209,7 +227,11 @@ export async function fetchProjectData(o: ProjectFetchOptions): Promise<ProjectD
     }),
   );
 
-  const published = releasesRaw.filter((r) => !r.draft && r.published_at);
+  const allPublished = releasesRaw.filter((r) => !r.draft && r.published_at);
+  // pre-releases only count while there is no full release: the version, changelog and
+  // "latest release" of a project that builds a pre-release on every push stay on the real ones
+  const full = allPublished.filter((r) => !r.prerelease);
+  const published = full.length ? full : allPublished;
   const releases: Release[] = published.map((r) => ({ repo: repo.name, tag: r.tag_name, name: r.name ?? "", url: r.html_url, publishedAt: r.published_at! }));
   const releaseNotes = Object.fromEntries(published.map((r) => [r.tag_name, summarizeNotes(r.body ?? "")]));
 

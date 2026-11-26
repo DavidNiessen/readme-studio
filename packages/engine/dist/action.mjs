@@ -12668,6 +12668,11 @@ async function commitHoursOf(http, login, repos2, tz, now) {
 }
 
 // ../core/src/data/project.ts
+var README_WORKFLOW = ".github/workflows/readme.yml";
+function workflowPath(ref) {
+  const m = /^[^/]+\/[^/]+\/(.+?)@/.exec(ref ?? "");
+  return m?.[1];
+}
 function lastPage(link) {
   const m = link ? /[?&]page=(\d+)[^>]*>;\s*rel="last"/.exec(link) : null;
   return m ? Number(m[1]) : 1;
@@ -12771,8 +12776,11 @@ async function fetchProjectData(o) {
     http.soft(
       "ci status",
       async () => {
-        const j = await http.gh(`${R}/actions/runs?per_page=1&exclude_pull_requests=true&branch=${encodeURIComponent(repo.default_branch)}`);
-        const r = j.workflow_runs[0];
+        const j = await http.gh(
+          `${R}/actions/runs?per_page=20&exclude_pull_requests=true&branch=${encodeURIComponent(repo.default_branch)}`
+        );
+        const skip = new Set([README_WORKFLOW, o.skipWorkflow].filter(Boolean));
+        const r = j.workflow_runs.find((x) => !x.path || !skip.has(x.path.replace(/@.*$/, "")));
         if (!r) return null;
         const status = r.status !== "completed" ? "running" : r.conclusion === "success" ? "passing" : r.conclusion === "failure" || r.conclusion === "timed_out" ? "failing" : "unknown";
         return { name: r.name, status, url: r.html_url };
@@ -12805,7 +12813,9 @@ async function fetchProjectData(o) {
       return { login: c.login, avatar: avatar2, contributions: c.contributions };
     })
   );
-  const published = releasesRaw.filter((r) => !r.draft && r.published_at);
+  const allPublished = releasesRaw.filter((r) => !r.draft && r.published_at);
+  const full = allPublished.filter((r) => !r.prerelease);
+  const published = full.length ? full : allPublished;
   const releases2 = published.map((r) => ({ repo: repo.name, tag: r.tag_name, name: r.name ?? "", url: r.html_url, publishedAt: r.published_at }));
   const releaseNotes = Object.fromEntries(published.map((r) => [r.tag_name, summarizeNotes(r.body ?? "")]));
   const pk = o.packages ?? {};
@@ -13764,7 +13774,8 @@ async function loadData(o) {
       weather: needs.weather,
       feeds: needs.feeds,
       now,
-      log: o.log
+      log: o.log,
+      skipWorkflow: workflowPath(process.env.GITHUB_WORKFLOW_REF)
     });
   }
   return fetchProfileData({

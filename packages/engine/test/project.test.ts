@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { fetchProjectData, lastPage, normalizeConfig, presetConfig, summarizeNotes, assetRepository, setupGuide } from "@readme-studio/core";
+import { fetchProjectData, lastPage, normalizeConfig, presetConfig, summarizeNotes, assetRepository, setupGuide, workflowPath } from "@readme-studio/core";
 
 const json = (v: unknown, init: ResponseInit = {}) => new Response(JSON.stringify(v), { status: 200, headers: { "content-type": "application/json", ...(init.headers ?? {}) }, ...init });
 
@@ -44,6 +44,31 @@ describe("project data", () => {
     expect(p.starHistory.at(-1)?.stars).toBe(250);
     expect(p.downloads[0]).toMatchObject({ registry: "npm", lastWeek: 70, lastMonth: 300, version: "1.2.0" });
     expect(p.languages[0].name).toBe("TypeScript");
+  });
+
+  it("prefers full releases and reads the build from the project's own workflow", async () => {
+    const rel = (tag: string, day: number, prerelease: boolean) => ({ tag_name: tag, name: "", html_url: `https://github.com/mona/aurora/releases/tag/${tag}`, published_at: `2026-11-${day}T00:00:00Z`, draft: false, prerelease, body: "" });
+    const run = (name: string, path: string, status: string, conclusion: string | null) => ({ name, path, status, conclusion, html_url: `https://github.com/mona/aurora/actions/${name}` });
+    const with_ = (releases: unknown[], runs: unknown[]) =>
+      (async (input: string | URL) => {
+        const u = String(input);
+        if (u.includes("/releases")) return json(releases);
+        if (u.includes("/actions/runs")) return json({ workflow_runs: runs });
+        return fake(input);
+      }) as typeof fetch;
+    const runs = [run("readme", ".github/workflows/readme.yml", "in_progress", null), run("profile", ".github/workflows/profile.yml", "completed", "success"), run("Pre-release", ".github/workflows/prerelease.yml", "completed", "failure")];
+
+    const mixed = await fetchProjectData({ repo: "mona/aurora", fetch: with_([rel("v1.5.1-108", 23, true), rel("v1.5.1", 22, false), rel("v1.5.0", 21, false)], runs), avatars: 0 });
+    expect(mixed.releases.map((r) => r.tag)).toEqual(["v1.5.1", "v1.5.0"]);
+    // the README's own (running) workflow is skipped by default; the next run is the build
+    expect(mixed.ci).toMatchObject({ name: "profile", status: "passing" });
+
+    const only = await fetchProjectData({ repo: "mona/aurora", fetch: with_([rel("v0.1.0-3", 23, true), rel("v0.1.0-2", 22, true)], runs), avatars: 0, skipWorkflow: ".github/workflows/profile.yml" });
+    expect(only.releases.map((r) => r.tag)).toEqual(["v0.1.0-3", "v0.1.0-2"]);
+    expect(only.ci).toMatchObject({ name: "Pre-release", status: "failing" });
+
+    expect(workflowPath("mona/aurora/.github/workflows/readme.yml@refs/heads/main")).toBe(".github/workflows/readme.yml");
+    expect(workflowPath(undefined)).toBeUndefined();
   });
 
   it("parses Link headers and summarises release notes", () => {
