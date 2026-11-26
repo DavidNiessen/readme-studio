@@ -159,7 +159,7 @@ export const commitActivity = defineWidget({
 <path d="M${f(px)} ${by + 20}V${f(py - (style === "line" ? 6 : 3))}" stroke="${t.glow}" stroke-dasharray="2 2"/>
 <rect x="${f(bx)}" y="${by}" width="${f(tw)}" height="20" rx="10" fill="${t.accent}"/>
 <text x="${f(bx + tw / 2)}" y="${by + 13.8}" font-size="11" text-anchor="middle" fill="${onAccent(t)}" class="b">${esc(txt)}</text>
-${style === "line" ? `<circle cx="${f(px)}" cy="${f(py)}" r="9" stroke="${t.glow}" stroke-width="1.5" class="fx loop" style="animation:ping 2s ease-out 2.4s infinite"/><circle cx="${f(px)}" cy="${f(py)}" r="4" fill="${t.card}" stroke="${t.glow}" stroke-width="2.2"/>` : ""}
+${style === "line" ? `<circle cx="${f(px)}" cy="${f(py)}" r="9" stroke="${t.glow}" stroke-width="1.5" class="fx loop loop-only" style="animation:ping 2s ease-out 2.4s infinite"/><circle cx="${f(px)}" cy="${f(py)}" r="4" fill="${t.card}" stroke="${t.glow}" stroke-width="2.2"/>` : ""}
 </g>`;
       }
     }

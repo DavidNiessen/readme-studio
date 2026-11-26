@@ -2,6 +2,7 @@
 import { projectName } from "../config";
 import type { ProjectData } from "../data/types";
 import { mix } from "../lib/color";
+import { wrapText, type MeasureOptions } from "../lib/svg";
 import type { Theme } from "../theme";
 import { fillPlaceholders } from "./placeholders";
 import type { Ctx } from "./types";
@@ -192,4 +193,22 @@ export function ghSlug(s: string): string {
     .replace(/<[^>]*>/g, "")
     .replace(/[^\p{L}\p{N}\s_-]/gu, "")
     .replace(/\s/g, "-");
+}
+
+/** Word wrap that evens out line lengths (no one-word orphan on the last line) within the same line count. */
+export function balancedWrap(t: Theme, text: string, size: number, max: number, maxLines: number, o: MeasureOptions = {}): string[] {
+  const lines = wrapText(t, text, size, max, maxLines, o);
+  if (lines.length < 2 || lines[lines.length - 1].endsWith("…")) return lines;
+  let lo = max * 0.55;
+  let hi = max;
+  let best = lines;
+  for (let k = 0; k < 10; k++) {
+    const mid = (lo + hi) / 2;
+    const l = wrapText(t, text, size, mid, maxLines, o);
+    if (l.length === lines.length && !l[l.length - 1].endsWith("…")) {
+      best = l;
+      hi = mid;
+    } else lo = mid;
+  }
+  return best;
 }

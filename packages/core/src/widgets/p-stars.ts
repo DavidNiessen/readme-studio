@@ -114,7 +114,7 @@ ${rightTxt && chipX + chipW + 24 + textWidth(t, rightTxt, 11.5) < W - 24 ? `<tex
         grid.push(`<path d="M${X0} ${f(y)}H${X1}" stroke="${t.border}"${k ? ' stroke-dasharray="2 4"' : ""}/><text x="${X0 - 12}" y="${f(y + 3.5)}" font-size="10" text-anchor="end" class="m">${esc(compact(10 ** k))}</text>`);
       }
     } else {
-      const step = niceStep((total * 1.12) / 4);
+      const step = niceStep((total * 1.12) / 5);
       const topV = Math.max(step * 2, Math.ceil((total * 1.12) / step) * step);
       ys = (v) => Y1 - (v / topV) * (Y1 - Y0);
       for (let v = 0; v <= topV + 1e-9; v += step) {
@@ -133,7 +133,7 @@ ${rightTxt && chipX + chipW + 24 + textWidth(t, rightTxt, 11.5) < W - 24 ? `<tex
     let lastX = -1e9;
     for (; m.getTime() <= t1; m = new Date(Date.UTC(m.getUTCFullYear(), m.getUTCMonth() + stepM, 1))) {
       const x = xs(m.getTime());
-      const txt = stepM >= 12 || m.getUTCMonth() === 0 ? String(m.getUTCFullYear()) : `${monthName(m.getUTCMonth() + 1)} ${String(m.getUTCFullYear()).slice(2)}`;
+      const txt = stepM >= 12 || m.getUTCMonth() === 0 ? String(m.getUTCFullYear()) : ticks.length ? monthName(m.getUTCMonth() + 1) : `${monthName(m.getUTCMonth() + 1)} ${m.getUTCFullYear()}`;
       const w = textWidth(t, txt, 10.5);
       if (x - lastX < w + 18 || x + w / 2 > X1 + 8 || x - w / 2 < X0 - 20) continue;
       ticks.push(`<path d="M${f(x)} ${Y1}v4" stroke="${t.subtle}"/><text x="${f(x)}" y="${Y1 + 18}" font-size="10.5" text-anchor="middle" class="m">${esc(txt)}</text>`);
@@ -206,7 +206,7 @@ ${optBool(o.fill, true) ? `<path d="${areaD}" fill="url(#areaG)" clip-path="url(
 <path d="${line}" pathLength="1" stroke="url(#lineG)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" class="ln"/>
 ${flags}
 <g class="fade" style="${dl(2.4)}">
-<circle cx="${f(last[0])}" cy="${f(last[1])}" r="9" stroke="${t.glow}" stroke-width="1.5" class="fx loop" style="animation:ping 2s ease-out 2.6s infinite"/>
+<circle cx="${f(last[0])}" cy="${f(last[1])}" r="9" stroke="${t.glow}" stroke-width="1.5" class="fx loop loop-only" style="animation:ping 2s ease-out 2.6s infinite"/>
 <circle cx="${f(last[0])}" cy="${f(last[1])}" r="4.5" fill="${t.card}" stroke="${t.glow}" stroke-width="2.5"/>
 </g>`;
     return svg({ width: W, height: H, theme: t, title: this.alt(ctx, o), css, defs, body });

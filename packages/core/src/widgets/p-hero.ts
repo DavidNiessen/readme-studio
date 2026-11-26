@@ -160,7 +160,7 @@ export const projectHero = defineWidget({
     if (cmd) y = cmdY + cmdH;
     const statY = y + (cmd ? 36 : 40);
     if (stats.length) y = statY;
-    const H = Math.max(sideEmblem ? 250 : 200, Math.round(y + (stats.length ? 42 : 46)));
+    const H = Math.max(sideEmblem ? 250 : 200, Math.round(y + (center ? 36 : stats.length ? 42 : 46)));
 
     // ------------------------------------------------ name + version pill
     const groupW = nameW + (tag ? 16 + pillW : 0);

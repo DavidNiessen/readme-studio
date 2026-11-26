@@ -86,6 +86,8 @@ export const contributorWall = defineWidget({
     let shown = Math.min(list.length, max);
     // the "+N more" chip takes the last slot
     if (more && shown >= max) shown = max - 1;
+    // when the cap cuts the list, end on a full row
+    if (list.length >= max && shown + 1 > cols) shown = Math.max(cols, Math.floor((shown + 1) / cols) * cols) - 1;
     const slots = shown + (more ? 1 : 0);
     const rows = Math.max(1, Math.ceil(slots / cols));
     const cellW = areaW / cols;
@@ -128,7 +130,7 @@ ${names ? `<text x="${f(cx)}" y="${f(cy + r + 16)}" font-size="10" text-anchor="
       const ring = k < 3 ? t.accent : t.border;
       const halo =
         k === 0
-          ? `<circle cx="${f(cx)}" cy="${f(cy)}" r="${f(r + 3)}" stroke="${t.glow}" stroke-width="1.5" class="fx loop" style="animation:ping 2.6s ease-out 2.6s infinite"/>`
+          ? `<circle cx="${f(cx)}" cy="${f(cy)}" r="${f(r + 3)}" stroke="${t.glow}" stroke-width="1.5" class="fx loop loop-only" style="animation:ping 2.6s ease-out 2.6s infinite"/>`
           : "";
       cells.push(`${halo}${avatar(t, c, cx, cy, r, `av${i}`, { shape, ring, ringWidth: k < 3 ? 2 : 1, extra: `class="fx" style="animation:pop .5s ease ${d0.toFixed(2)}s both"` })}
 ${names ? `<text x="${f(cx)}" y="${f(cy + r + 16)}" font-size="10" text-anchor="middle" class="${k < 3 ? "t" : "m"} fade" style="${dl(d0 + 0.2)}">${esc(fitText(t, c.login, 10, cellW - 8))}</text>` : ""}`);

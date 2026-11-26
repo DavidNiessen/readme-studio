@@ -210,7 +210,7 @@ export function avatar(
     return `<g ${o.extra ?? ""}><clipPath id="${id}">${box("")}</clipPath>${box(`fill="${t.raised}"`)}<image href="${esc(c.avatar.replace(/\s+/g, ""))}" x="${(cx - r).toFixed(1)}" y="${(cy - r).toFixed(1)}" width="${(r * 2).toFixed(1)}" height="${(r * 2).toFixed(1)}" preserveAspectRatio="xMidYMid slice" clip-path="url(#${id})"/>${ring}</g>`;
   }
   const { fill, ink } = monoColor(t, c.login || "?");
-  const ini = loginInitials(c.login || "?");
+  const ini = r < 14 ? [...loginInitials(c.login || "?")][0] : loginInitials(c.login || "?");
   const fs = r * (ini.length > 1 ? 0.72 : 0.9);
   return `<g ${o.extra ?? ""}>${box(`fill="${fill}"`)}<text x="${cx.toFixed(1)}" y="${(cy + fs * 0.35).toFixed(1)}" font-size="${fs.toFixed(1)}" text-anchor="middle" fill="${ink}" class="b">${esc(ini)}</text>${ring}</g>`;
 }

@@ -93,7 +93,7 @@ function tileFor(ctx: Ctx, pd: ProjectData, key: string): Tile | null {
               top
                 .map((c, i) => {
                   const r = 11;
-                  const cx = x + w - 16 - r - (top.length - 1 - i) * 15;
+                  const cx = x + w - 16 - r - (top.length - 1 - i) * 18;
                   return avatar(t, c, cx, y + 53, r, `sav${i}`, { ring: t.raised, ringWidth: 2, extra: `class="fx" style="animation:pop .45s ease ${(d0 + 0.5 + i * 0.08).toFixed(2)}s both"` });
                 })
                 .join("")

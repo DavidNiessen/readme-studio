@@ -1,7 +1,7 @@
 import { esc } from "../lib/escape";
 import { card, label, svg, wrapText } from "../lib/svg";
 import { emptyHint, hasMark, items, mark, n1, pick, str } from "./kit-c";
-import { repoUrl, tint } from "./kit-f";
+import { balancedWrap, repoUrl, tint } from "./kit-f";
 import { fillPlaceholders, PLACEHOLDER_HELP } from "./placeholders";
 import { defineWidget } from "./types";
 
@@ -85,8 +85,8 @@ export const pfFeatures = defineWidget({
       .filter((f) => f.title || f.text)
       .slice(0, 9);
     const lbl = fill(str(o.label));
-    const top = lbl ? 50 : PAD;
     const cards = pick(o.style, ["cards", "plain"] as const, "cards") === "cards";
+    const top = lbl ? 50 : cards ? PAD : 8;
     const numbered = o.numbered === true;
     let cols = pick(o.columns, ["2", "3"] as const, "3") === "3" ? 3 : 2;
     if (feats.length && feats.length < cols) cols = feats.length;
@@ -114,7 +114,7 @@ ${emptyHint(t, W / 2, top + 34, "sparkle", "Add your project's highlights in the
 
     const laid = feats.map((f) => {
       const title = f.title ? wrapText(t, f.title, tFs, textW - (numbered && !stacked ? 0 : 0), 2, { bold: true, heading: true }) : [];
-      const lines = f.text ? wrapText(t, f.text, dFs, textW, 4) : [];
+      const lines = f.text ? balancedWrap(t, f.text, dFs, textW, 4) : [];
       const headH = stacked && anyIcon ? TILE + 16 : 0;
       const titleH = title.length * 20;
       const h = inner + headH + titleH + (lines.length ? 6 + lines.length * dLh : 0) + inner - 4;
@@ -125,7 +125,7 @@ ${emptyHint(t, W / 2, top + 34, "sparkle", "Add your project's highlights in the
     for (let r = 0; r < rowsN; r++) rowH.push(Math.max(...laid.slice(r * cols, r * cols + cols).map((f) => f.h)));
     const rowGap = cards ? GAP : 0;
     const gridH = rowH.reduce((a, b) => a + b, 0) + rowGap * (rowsN - 1);
-    const H = top + gridH + PAD;
+    const H = top + gridH + (cards ? PAD : 8);
 
     const tileR = Math.min(10, Math.max(6, t.radius - 2));
     const cellR = Math.max(4, Math.min(t.radius, 12) - 2);
