@@ -251,7 +251,9 @@
   color: var(--ink);
 }
 .prose > h2.docs-h:first-child {
-  margin-top: var(--s-6);
+  margin-top: var(--s-2);
+  padding-top: var(--s-4);
+  border-top: 0;
 }
 .prose h3.docs-h3 {
   margin-top: var(--s-10);
@@ -1208,4 +1210,73 @@
 .t-opts .opt-type {
   min-width: 150px;
   max-width: 240px;
+}
+
+/* small screens: reference tables become stacked rows instead of scrolling */
+@media (max-width: 640px) {
+  .t-ref,
+  .t-files,
+  .t-opts {
+    min-width: 0;
+  }
+  .t-ref thead,
+  .t-files thead,
+  .t-opts thead {
+    display: none;
+  }
+  .t-ref tr,
+  .t-files tr,
+  .t-opts tr {
+    display: block;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .t-ref tr:first-child,
+  .t-files tr:first-child,
+  .t-opts tr:first-child {
+    border-top: 1px solid var(--line-strong);
+  }
+  .dtable .t-ref td,
+  .dtable .t-files td,
+  .dtable .t-opts td {
+    display: block;
+    width: auto;
+    min-width: 0;
+    max-width: none;
+    padding: 0;
+    border: 0;
+    white-space: normal;
+  }
+  .t-ref td + td,
+  .t-files td + td,
+  .t-opts td + td {
+    margin-top: 6px;
+  }
+  .t-opts td:empty,
+  .t-opts td.opt-help:empty {
+    display: none;
+  }
+  .t-ref td[data-label]:not(:first-child):not(:last-child)::before,
+  .t-files td[data-label]:not(:first-child):not(:last-child)::before,
+  .t-opts td[data-label]:not(:first-child):not(:last-child)::before {
+    content: attr(data-label);
+    display: inline-block;
+    min-width: 64px;
+    margin-right: 8px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--faint);
+  }
+  .t-opts tr.is-sub {
+    padding-left: var(--s-4);
+    background: color-mix(in srgb, var(--paper-2) 55%, transparent);
+  }
+  .t-opts tr.is-sub td {
+    background: none;
+  }
+  .t-opts tr.is-sub td:first-child {
+    padding-left: 0;
+  }
 }

@@ -125,7 +125,9 @@ function Table({ head, rows, className, caption }: { head: ReactNode[]; rows: Re
           {rows.map((r, i) => (
             <tr key={i}>
               {r.map((c, j) => (
-                <td key={j}>{c}</td>
+                <td key={j} data-label={typeof head[j] === "string" ? head[j] : undefined}>
+                  {c}
+                </td>
               ))}
             </tr>
           ))}
@@ -905,13 +907,15 @@ function FieldRows({ f, def, prefix }: { f: Field; def: unknown; prefix: string 
           </code>
           <span className="opt-label">{f.label}</span>
         </td>
-        <td className="opt-type">
+        <td className="opt-type" data-label="Type">
           <FieldType f={f} />
         </td>
-        <td>
+        <td data-label="Default">
           <code className="dim">{fmtDefault(def)}</code>
         </td>
-        <td className="opt-help">{fieldHelp(f)}</td>
+        <td className="opt-help" data-label="Notes">
+          {fieldHelp(f)}
+        </td>
       </tr>
       {f.type === "list" && <OptionRows fields={f.item} defaults={f.newItem} prefix={`${prefix}${f.key}[].`} />}
     </>
@@ -1303,8 +1307,8 @@ const FAQ_GENERAL: Faq[] = [
     q: "Can I use my own font?",
     a: (
       <p>
-        Not yet. Twelve families are bundled, covering mono, sans and serif; see <DocLink to="themes" anchor="fonts">Typography</DocLink>. Because images on GitHub cannot load web fonts,
-        each one is subset and embedded inside the SVG, which needs font files the action ships with.
+        Not yet. Twelve families are bundled, covering mono, sans and serif; see <DocLink to="themes" anchor="fonts">Typography</DocLink>. Images on GitHub cannot load web fonts, so
+        every font has to ship with the action, subset and ready to embed inside each SVG.
       </p>
     ),
   },
