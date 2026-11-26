@@ -1,0 +1,67 @@
+# Every push to main: run the checks and publish a GitHub pre-release of the action
+# (version: the next patch with the run number, e.g. 1.0.1-42). Pre-releases are for trying the
+# newest work: pin one with `uses: DavidNiessen/readme-studio@v1.0.1-42`. They never move the
+# floating `v1` tag that profile repositories use; only a full release (release.yml) does that.
+# Only the newest few pre-releases are kept.
+name: Pre-release
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "**.md"
+      - "docs/**"
+      - ".github/ISSUE_TEMPLATE/**"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: prerelease
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    uses: ./.github/workflows/ci.yml
+
+  publish:
+    name: Publish the pre-release
+    needs: checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: v
+        name: Pick the version
+        run: |
+          base=$(node -p "require('./package.json').version")
+          IFS=. read -r major minor patch <<< "${base%%-*}"
+          echo "version=${major}.${minor}.$((patch + 1))-${GITHUB_RUN_NUMBER}" >> "$GITHUB_OUTPUT"
+
+      - name: Create the pre-release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.v.outputs.version }}
+        run: |
+          gh release create "v$VERSION" \
+            --target "$GITHUB_SHA" \
+            --prerelease \
+            --title "Readme Studio $VERSION (pre-release)" \
+            --generate-notes \
+            --notes "A build of \`$GITHUB_SHA\` on main, for trying the newest work. Pin it with \`uses: ${{ github.repository }}@v$VERSION\`. The floating \`v1\` tag does not move to pre-releases."
+
+  tidy:
+    name: Keep the newest pre-releases
+    needs: publish
+    runs-on: ubuntu-latest
+    steps:
+      - env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh release list --limit 100 --json tagName,isPrerelease,createdAt \
+            --jq '[.[] | select(.isPrerelease)] | sort_by(.createdAt) | reverse | .[3:] | .[].tagName' |
+          while read -r tag; do
+            gh release delete "$tag" --yes --cleanup-tag
+          done

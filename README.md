@@ -139,7 +139,10 @@ scripts             asset generation (fonts, icons), JSON schema, widget contact
 
 ### Releasing
 
-Publish a GitHub release tagged `vX.Y.Z`. The `release` workflow moves the floating `v1` tag that profile repositories reference. Before releasing, make sure `npm run bundle` has been committed (CI checks this).
+- **Pre-releases are automatic.** Every push to `main` runs the checks and publishes a GitHub pre-release such as `v1.0.1-42` (next patch plus the run number). Pin one with `uses: DavidNiessen/readme-studio@v1.0.1-42` to try the newest work. Only the newest three are kept, and they never move the `v1` tag.
+- **Full releases are manual.** Run **Actions → Release → Run workflow** on `main` and choose a `patch`/`minor`/`major` bump or type an exact version. The workflow runs the checks, commits the version onto a `vX.Y.Z` tag, publishes the release with generated notes, brings `main` up to the new version and moves the floating major tag (`v1`) that profile repositories use.
+
+Commit the action bundle (`npm run bundle`) before merging; CI fails when it is stale.
 
 ### GitHub Pages
 
