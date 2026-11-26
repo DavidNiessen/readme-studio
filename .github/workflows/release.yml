@@ -160,7 +160,11 @@ jobs:
 
       # Needs the secrets AMO_JWT_ISSUER and AMO_JWT_SECRET (addons.mozilla.org → Tools → Manage API
       # keys). The first version of the add-on is submitted by hand; later ones follow from here.
+      # The code is bundled and minified, so Mozilla's reviewers get the source of the release tag
+      # with every version; apps/extension/README.md in it says how to build the add-on.
       - name: Publish to Firefox Add-ons
+        # even when the Chrome Web Store refused this version (one still in review, say)
+        if: ${{ !cancelled() }}
         env:
           WEB_EXT_API_KEY: ${{ secrets.AMO_JWT_ISSUER }}
           WEB_EXT_API_SECRET: ${{ secrets.AMO_JWT_SECRET }}
@@ -169,4 +173,6 @@ jobs:
             echo "::notice::Firefox Add-ons keys are not set up; the Firefox package is only attached to the release."
             exit 0
           fi
-          npx --yes web-ext@8 sign --source-dir apps/extension/dist/firefox --channel listed --approval-timeout 0
+          git archive --format=zip --prefix="readme-studio-$VERSION/" -o "$RUNNER_TEMP/readme-studio-source-$VERSION.zip" HEAD
+          npx --yes web-ext@8 sign --source-dir apps/extension/dist/firefox --channel listed --approval-timeout 0 \
+            --upload-source-code "$RUNNER_TEMP/readme-studio-source-$VERSION.zip"
