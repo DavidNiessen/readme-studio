@@ -1,0 +1,47 @@
+name: Readme Studio
+description: Render an animated, self-updating GitHub profile README from a Readme Studio config.
+author: David Nießen
+branding:
+  icon: layout
+  color: red
+
+inputs:
+  config:
+    description: Path to the config exported from the studio.
+    default: readme.config.json
+  token:
+    description: Token used to push the rendered assets and README (needs contents:write).
+    default: ${{ github.token }}
+  profile-token:
+    description: Optional personal access token for richer data (private contribution counts, exact totals).
+    default: ""
+  asset-branch:
+    description: Branch the rendered images are force-pushed to. Defaults to output.branch from the config.
+    default: ""
+  commit-readme:
+    description: Commit README.md when the generated layout changed.
+    default: "true"
+  readme-path:
+    description: Where to write the README inside the repository.
+    default: README.md
+  output-dir:
+    description: Keep the rendered files in this directory (defaults to a temporary folder).
+    default: ""
+  mock:
+    description: Use deterministic sample data instead of the GitHub API (for testing).
+    default: "false"
+  dry-run:
+    description: Render only; publish nothing. Pull requests always run dry.
+    default: "false"
+
+outputs:
+  assets-dir:
+    description: Directory containing the rendered assets.
+  readme-changed:
+    description: Whether README.md was updated.
+  data-source:
+    description: Where the data came from (graphql, rest, scrape or mock).
+
+runs:
+  using: node24
+  main: packages/engine/dist/action.mjs

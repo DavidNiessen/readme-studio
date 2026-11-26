@@ -344,7 +344,7 @@ export const palettePresets: PalettePreset[] = [
     "Rosé",
     "Soho vibes: muted roses, pine and gold.",
     { bg: "#191724", card: "#1f1d2e", raised: "#26233a", border: "#2a2740", text: "#e0def4", muted: "#908caa", subtle: "#403d52", accent: "#eb6f92", glow: "#ebbcba", accent2: "#f6c177" },
-    { bg: "#ffffff", card: "#faf4ed", raised: "#f2e9e1", border: "#e9dfd6", text: "#575279", muted: "#797593", subtle: "#dfdad9", accent: "#b4637a", glow: "#94475e", accent2: "#ea9d34" },
+    { bg: "#ffffff", card: "#faf4ed", raised: "#f2e9e1", border: "#e9dfd6", text: "#433f63", muted: "#6e6a88", subtle: "#dfdad9", accent: "#b4637a", glow: "#94475e", accent2: "#ea9d34" },
   ),
   preset(
     "ultraviolet",

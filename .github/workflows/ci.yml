@@ -1,0 +1,66 @@
+name: ci
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Test
+        run: npm test
+
+      - name: Action bundle is up to date
+        run: |
+          npm run bundle
+          if ! git diff --quiet -- packages/engine/dist; then
+            echo "::error::packages/engine/dist is stale. Run 'npm run bundle' and commit the result."
+            git diff --stat -- packages/engine/dist
+            exit 1
+          fi
+
+      - name: Build the studio
+        run: npm run build
+
+  action:
+    # Runs the action exactly like a user's profile repository would (sample data, no publishing).
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Render the example project
+        id: render
+        uses: ./
+        with:
+          config: examples/readme.config.json
+          mock: "true"
+          dry-run: "true"
+          output-dir: example-dist
+
+      - name: Upload rendered example
+        uses: actions/upload-artifact@v4
+        with:
+          name: example-render
+          path: example-dist
+          retention-days: 7
