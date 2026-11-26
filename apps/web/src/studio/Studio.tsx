@@ -33,7 +33,7 @@ import { useEffect, useMemo, useState } from "react";
 import { layoutPresets, parseConfig, resolvePalette, type StudioConfig } from "@readme-studio/core";
 import { ThemeSwatchesContext } from "../components/ColorPicker";
 import { Logo, LogoMark } from "../components/Logo";
-import { Button, ContextMenuHost, IconButton, MOD, Menu, Segmented, cn, copyText, useToast, type MenuHeading, type MenuItem } from "../components/ui";
+import { Button, ConfirmProvider, ContextMenuHost, IconButton, MOD, Menu, Segmented, cn, copyText, useToast, type MenuHeading, type MenuItem } from "../components/ui";
 import { findBlock } from "../lib/layout";
 import { navigate } from "../lib/router";
 import { decodeShare, shareUrl } from "../lib/share";
@@ -348,7 +348,9 @@ function MobileTabs() {
 export default function Studio({ host }: { host?: StudioHost } = {}) {
   return (
     <StudioHostContext.Provider value={host ?? null}>
-      <StudioShell />
+      <ConfirmProvider>
+        <StudioShell />
+      </ConfirmProvider>
     </StudioHostContext.Provider>
   );
 }

@@ -37,7 +37,7 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { PresetThumb } from "../components/PresetThumb";
-import { Button, CodeBlock, CopyButton, Dialog, Field, Kbd, MOD, Segmented, Select, TextInput, ToggleRow, cn, copyText, useToast } from "../components/ui";
+import { Button, CodeBlock, CopyButton, Dialog, Field, Kbd, MOD, Segmented, Select, TextInput, ToggleRow, cn, copyText, useConfirm, useToast } from "../components/ui";
 import { assetsZip, download, projectFiles, projectZip } from "../lib/export";
 import { shareUrl } from "../lib/share";
 import { deleteDesign, loadDesigns, type SavedDesign } from "../lib/storage";
@@ -219,8 +219,9 @@ function ExportDialog() {
 // ---------------------------------------------------------------- presets
 
 function PresetsDialog() {
-  const { dialog, openDialog, replace, config, mode } = useStudio();
+  const { dialog, openDialog, replace, config, mode, name, designId } = useStudio();
   const toast = useToast();
+  const confirm = useConfirm();
   const [keep, setKeep] = useState(true);
   const [kind, setKind] = useState<DesignKind>(config.kind);
   useEffect(() => {
@@ -233,7 +234,7 @@ function PresetsDialog() {
       onClose={() => openDialog(null)}
       width={1040}
       title="Start from a preset"
-      subtitle="Complete designs: theme plus layout. Your profile details carry over, and you can undo."
+      subtitle="Complete designs: theme plus layout. Choosing one replaces this design (you can undo) or starts a new project."
       footer={
         <div style={{ marginRight: "auto" }}>
           <ToggleRow label={kind === "project" ? "Keep my project and profile details" : "Keep my profile details"} checked={keep} onChange={setKeep} />
@@ -257,12 +258,30 @@ function PresetsDialog() {
             type="button"
             key={p.id}
             className="preset-card"
-            onClick={() => {
+            onClick={async () => {
               const fresh = presetConfig(p.id);
               const next = normalizeConfig({ ...fresh, profile: keep ? config.profile : fresh.profile, project: keep ? config.project : fresh.project, output: config.output }).config;
-              replace(next);
+              // a preset replaces every widget and the theme: ask first, unless there is nothing to lose
+              // (an empty design, or the sample shown on a first visit that was never saved)
+              const widgets = config.layout.reduce((n, r) => n + r.blocks.length, 0);
+              const saved = loadDesigns().some((d) => d.id === designId);
+              const answer = widgets && saved
+                ? await confirm({
+                    title: `Replace “${name}” with ${p.name}?`,
+                    body: (
+                      <p>
+                        The preset replaces all {widgets} widgets and the theme of this design. {keep ? "Your profile and project details stay. " : ""}You can undo it with {MOD} Z, or keep this design
+                        and start the preset as a new project.
+                      </p>
+                    ),
+                    confirmLabel: "Replace this design",
+                    altLabel: "Start a new project",
+                  })
+                : "confirm";
+              if (!answer) return;
+              replace(next, answer === "alt" ? p.name : undefined, answer === "alt");
               openDialog(null);
-              toast(`Applied “${p.name}”`);
+              toast(answer === "alt" ? `Started “${p.name}” as a new project` : `Applied “${p.name}”`);
             }}
           >
             <PresetThumb id={p.id} mode={mode} />

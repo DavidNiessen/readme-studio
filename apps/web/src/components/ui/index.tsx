@@ -338,6 +338,8 @@ export function Tabs<T extends string>({ value, onChange, tabs, label }: { value
 
 // ---------------------------------------------------------------- dialog
 
+const openDialogs: object[] = [];
+
 export function Dialog({
   open,
   onClose,
@@ -366,7 +368,11 @@ export function Dialog({
   useEffect(() => {
     if (!open) return;
     const prev = document.activeElement as HTMLElement | null;
+    // with dialogs stacked (a confirmation over the presets), only the top one takes keys
+    const token = {};
+    openDialogs.push(token);
     const onKey = (e: KeyboardEvent) => {
+      if (openDialogs[openDialogs.length - 1] !== token) return;
       if (e.key === "Escape") {
         e.stopPropagation();
         closeRef.current();
@@ -393,6 +399,7 @@ export function Dialog({
     const overflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
+      openDialogs.splice(openDialogs.indexOf(token), 1);
       document.removeEventListener("keydown", onKey, true);
       document.body.style.overflow = overflow;
       prev?.focus?.({ preventScroll: true });
@@ -524,6 +531,56 @@ export function Menu({ trigger, items, align = "end", label }: { trigger: ReactE
           document.body,
         )}
     </>
+  );
+}
+
+// ---------------------------------------------------------------- confirmation
+
+export interface ConfirmOptions {
+  title: string;
+  body: ReactNode;
+  confirmLabel: string;
+  /** a red confirm button, for what cannot be got back */
+  danger?: boolean;
+  /** a third choice between Cancel and confirm */
+  altLabel?: string;
+}
+type ConfirmAnswer = "confirm" | "alt" | null;
+const ConfirmCtx = createContext<(o: ConfirmOptions) => Promise<ConfirmAnswer>>(async () => null);
+
+/** Asks before something replaces or removes work: resolves "confirm", "alt" or null (cancelled). */
+export function useConfirm() {
+  return useContext(ConfirmCtx);
+}
+
+export function ConfirmProvider({ children }: { children: ReactNode }) {
+  const [ask, setAsk] = useState<(ConfirmOptions & { done: (a: ConfirmAnswer) => void }) | null>(null);
+  const confirm = useCallback((o: ConfirmOptions) => new Promise<ConfirmAnswer>((done) => setAsk({ ...o, done })), []);
+  const answer = (a: ConfirmAnswer) => {
+    ask?.done(a);
+    setAsk(null);
+  };
+  return (
+    <ConfirmCtx.Provider value={confirm}>
+      {children}
+      <Dialog
+        open={!!ask}
+        onClose={() => answer(null)}
+        width={460}
+        title={ask?.title ?? ""}
+        footer={
+          <>
+            <Button onClick={() => answer(null)}>Cancel</Button>
+            {ask?.altLabel && <Button onClick={() => answer("alt")}>{ask.altLabel}</Button>}
+            <Button variant={ask?.danger ? "danger" : "accent"} data-autofocus onClick={() => answer("confirm")}>
+              {ask?.confirmLabel}
+            </Button>
+          </>
+        }
+      >
+        <div className="confirm-body">{ask?.body}</div>
+      </Dialog>
+    </ConfirmCtx.Provider>
   );
 }
 

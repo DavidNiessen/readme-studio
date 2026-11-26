@@ -1,7 +1,7 @@
 import { Download, ExternalLink, GitBranch, GitCommitHorizontal, GitPullRequest, Pencil, RotateCcw, UploadCloud } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import type { StudioConfig } from "@readme-studio/core";
-import { Button, Dialog, Field, Segmented, TextInput, ToggleRow, useToast } from "../../components/ui";
+import { Button, Dialog, Field, Segmented, TextInput, ToggleRow, useConfirm, useToast } from "../../components/ui";
 import { GitHub } from "../../github/api";
 import { CONFIG_PATH, defaultPrBranch, filesFor, inspectRepo, RepoUnavailable, saveDesign, TokenRejected, WORKFLOW_PATH, type SaveResult, type SaveTarget } from "../../github/design";
 import type { GitHubPlatform, SaveMode } from "../../github/platform";
@@ -27,6 +27,7 @@ export function SaveButton() {
 export function DraftNotice() {
   const { opened } = useSession();
   const config = useStudio((s) => s.config);
+  const confirm = useConfirm();
   const changed = useMemo(() => !!opened && !sameConfig(config, opened.config), [opened, config]);
   if (!opened || !changed) return null;
   return (
@@ -36,9 +37,13 @@ export function DraftNotice() {
       <button
         type="button"
         title="Undo with Ctrl/⌘ Z"
-        onClick={() => {
-          if (window.confirm(opened.configExists ? `Reset your changes to the design committed to ${opened.repo.full}?` : `Reset your changes and start again from what ${opened.repo.full} has?`))
-            useStudio.getState().resetToSource(opened.config);
+        onClick={async () => {
+          const ok = await confirm({
+            title: "Reset your changes?",
+            body: <p>{opened.configExists ? `This goes back to the design committed to ${opened.repo.full}.` : `This starts again from what ${opened.repo.full} has.`} You can undo it with Ctrl/⌘ Z.</p>,
+            confirmLabel: "Reset changes",
+          });
+          if (ok) useStudio.getState().resetToSource(opened.config);
         }}
       >
         <RotateCcw size={12} /> Reset

@@ -1033,3 +1033,9 @@
     opacity: 1;
   }
 }
+
+.confirm-body p {
+  margin: 0;
+  line-height: 1.55;
+  color: var(--ink-2);
+}
