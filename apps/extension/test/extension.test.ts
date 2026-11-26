@@ -181,6 +181,10 @@ describe("saving a design", () => {
       }
       if (method === "PUT") return json({ commit: { html_url: `https://github.com/mona/aurora/commit/${writes.length}` } }, 201);
       if (method === "GET" && url.pathname.includes("/git/ref/heads/")) return json({ object: { sha: "base-sha" } });
+      if (method === "GET" && url.pathname.endsWith("/git/commits/base-sha")) return json({ tree: { sha: "base-tree" } });
+      if (method === "POST" && url.pathname.endsWith("/git/trees")) return json({ sha: "new-tree" }, 201);
+      if (method === "POST" && url.pathname.endsWith("/git/commits")) return json({ sha: "new-commit", html_url: "https://github.com/mona/aurora/commit/new-commit" }, 201);
+      if (method === "PATCH" && url.pathname.endsWith("/git/refs/heads/main")) return json({});
       if (method === "POST" && url.pathname.endsWith("/git/refs")) return json({}, 201);
       if (method === "POST" && url.pathname.endsWith("/pulls")) return json({ html_url: "https://github.com/mona/aurora/pull/7", number: 7 }, 201);
       return json({ message: "unexpected" }, 500);
@@ -188,29 +192,39 @@ describe("saving a design", () => {
     return { gh: new GitHub("t", http), writes };
   }
 
-  it("commits the config with its SHA and adds the workflow when asked", async () => {
+  it("commits the config and the workflow in one commit on top of the branch", async () => {
     const { gh, writes } = fakeGitHub({ [CONFIG_PATH]: "{}" });
     const r = await saveDesign(gh, { repo, branch: "main", config, message: "docs: design", addWorkflow: true, target: "commit" });
-    expect(r.kind).toBe("commit");
+    expect(r).toEqual({ kind: "commit", url: "https://github.com/mona/aurora/commit/new-commit" });
     expect(writes.map((w) => [w.method, w.path])).toEqual([
-      ["PUT", `/repos/mona/aurora/contents/${CONFIG_PATH}`],
-      ["PUT", `/repos/mona/aurora/contents/${WORKFLOW_PATH}`],
+      ["POST", "/repos/mona/aurora/git/trees"],
+      ["POST", "/repos/mona/aurora/git/commits"],
+      ["PATCH", "/repos/mona/aurora/git/refs/heads/main"],
     ]);
-    expect(writes[0].body).toMatchObject({ branch: "main", sha: `sha-${CONFIG_PATH}`, message: "docs: design" });
-    expect(_private.fromBase64(String(writes[0].body.content))).toBe(serializeConfig(config));
-    expect(writes[1].body).not.toHaveProperty("sha");
+    expect(writes[0].body).toMatchObject({ base_tree: "base-tree" });
+    const tree = writes[0].body.tree as { path: string; content: string }[];
+    expect(tree.map((t) => t.path)).toEqual([CONFIG_PATH, WORKFLOW_PATH]);
+    expect(tree[0].content).toBe(serializeConfig(config));
+    expect(writes[1].body).toEqual({ message: "docs: design", tree: "new-tree", parents: ["base-sha"] });
+    expect(writes[2].body).toEqual({ sha: "new-commit", force: false });
   });
 
-  it("skips unchanged files and opens a pull request from a new branch", async () => {
-    const { gh, writes } = fakeGitHub({ [CONFIG_PATH]: serializeConfig(config), [WORKFLOW_PATH]: "old" });
-    const r = await saveDesign(gh, { repo, branch: "main", config, message: "docs: design", addWorkflow: false, target: "pull-request", prBranch: "readme-studio-x" });
+  it("opens a pull request from one commit on a new branch", async () => {
+    const { gh, writes } = fakeGitHub({ [CONFIG_PATH]: "{}", [WORKFLOW_PATH]: "old" });
+    const r = await saveDesign(gh, { repo, branch: "main", config, message: "docs: design", addWorkflow: true, target: "pull-request", prBranch: "readme-studio-x" });
     expect(r).toEqual({ kind: "pull-request", url: "https://github.com/mona/aurora/pull/7" });
     expect(writes.map((w) => [w.method, w.path])).toEqual([
+      ["POST", "/repos/mona/aurora/git/trees"],
+      ["POST", "/repos/mona/aurora/git/commits"],
       ["POST", "/repos/mona/aurora/git/refs"],
       ["POST", "/repos/mona/aurora/pulls"],
     ]);
-    expect(writes[0].body).toEqual({ ref: "refs/heads/readme-studio-x", sha: "base-sha" });
-    expect(writes[1].body).toMatchObject({ head: "readme-studio-x", base: "main" });
+    expect((writes[0].body.tree as { path: string }[]).map((t) => t.path)).toEqual([CONFIG_PATH, WORKFLOW_PATH]);
+    expect(writes[2].body).toEqual({ ref: "refs/heads/readme-studio-x", sha: "new-commit" });
+    expect(writes[3].body).toMatchObject({ head: "readme-studio-x", base: "main" });
+    // nothing changed: nothing to propose
+    const same = fakeGitHub({ [CONFIG_PATH]: serializeConfig(config) });
+    await expect(saveDesign(same.gh, { repo, branch: "main", config, message: "m", addWorkflow: false, target: "pull-request" })).rejects.toThrow(/nothing to propose/);
   });
 
   it("lists the files a save writes and names pull request branches by time", () => {

@@ -140,6 +140,25 @@ export class GitHub {
     return { commitUrl: r.commit.html_url };
   }
 
+  /**
+   * One commit holding every file, on top of `parent`. Nothing moves yet: point a branch at it with
+   * `moveBranch` or `createBranch`.
+   */
+  async commitFiles(full: string, o: { parent: string; files: { path: string; text: string }[]; message: string }): Promise<{ sha: string; url: string }> {
+    const parent = await this.call<{ tree: { sha: string } }>("GET", `/repos/${full}/git/commits/${o.parent}`);
+    const tree = await this.call<{ sha: string }>("POST", `/repos/${full}/git/trees`, {
+      base_tree: parent.tree.sha,
+      tree: o.files.map((f) => ({ path: f.path, mode: "100644", type: "blob", content: f.text })),
+    });
+    const commit = await this.call<{ sha: string; html_url: string }>("POST", `/repos/${full}/git/commits`, { message: o.message, tree: tree.sha, parents: [o.parent] });
+    return { sha: commit.sha, url: commit.html_url };
+  }
+
+  /** Fast-forwards a branch to `sha`; fails when the branch moved on since `sha`'s parent was read. */
+  async moveBranch(full: string, branch: string, sha: string): Promise<void> {
+    await this.call("PATCH", `/repos/${full}/git/refs/heads/${encPath(branch)}`, { sha, force: false });
+  }
+
   async branchSha(full: string, branch: string): Promise<string> {
     const r = await this.call<{ object: { sha: string } }>("GET", `/repos/${full}/git/ref/heads/${encPath(branch)}`);
     return r.object.sha;

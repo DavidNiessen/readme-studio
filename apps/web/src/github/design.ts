@@ -194,7 +194,7 @@ export interface SaveRequest {
   branch: string;
   config: StudioConfig;
   message: string;
-  /** also add .github/workflows/readme.yml (only offered when it is missing) */
+  /** also add the Readme Studio workflow (only offered when it is missing) */
   addWorkflow: boolean;
   target: "commit" | "pull-request";
   /** branch name for a pull request */
@@ -220,39 +220,62 @@ export function defaultPrBranch(now = new Date()): string {
 }
 
 /**
- * Writes the design: straight onto the branch, or onto a new branch with a pull request. The
- * config's current SHA is read again just before writing, so a concurrent change fails loudly
- * instead of being overwritten.
+ * Writes the design as one commit: straight onto the branch, or onto a new branch with a pull
+ * request. The commit is made on the branch's current head and the branch only fast-forwards, so a
+ * change pushed meanwhile makes the save fail instead of being overwritten.
  */
 export async function saveDesign(gh: GitHub, r: SaveRequest): Promise<SaveResult> {
-  const files = filesFor(r);
-  let branch = r.branch;
-  if (r.target === "pull-request") {
-    branch = r.prBranch || defaultPrBranch();
-    await gh.createBranch(r.repo.full, branch, await gh.branchSha(r.repo.full, r.branch));
+  const full = r.repo.full;
+  let parent: string;
+  try {
+    parent = await gh.branchSha(full, r.branch);
+  } catch (e) {
+    // an empty repository has no branch to commit on: the contents API creates its first commit
+    if (e instanceof GitHubError && e.status === 409 && r.target === "commit") return saveIntoEmpty(gh, r);
+    throw e;
   }
-  let commitUrl = "";
-  for (const f of files) {
-    const current = await gh.file(r.repo.full, f.path, branch);
-    if (current?.text === f.text) continue;
-    try {
-      commitUrl = (await gh.putFile(r.repo.full, { path: f.path, text: f.text, message: r.message, branch, sha: current?.sha })).commitUrl;
-    } catch (e) {
-      if (e instanceof GitHubError && e.status === 404 && f.path === WORKFLOW_PATH) {
-        throw new Error("GitHub refused the workflow file. Sign in again so the extension can update workflows, or add it without the workflow.");
-      }
-      throw e;
+  const changed: { path: string; text: string }[] = [];
+  for (const f of filesFor(r)) if ((await gh.file(full, f.path, parent))?.text !== f.text) changed.push(f);
+  if (!changed.length) {
+    if (r.target === "pull-request") throw new Error(`${full} already has this design, so there is nothing to propose.`);
+    return { url: `https://github.com/${full}/blob/${encodeURIComponent(r.branch)}/${CONFIG_PATH}`, kind: "commit" };
+  }
+  try {
+    const commit = await gh.commitFiles(full, { parent, files: changed, message: r.message });
+    if (r.target === "commit") {
+      await gh.moveBranch(full, r.branch, commit.sha);
+      return { url: commit.url, kind: "commit" };
     }
-  }
-  if (r.target === "pull-request") {
-    const pr = await gh.openPullRequest(r.repo.full, {
+    const branch = r.prBranch || defaultPrBranch();
+    await gh.createBranch(full, branch, commit.sha);
+    const pr = await gh.openPullRequest(full, {
       head: branch,
       base: r.branch,
       title: r.message,
-      body: "Updated with [Readme Studio](https://readme.niessen.dev). The readme workflow renders the images and the README after this is merged.",
+      body: "Updated with [Readme Studio](https://readme.niessen.dev). The Readme Studio workflow renders the images and the README after this is merged.",
     });
     return { url: pr.url, kind: "pull-request" };
+  } catch (e) {
+    throw explainSaveError(e, changed);
   }
-  if (!commitUrl) return { url: `https://github.com/${r.repo.full}/blob/${encodeURIComponent(branch)}/${CONFIG_PATH}`, kind: "commit" };
-  return { url: commitUrl, kind: "commit" };
+}
+
+function explainSaveError(e: unknown, files: { path: string }[]): unknown {
+  if (!(e instanceof GitHubError)) return e;
+  if (files.some((f) => f.path === WORKFLOW_PATH) && (e.status === 404 || /workflow/i.test(e.message)))
+    return new Error("GitHub refused the workflow file. Sign in again so Readme Studio can update workflows, or save without the workflow.");
+  if (e.status === 422 && /fast.?forward/i.test(e.message)) return new Error("The branch changed while saving. Reopen the repository to get the latest design, then save again.");
+  return e;
+}
+
+/** The first commit of an empty repository, one file at a time (the only way the API allows). */
+async function saveIntoEmpty(gh: GitHub, r: SaveRequest): Promise<SaveResult> {
+  let url = "";
+  const files = filesFor(r);
+  try {
+    for (const f of files) url = (await gh.putFile(r.repo.full, { path: f.path, text: f.text, message: r.message, branch: r.branch })).commitUrl;
+  } catch (e) {
+    throw explainSaveError(e, files);
+  }
+  return { url, kind: "commit" };
 }
