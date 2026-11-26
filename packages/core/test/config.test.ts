@@ -71,6 +71,14 @@ describe("readme composer", () => {
     expect(md).not.toContain("undefined");
   });
 
+  it("links the footer to the studio only when its credit is on", () => {
+    const withFooter = (credit: boolean) => normalizeConfig({ ...c, layout: [{ blocks: [{ type: "footer", id: "footer", options: { credit } }] }] }).config;
+    expect(renderReadme(withFooter(false), data)).not.toContain('<a href="https://readme.niessen.dev/">');
+    const md = renderReadme(withFooter(true), data);
+    expect(md).toContain('<a href="https://readme.niessen.dev/">');
+    expect(md).toContain('alt="footer · made with Readme Studio"');
+  });
+
   it("single-mode output skips <picture>", () => {
     const md = renderReadme({ ...c, output: { ...c.output, modes: ["light"] } }, data);
     expect(md).not.toContain("<picture>");

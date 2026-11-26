@@ -4526,6 +4526,13 @@
           "label": "Waves",
           "type": "toggle",
           "default": true
+        },
+        {
+          "key": "credit",
+          "label": "Made with Readme Studio",
+          "type": "toggle",
+          "default": false,
+          "help": "A small credit line, and the footer links to Readme Studio. Thank you!"
         }
       ]
     },

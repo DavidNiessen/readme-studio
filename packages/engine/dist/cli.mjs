@@ -1289,6 +1289,9 @@ var divider = defineWidget({
   }
 });
 
+// ../core/src/lib/brand.ts
+var STUDIO_URL = "https://readme.niessen.dev/";
+
 // ../core/src/widgets/footer.ts
 var W3 = 840;
 var H = 130;
@@ -1304,14 +1307,17 @@ var footer = defineWidget({
   category: "Decoration",
   kind: "svg",
   width: "full",
-  defaults: { message: "rebuilt every night by readme studio", stamp: true, barcode: true, waves: true },
+  defaults: { message: "rebuilt every night by readme studio", stamp: true, barcode: true, waves: true, credit: false },
   fields: [
     { key: "message", label: "Message", type: "text" },
     { key: "stamp", label: "Build stamp", type: "toggle", help: "Date, time, run number and data source." },
     { key: "barcode", label: "Date barcode", type: "toggle" },
-    { key: "waves", label: "Waves", type: "toggle" }
+    { key: "waves", label: "Waves", type: "toggle" },
+    { key: "credit", label: "Made with Readme Studio", type: "toggle", help: "A small credit line, and the footer links to Readme Studio. Thank you!" }
   ],
-  alt: () => "footer",
+  alt: (_ctx, o) => o.credit ? "footer \xB7 made with Readme Studio" : "footer",
+  // the credit makes the footer a link to the studio (a link set on the block still wins)
+  href: (_ctx, o) => o.credit ? STUDIO_URL : void 0,
   render(ctx, o) {
     const t = ctx.theme;
     const n = ctx.now;
@@ -1342,6 +1348,7 @@ ${o.barcode ? `<g class="fade">${bars2.join("")}</g><text x="24" y="70" font-siz
 <g class="in" style="animation-delay:.3s">
 <text x="${right}" y="${o.stamp ? 34 : 44}" font-size="13" text-anchor="${anchor}" class="t b">${esc(fitText(t, o.message, 13, maxW, { bold: true }))}</text>
 ${o.stamp ? `<text x="${right}" y="54" font-size="11" text-anchor="${anchor}" class="m">${esc(fitText(t, `last build ${stamp} ${pad2(n.hour)}:${pad2(n.minute)} ${tz}${run} \xB7 ${ctx.data.source} data`, 11, maxW))}</text>` : ""}
+${o.credit ? `<text x="${right}" y="${o.stamp ? 74 : 64}" font-size="10.5" text-anchor="${anchor}" class="m">made with <tspan fill="${t.accent}" font-weight="700">Readme Studio</tspan> \xB7 readme.niessen.dev</text>` : ""}
 </g>`;
     return svg({ width: W3, height: H, theme: t, title: "footer", css, defs, body });
   }
@@ -11636,7 +11643,6 @@ function assetFileName(name, mode, kind) {
 // ../core/src/workflow.ts
 var ACTION_REPO = "DavidNiessen/readme-studio";
 var ACTION_REF = `${ACTION_REPO}@v1`;
-var STUDIO_URL = "https://readme.niessen.dev/";
 function describeCron(cron) {
   const [min, hour, dom, mon, dow] = cron.trim().split(/\s+/);
   const pad = (n) => n.padStart(2, "0");

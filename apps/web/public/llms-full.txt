@@ -759,6 +759,7 @@ Category Decoration · output svg · width full · for profile and project READM
 - `stamp` (toggle) · default true · Date, time, run number and data source.
 - `barcode` (toggle) · default true
 - `waves` (toggle) · default true
+- `credit` (toggle) · default false · A small credit line, and the footer links to Readme Studio. Thank you!
 
 ### heading
 

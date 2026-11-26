@@ -1,4 +1,5 @@
 import { pad2, zoneAbbr } from "../lib/astro";
+import { STUDIO_URL } from "../lib/brand";
 import { esc } from "../lib/escape";
 import { cardStroke, fitText, surfaceFill, svg } from "../lib/svg";
 import { hash01 } from "./parts";
@@ -20,14 +21,17 @@ export const footer = defineWidget({
   category: "Decoration",
   kind: "svg",
   width: "full",
-  defaults: { message: "rebuilt every night by readme studio", stamp: true, barcode: true, waves: true },
+  defaults: { message: "rebuilt every night by readme studio", stamp: true, barcode: true, waves: true, credit: false },
   fields: [
     { key: "message", label: "Message", type: "text" },
     { key: "stamp", label: "Build stamp", type: "toggle", help: "Date, time, run number and data source." },
     { key: "barcode", label: "Date barcode", type: "toggle" },
     { key: "waves", label: "Waves", type: "toggle" },
+    { key: "credit", label: "Made with Readme Studio", type: "toggle", help: "A small credit line, and the footer links to Readme Studio. Thank you!" },
   ],
-  alt: () => "footer",
+  alt: (_ctx, o) => (o.credit ? "footer · made with Readme Studio" : "footer"),
+  // the credit makes the footer a link to the studio (a link set on the block still wins)
+  href: (_ctx, o) => (o.credit ? STUDIO_URL : undefined),
   render(ctx, o) {
     const t = ctx.theme;
     const n = ctx.now;
@@ -62,6 +66,7 @@ ${o.barcode ? `<g class="fade">${bars.join("")}</g><text x="24" y="70" font-size
 <g class="in" style="animation-delay:.3s">
 <text x="${right}" y="${o.stamp ? 34 : 44}" font-size="13" text-anchor="${anchor}" class="t b">${esc(fitText(t, o.message as string, 13, maxW, { bold: true }))}</text>
 ${o.stamp ? `<text x="${right}" y="54" font-size="11" text-anchor="${anchor}" class="m">${esc(fitText(t, `last build ${stamp} ${pad2(n.hour)}:${pad2(n.minute)} ${tz}${run} · ${ctx.data.source} data`, 11, maxW))}</text>` : ""}
+${o.credit ? `<text x="${right}" y="${o.stamp ? 74 : 64}" font-size="10.5" text-anchor="${anchor}" class="m">made with <tspan fill="${t.accent}" font-weight="700">Readme Studio</tspan> · readme.niessen.dev</text>` : ""}
 </g>`;
     return svg({ width: W, height: H, theme: t, title: "footer", css, defs, body });
   },

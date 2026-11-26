@@ -3132,6 +3132,11 @@
                           "waves": {
                             "title": "Waves",
                             "type": "boolean"
+                          },
+                          "credit": {
+                            "title": "Made with Readme Studio",
+                            "description": "A small credit line, and the footer links to Readme Studio. Thank you!",
+                            "type": "boolean"
                           }
                         }
                       }
