@@ -372,7 +372,7 @@ export function Dialog({
     };
     document.addEventListener("keydown", onKey, true);
     requestAnimationFrame(() => {
-      const target = ref.current?.querySelector<HTMLElement>("[data-autofocus]") ?? ref.current?.querySelector<HTMLElement>(".dialog__body input, .dialog__body button") ?? ref.current;
+      const target = ref.current?.querySelector<HTMLElement>("[data-autofocus]") ?? ref.current;
       target?.focus({ preventScroll: true });
     });
     const overflow = document.body.style.overflow;

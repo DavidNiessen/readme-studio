@@ -826,3 +826,4 @@
     transform: rotate(360deg);
   }
 }
+.dialog:focus{outline:none}

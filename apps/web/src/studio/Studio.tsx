@@ -148,7 +148,7 @@ function TopBar() {
             { label: "Documentation", icon: <BookOpen />, onSelect: () => navigate("/docs") },
           ]}
         />
-        <Button variant="accent" onClick={() => s.openDialog("export")}>
+        <Button variant="accent" aria-label="Export" onClick={() => s.openDialog("export")}>
           <Download /> <span className="hide-sm">Export</span>
         </Button>
       </div>

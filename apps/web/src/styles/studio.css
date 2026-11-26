@@ -1284,3 +1284,16 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+.grid-2 > .field {
+  margin-top: 0;
+}
+.grid-2 + .field,
+.field + .grid-2 {
+  margin-top: 14px;
+}
+@media (max-width: 560px) {
+  .dialog__foot .muted {
+    display: none !important;
+  }
+}
