@@ -41,6 +41,7 @@ import { useMemo, useState } from "react";
 import { arrayMove, SortableItem, SortableList, SortHandle } from "../components/Sortable";
 import { Button, ColorInput, Field, IconButton, Segmented, Select, Slider, Tabs, TagsInput, TextArea, TextInput, ToggleRow, useToast } from "../components/ui";
 import { canJoin, findBlock, setJoin, setRowAlign, updateBlock } from "../lib/layout";
+import { parseRepo } from "../github/repo";
 import { fetchLive } from "../lib/live";
 import { blockActions } from "./blockActions";
 import { useStudio, type InspectorTab } from "../state/store";
@@ -192,16 +193,16 @@ function ProjectPanel() {
       <KindSwitch />
       <div className="panel__section">
         <div className="subhead">Repository</div>
-        <Field label="Repository" help="owner/name of the public repository this README is for. Its stars, contributors, releases and commits feed the project widgets.">
+        <Field label="Repository" help="owner/name (or a link to it) of the public repository this README is for. Its stars, contributors, releases and commits feed the project widgets.">
           <TextInput
             mono
             aria-label="Repository"
             placeholder="owner/name"
             value={repoDraft ?? p.repo}
             onChange={(v) => {
-              const clean = v.trim().replace(/^https?:\/\/github\.com\//, "").replace(/\.git$/, "").replace(/\/+$/, "");
               setRepoDraft(v);
-              if (/^[\w.-]+\/[\w.-]+$/.test(clean)) setP({ repo: clean }, "repo");
+              const repo = parseRepo(v);
+              if (repo) setP({ repo: repo.full }, "repo");
             }}
             onBlur={() => setRepoDraft(null)}
           />

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { parseRepo } from "../src/github/repo";
 import { repoUrl, resolveRepoLinks } from "../src/lib/repoLinks";
 
 const R = "DavidNiessen/soundwave";
@@ -25,5 +26,13 @@ describe("relative README links in the studio", () => {
     expect(out).toContain('src="https://raw.githubusercontent.com/DavidNiessen/soundwave/HEAD/docs/screenshot.webp"');
     expect(out).toContain('srcset="https://raw.githubusercontent.com/DavidNiessen/soundwave/HEAD/a.png 1x, https://raw.githubusercontent.com/DavidNiessen/soundwave/HEAD/b.png 2x"');
     expect(resolveRepoLinks(html, "not a repo")).toBe(html);
+  });
+});
+
+describe("pasted repositories", () => {
+  it("reads owner/name, URLs and SSH remotes", () => {
+    for (const t of ["mona/aurora", " mona/aurora.git ", "https://github.com/mona/aurora", "github.com/mona/aurora/", "https://www.github.com/mona/aurora.git", "https://github.com/mona/aurora/tree/main/docs", "https://github.com/mona/aurora?tab=readme", "git@github.com:mona/aurora.git"])
+      expect(parseRepo(t)?.full, t).toBe("mona/aurora");
+    for (const t of ["", "mona", "https://gitlab.com/mona/aurora", "https://github.com/mona", "mona/aurora/extra"]) expect(parseRepo(t), t).toBeNull();
   });
 });

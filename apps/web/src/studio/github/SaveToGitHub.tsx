@@ -5,7 +5,7 @@ import { Button, Dialog, Field, Segmented, TextInput, ToggleRow, useToast } from
 import { GitHub } from "../../github/api";
 import { CONFIG_PATH, defaultPrBranch, filesFor, inspectRepo, RepoUnavailable, saveDesign, TokenRejected, WORKFLOW_PATH, type SaveResult, type SaveTarget } from "../../github/design";
 import type { GitHubPlatform, SaveMode } from "../../github/platform";
-import { repoRef } from "../../github/repo";
+import { parseRepo } from "../../github/repo";
 import { sameConfig, useStudio } from "../../state/store";
 import { AuthPanel } from "./AuthPanel";
 import { setSession, useSession } from "./session";
@@ -89,7 +89,7 @@ export function SaveDialog({ platform }: { platform: GitHubPlatform }) {
   // a design opened from a repository saves back there; otherwise check the one typed in
   useEffect(() => {
     if (!open || opened) return;
-    const repo = repoRef(repoText);
+    const repo = parseRepo(repoText);
     if (!repo) {
       setCheck({ state: "idle" });
       return;
@@ -174,7 +174,7 @@ export function SaveDialog({ platform }: { platform: GitHubPlatform }) {
   };
 
   const branch = !target || target.branch === "HEAD" ? "the default branch" : target.branch;
-  const repoName = target?.repo.full ?? (repoRef(repoText)?.full || "a repository");
+  const repoName = target?.repo.full ?? (parseRepo(repoText)?.full || "a repository");
   return (
     <Dialog
       open={open}
@@ -226,7 +226,7 @@ export function SaveDialog({ platform }: { platform: GitHubPlatform }) {
         <div className="gh-save">
           {!opened && (
             <Field label="Repository" help={<RepoStatus check={check} login={auth?.login} />}>
-              <TextInput mono aria-label="Repository" placeholder="owner/name" value={repoText} onChange={(v) => setRepoText(v.trim())} />
+              <TextInput mono aria-label="Repository" placeholder="owner/name or a link to it" value={repoText} onChange={(v) => setRepoText(v.trim())} />
             </Field>
           )}
           <Segmented label="How to save" value={mode} onChange={pickMode} options={MODES} />
@@ -266,7 +266,7 @@ export function SaveDialog({ platform }: { platform: GitHubPlatform }) {
 }
 
 function RepoStatus({ check, login }: { check: Check; login?: string }) {
-  if (check.state === "idle") return <>The repository the README belongs to, as owner/name.</>;
+  if (check.state === "idle") return <>The repository the README belongs to, as owner/name or a link to it.</>;
   if (check.state === "checking") return <>Checking…</>;
   if (check.state === "ok") {
     const t = check.target;
