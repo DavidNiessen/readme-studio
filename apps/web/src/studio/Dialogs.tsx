@@ -47,6 +47,8 @@ function ExportDialog() {
   const [file, setFile] = useState(0);
   const [pat, setPat] = useState(true);
   const [progress, setProgress] = useState<string | null>(null);
+  // lets the branch field be empty while typing; falls back to the saved branch on blur
+  const [branchDraft, setBranchDraft] = useState<string | null>(null);
   const open = dialog === "export";
   const files = useMemo(() => (open ? projectFiles(config, data, { profileToken: pat }) : []), [open, config, data, pat]);
   const out = config.output;
@@ -89,7 +91,17 @@ function ExportDialog() {
                 <TextInput mono aria-label="Repository" placeholder={`${config.profile.login}/${config.profile.login}`} value={out.repository} onChange={(v) => setOut({ repository: v.trim() })} />
               </Field>
               <Field label="Asset branch">
-                <TextInput mono aria-label="Asset branch" value={out.branch} onChange={(v) => setOut({ branch: v.replace(/[^\w./-]/g, "") || "output" })} />
+                <TextInput
+                  mono
+                  aria-label="Asset branch"
+                  value={branchDraft ?? out.branch}
+                  onChange={(v) => {
+                    const clean = v.replace(/[^\w./-]/g, "");
+                    setBranchDraft(clean);
+                    if (clean) setOut({ branch: clean });
+                  }}
+                  onBlur={() => setBranchDraft(null)}
+                />
               </Field>
             </div>
           </div>
