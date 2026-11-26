@@ -150,6 +150,8 @@ function badgeList(ctx: Meta, o: Record<string, unknown>, now = new Date(ctx.dat
 /** System font stack of the theme's font category (badges skip font embedding to stay ~2 KB). */
 function badgeFont(t: Theme): { family: string; id: string } {
   const f = fontInfo(t.font);
+  // serif faces fall back to the system serif, which reads poorly at badge size: use sans there
+  if (f.category === "serif") return { family: fontInfo("inter").fallback, id: "inter" };
   return { family: f.fallback, id: f.id };
 }
 

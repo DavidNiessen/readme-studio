@@ -75,7 +75,7 @@ export const commitActivity = defineWidget({
     const figY = top + 30;
     const figs: [string, string][] = [
       [groupDigits(total), total === 1 ? "commit this year" : "commits this year"],
-      [avg >= 10 ? String(Math.round(avg)) : avg.toFixed(1), "avg per week"],
+      [avg >= 10 || avg === 0 ? String(Math.round(avg)) : avg.toFixed(1), "avg per week"],
       [groupDigits(peak), "busiest week"],
     ];
     let fx = X0;
@@ -92,7 +92,7 @@ export const commitActivity = defineWidget({
     const Y0 = figY + (style === "heat" ? 52 : 46);
     const Y1 = Y0 + chartH;
     const footY = Y1 + 34;
-    const H = lc ? footY + 48 : Y1 + 44;
+    const H = lc ? footY + 48 : Y1 + (total === 0 ? 24 : 44);
     const slot = (X1 - X0) / Math.max(1, n);
     const cx = (i: number) => X0 + (i + 0.5) * slot;
 
