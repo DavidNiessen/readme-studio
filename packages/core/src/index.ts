@@ -8,6 +8,7 @@ export * from "./data/derive";
 export { mockData, mockProject, mockWeeks, assignLevels, rng, hashSeed } from "./data/mock";
 export * from "./widgets/types";
 export { widgetList, getWidget } from "./widgets/registry";
+export { fillOutsideCode } from "./widgets/markdown";
 export * from "./lib/color";
 export { icon, iconList, iconSvg, hasIcon, type Icon } from "./lib/icons";
 export { encodeGif, type Frame } from "./lib/gif";

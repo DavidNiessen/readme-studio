@@ -5449,9 +5449,12 @@ var markdown = defineWidget({
   ],
   alt: () => "Markdown text",
   render(ctx, o) {
-    return fillPlaceholders(str(o.text), ctx).replace(/\r\n?/g, "\n");
+    return fillOutsideCode(str(o.text).replace(/\r\n?/g, "\n"), (t) => fillPlaceholders(t, ctx));
   }
 });
+function fillOutsideCode(text, fill2) {
+  return text.split(/(^(?:```|~~~)[^\n]*\n[\s\S]*?^(?:```|~~~)[ \t]*$)/m).map((part, i) => i % 2 === 1 ? part : part.split(/(`+[^`]*?`+)/).map((p, j) => j % 2 === 1 ? p : fill2(p)).join("")).join("");
+}
 
 // ../core/src/widgets/quote.ts
 var W24 = 840;

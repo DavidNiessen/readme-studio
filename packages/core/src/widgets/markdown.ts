@@ -25,6 +25,17 @@ export const markdown = defineWidget({
   ],
   alt: () => "Markdown text",
   render(ctx, o) {
-    return fillPlaceholders(str(o.text), ctx).replace(/\r\n?/g, "\n");
+    return fillOutsideCode(str(o.text).replace(/\r\n?/g, "\n"), (t) => fillPlaceholders(t, ctx));
   },
 });
+
+/**
+ * Applies `fill` to prose only: fenced code blocks and inline code stay exactly as written, so a
+ * sample like `${name}` in an imported README is never turned into a placeholder value.
+ */
+export function fillOutsideCode(text: string, fill: (t: string) => string): string {
+  return text
+    .split(/(^(?:```|~~~)[^\n]*\n[\s\S]*?^(?:```|~~~)[ \t]*$)/m)
+    .map((part, i) => (i % 2 === 1 ? part : part.split(/(`+[^`]*?`+)/).map((p, j) => (j % 2 === 1 ? p : fill(p))).join("")))
+    .join("");
+}
