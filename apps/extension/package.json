@@ -1,0 +1,26 @@
+{
+  "name": "@readme-studio/extension",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Readme Studio for Chrome and Firefox: edit a repository's animated README right on GitHub.",
+  "scripts": {
+    "build": "tsx scripts/build.ts",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@readme-studio/core": "*",
+    "@readme-studio/web": "*",
+    "lucide-react": "1.81.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
+  },
+  "devDependencies": {
+    "@resvg/resvg-wasm": "^2.6.2",
+    "@types/react": "19.3.3",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "5.2.0",
+    "fflate": "0.8.3",
+    "vite": "7.3.8"
+  }
+}
