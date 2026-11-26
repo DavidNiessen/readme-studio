@@ -19,8 +19,8 @@ export interface Opened extends SaveTarget {
 
 /** A starting design for a repository without one: a profile preset for `login/login`, a project preset otherwise. */
 export function starterFor(repo: RepoRef): StudioConfig {
-  if (isProfileRepo(repo)) return { ...presetConfig("command-center", { login: repo.owner, name: repo.owner }), kind: "profile" };
-  return { ...presetConfig("oss-library", { login: repo.owner, name: repo.owner }, { repo: repo.full }), kind: "project" };
+  if (isProfileRepo(repo)) return { ...presetConfig("command-center", { login: repo.owner }), kind: "profile" };
+  return { ...presetConfig("oss-library", { login: repo.owner }, { repo: repo.full }), kind: "project" };
 }
 
 /**

@@ -45,6 +45,8 @@ function typewriter(ctx: Ctx, roles: string[], x: number, y: number, size: numbe
   return `<text x="${x - size * 1.3}" y="${y}" font-size="${size}" class="a b">&gt;</text>${parts.join("\n")}`;
 }
 
+const heroRoles = (o: Record<string, unknown>) => (Array.isArray(o.roles) ? o.roles : []).filter((r): r is string => typeof r === "string" && r.trim() !== "");
+
 export const hero = defineWidget({
   type: "hero",
   title: "Hero banner",
@@ -55,6 +57,7 @@ export const hero = defineWidget({
   width: "full",
   defaults: {
     title: "",
+    roles: ["Software Engineer", "Open-source tinkerer", "Coffee-driven developer"],
     typewriter: true,
     greeting: true,
     emblem: "github",
@@ -64,8 +67,9 @@ export const hero = defineWidget({
     glow: true,
   },
   fields: [
-    { key: "title", label: "Headline", type: "text", placeholder: "Defaults to your name" },
-    { key: "typewriter", label: "Typewriter roles", type: "toggle", help: "Cycles through the roles from your profile." },
+    { key: "title", label: "Name", type: "text", placeholder: "Defaults to your GitHub name" },
+    { key: "roles", label: "Roles", type: "tags", placeholder: "Add a role and press Enter", max: 12, help: "Cycled by the typewriter. Other widgets and the {role} placeholder use the first." },
+    { key: "typewriter", label: "Typewriter roles", type: "toggle", help: "Cycles through the roles above." },
     { key: "greeting", label: "Greeting line", type: "toggle", help: "Time-of-day greeting, date and moon phase." },
     { key: "emblem", label: "Emblem", type: "icon" },
     {
@@ -82,7 +86,10 @@ export const hero = defineWidget({
     { key: "scanline", label: "Scanline sweep", type: "toggle" },
     { key: "glow", label: "Ambient glow", type: "toggle" },
   ],
-  alt: (ctx, o) => `${o.title || ctx.profile.name}${ctx.profile.roles[0] ? ` — ${ctx.profile.roles[0]}` : ""}`,
+  alt: (ctx, o) => {
+    const role = heroRoles(o)[0] ?? "";
+    return `${o.title || ctx.profile.name}${role ? ` — ${role}` : ""}`;
+  },
   render(ctx, o) {
     const t = ctx.theme;
     const name = (o.title as string) || ctx.profile.name;
@@ -141,7 +148,7 @@ export const hero = defineWidget({
     ${emblemMark(hasMark(emblemId) ? emblemId : "github", ks * 0.2, ks * 0.2, ks * 0.6, "url(#kgrad)")}
   </g>
 </g>`;
-    const roles = o.typewriter ? ctx.profile.roles.filter(Boolean) : [];
+    const roles = o.typewriter ? heroRoles(o) : [];
     const body = `
 <g clip-path="url(#frame)">
   <rect width="${W}" height="${H}" fill="${surfaceFill(t)}"/>

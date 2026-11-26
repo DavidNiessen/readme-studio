@@ -1,5 +1,5 @@
 /** Small helpers shared by the batch-E repository widgets. */
-import type { ProjectInfo } from "../config";
+import type { ProjectView } from "./types";
 import type { ProjectData, ProfileData, Release } from "../data/types";
 import { fontInfo, fontStack, measureText } from "../fonts";
 import { fromHsl } from "../lib/color";
@@ -9,7 +9,7 @@ import type { Theme } from "../theme";
 import { emptyState } from "./kit-d";
 import { hash01, onAccent } from "./parts";
 
-type MetaCtx = { data: ProfileData; project: ProjectInfo };
+type MetaCtx = { data: ProfileData; project: ProjectView };
 
 /** Repository data, when it has been fetched. */
 export function pdata(ctx: { data: ProfileData }): ProjectData | undefined {

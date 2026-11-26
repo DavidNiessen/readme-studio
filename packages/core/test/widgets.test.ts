@@ -109,8 +109,15 @@ describe("widgets", () => {
 
   it("render with empty profile and hostile strings", () => {
     const c = configFor("ember");
-    c.profile = { ...c.profile, name: `<script>alert("x")</script> & "quotes"`, roles: [], bio: "", company: "", links: [], location: { ...c.profile.location, city: "" } };
-    check(c, mockData(DATE, "octocat"), "hostile");
+    const hostile = `<script>alert("x")</script> & "quotes"`;
+    c.profile = { ...c.profile, links: [], location: { ...c.profile.location, city: "" } };
+    // names, taglines and the like live in the widgets now: every widget's own text is hostile too
+    for (const b of c.layout.flatMap((r) => r.blocks))
+      for (const k of ["title", "name", "tagline", "bio", "company", "pronouns", "role"]) if (typeof b.options[k] === "string") b.options[k] = hostile;
+    for (const b of c.layout.flatMap((r) => r.blocks)) if (Array.isArray(b.options.roles)) b.options.roles = [];
+    const data = mockData(DATE, "octocat");
+    Object.assign(data, { name: hostile, bio: "", company: "" });
+    check(c, data, "hostile");
   });
 });
 

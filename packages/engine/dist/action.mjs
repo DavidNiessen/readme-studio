@@ -1651,6 +1651,7 @@ function typewriter(ctx, roles, x, y, size) {
   });
   return `<text x="${x - size * 1.3}" y="${y}" font-size="${size}" class="a b">&gt;</text>${parts.join("\n")}`;
 }
+var heroRoles = (o) => (Array.isArray(o.roles) ? o.roles : []).filter((r) => typeof r === "string" && r.trim() !== "");
 var hero = defineWidget({
   type: "hero",
   title: "Hero banner",
@@ -1661,6 +1662,7 @@ var hero = defineWidget({
   width: "full",
   defaults: {
     title: "",
+    roles: ["Software Engineer", "Open-source tinkerer", "Coffee-driven developer"],
     typewriter: true,
     greeting: true,
     emblem: "github",
@@ -1670,8 +1672,9 @@ var hero = defineWidget({
     glow: true
   },
   fields: [
-    { key: "title", label: "Headline", type: "text", placeholder: "Defaults to your name" },
-    { key: "typewriter", label: "Typewriter roles", type: "toggle", help: "Cycles through the roles from your profile." },
+    { key: "title", label: "Name", type: "text", placeholder: "Defaults to your GitHub name" },
+    { key: "roles", label: "Roles", type: "tags", placeholder: "Add a role and press Enter", max: 12, help: "Cycled by the typewriter. Other widgets and the {role} placeholder use the first." },
+    { key: "typewriter", label: "Typewriter roles", type: "toggle", help: "Cycles through the roles above." },
     { key: "greeting", label: "Greeting line", type: "toggle", help: "Time-of-day greeting, date and moon phase." },
     { key: "emblem", label: "Emblem", type: "icon" },
     {
@@ -1688,7 +1691,10 @@ var hero = defineWidget({
     { key: "scanline", label: "Scanline sweep", type: "toggle" },
     { key: "glow", label: "Ambient glow", type: "toggle" }
   ],
-  alt: (ctx, o) => `${o.title || ctx.profile.name}${ctx.profile.roles[0] ? ` \u2014 ${ctx.profile.roles[0]}` : ""}`,
+  alt: (ctx, o) => {
+    const role = heroRoles(o)[0] ?? "";
+    return `${o.title || ctx.profile.name}${role ? ` \u2014 ${role}` : ""}`;
+  },
   render(ctx, o) {
     const t = ctx.theme;
     const name = o.title || ctx.profile.name;
@@ -1740,7 +1746,7 @@ var hero = defineWidget({
     ${emblemMark(hasMark(emblemId) ? emblemId : "github", ks * 0.2, ks * 0.2, ks * 0.6, "url(#kgrad)")}
   </g>
 </g>`;
-    const roles = o.typewriter ? ctx.profile.roles.filter(Boolean) : [];
+    const roles = o.typewriter ? heroRoles(o) : [];
     const body = `
 <g clip-path="url(#frame)">
   <rect width="${W4}" height="${H2}" fill="${surfaceFill(t)}"/>
@@ -2774,8 +2780,17 @@ var BAR = 36;
 var STATUS = 28;
 var MAX_LINES = 40;
 var STYLE = { a: "a", m: "m", s: "str", n: "num", t: "t" };
-function terminalVars(ctx, stack2 = []) {
-  const { profile: p, data: data13, d, now } = ctx;
+function terminalVars(ctx, stack2 = [], o = {}) {
+  const { data: data13, d, now } = ctx;
+  const own = (k) => typeof o[k] === "string" ? o[k].trim() : "";
+  const p = {
+    ...ctx.profile,
+    name: own("name") || ctx.profile.name,
+    company: own("company") || ctx.profile.company,
+    pronouns: own("pronouns") || ctx.profile.pronouns,
+    birthday: own("birthday") || ctx.profile.birthday,
+    roles: own("role") ? [own("role"), ...ctx.profile.roles.filter((r) => r !== own("role"))] : ctx.profile.roles
+  };
   const yp = yearProgress(now);
   const bday = /^\d{4}-\d{2}-\d{2}$/.test(p.birthday) ? parseBirthday(p.birthday) : null;
   const created = data13.createdAt ? new Date(data13.createdAt) : null;
@@ -2975,6 +2990,11 @@ var terminal = defineWidget({
     cwd: "~",
     commands: DEFAULT_COMMANDS,
     stack: ["typescript", "react", "node", "python", "go", "docker", "k8s", "postgres", "aws"],
+    name: "",
+    role: "",
+    company: "",
+    pronouns: "",
+    birthday: "",
     chrome: true,
     statusBar: true,
     tab: "[{login}] 0:zsh*",
@@ -3004,17 +3024,22 @@ var terminal = defineWidget({
       ]
     },
     { key: "stack", label: "Stack ({stack})", type: "tags", placeholder: "rust", max: 24 },
+    { key: "name", label: "Name ({name})", type: "text", placeholder: "Defaults to your GitHub name", max: 80 },
+    { key: "role", label: "Role ({role})", type: "text", placeholder: "Defaults to the hero's first role", max: 80 },
+    { key: "company", label: "Company ({company})", type: "text", placeholder: "Defaults to your GitHub company", max: 80 },
+    { key: "pronouns", label: "Pronouns ({pronouns})", type: "text", placeholder: "they/them", max: 30 },
+    { key: "birthday", label: "Birthday ({age})", type: "text", placeholder: "YYYY-MM-DD", max: 10, help: "Optional. Gives {age}, {days_alive} and the uptime line." },
     { key: "chrome", label: "Window chrome", type: "toggle" },
     { key: "statusBar", label: "Status bar", type: "toggle" },
     { key: "tab", label: "Status tab", type: "text", when: { key: "statusBar", is: [true] } },
     { key: "status", label: "Status text", type: "text", when: { key: "statusBar", is: [true] }, help: "Supports the same placeholders, plus {clock}, {time}, {date} and {tz}." }
   ],
-  alt: (ctx) => `terminal session for ${ctx.profile.name || ctx.profile.login}`,
+  alt: (ctx, o) => `terminal session for ${typeof o.name === "string" && o.name.trim() || ctx.profile.name || ctx.profile.login}`,
   href: (ctx) => `https://github.com/${ctx.profile.login}`,
   render(ctx, o) {
     const t = ctx.theme;
     const stack2 = (Array.isArray(o.stack) ? o.stack : []).filter((s) => typeof s === "string" && s.trim() !== "").slice(0, 24);
-    const vars = terminalVars(ctx, stack2);
+    const vars = terminalVars(ctx, stack2, o);
     const plain = (s) => parseMarkup(s, vars).map((x) => x.text).join("");
     const commands = (Array.isArray(o.commands) ? o.commands : []).filter((c) => c && typeof c === "object").slice(0, 8).map((c) => ({ cmd: typeof c.cmd === "string" ? c.cmd : "", output: typeof c.output === "string" ? c.output : "" }));
     const chrome = o.chrome !== false;
@@ -3184,7 +3209,7 @@ var REPO_IDEAS = [
   ["metronome", "Cron-as-code scheduler with retries and alerts"],
   ["dotfiles", "My terminal, editor and shell setup"]
 ];
-function mockData(now = /* @__PURE__ */ new Date(), login = "octocat", name = "Mona Lisa Octocat", timeZone = "UTC", repo) {
+function mockData(now = /* @__PURE__ */ new Date(), login = "octocat", name = "", timeZone = "UTC", repo) {
   const seed = hashSeed(login);
   const r = rng(seed);
   const weeks = mockWeeks(now, seed);
@@ -3250,10 +3275,10 @@ function mockData(now = /* @__PURE__ */ new Date(), login = "octocat", name = "M
     source: "mock",
     generatedAt: now.toISOString(),
     login,
-    name,
+    name: name || (login === "octocat" ? "Mona Lisa Octocat" : login),
     createdAt: new Date(Date.UTC(year2 - 6, 6, 14, 10)).toISOString(),
     avatarUrl: `https://github.com/${login}.png`,
-    bio: "",
+    bio: "I build calm, fast software and the tools around it.",
     company: "",
     location: "",
     blog: "",
@@ -4510,6 +4535,7 @@ var about = defineWidget({
     pronouns: "",
     roles: [],
     bio: "",
+    company: "",
     layout: "left",
     monogram: true,
     chips: true,
@@ -4517,10 +4543,10 @@ var about = defineWidget({
   },
   fields: [
     { key: "label", label: "Label", type: "text", placeholder: "about me" },
-    { key: "name", label: "Name", type: "text", placeholder: "Defaults to your profile name" },
-    { key: "pronouns", label: "Pronouns", type: "text", placeholder: "Defaults to your profile pronouns", max: 24 },
-    { key: "roles", label: "Roles", type: "tags", placeholder: "Defaults to your profile roles", max: 4 },
-    { key: "bio", label: "Bio", type: "text", multiline: true, placeholder: "Defaults to your profile bio", help: `Up to five lines; a blank line starts a new paragraph. ${PLACEHOLDER_HELP}` },
+    { key: "name", label: "Name", type: "text", placeholder: "Defaults to your GitHub name" },
+    { key: "pronouns", label: "Pronouns", type: "text", placeholder: "they/them", max: 24 },
+    { key: "roles", label: "Roles", type: "tags", placeholder: "Defaults to the hero's roles", max: 4 },
+    { key: "bio", label: "Bio", type: "text", multiline: true, placeholder: "Defaults to your GitHub bio", help: `Up to five lines; a blank line starts a new paragraph. ${PLACEHOLDER_HELP}` },
     {
       key: "layout",
       label: "Layout",
@@ -4531,7 +4557,8 @@ var about = defineWidget({
       ]
     },
     { key: "monogram", label: "Monogram", type: "toggle", help: "Your initials in an accent disc." },
-    { key: "chips", label: "Company & location chips", type: "toggle" },
+    { key: "chips", label: "Company & location chips", type: "toggle", help: "The city comes from the location in the Data tab." },
+    { key: "company", label: "Company", type: "text", placeholder: "Defaults to your GitHub company", max: 60, when: { key: "chips", is: [true] } },
     { key: "extraChips", label: "Extra chips", type: "tags", placeholder: "Open to collaborations", max: 3, when: { key: "chips", is: [true] } }
   ],
   alt: (ctx, o) => {
@@ -4551,7 +4578,8 @@ var about = defineWidget({
     const bio = fill2(str(o.bio)) || p.bio || "";
     const chips = [];
     if (o.chips !== false) {
-      if (p.company) chips.push({ glyph: "briefcase", text: p.company });
+      const company = fill2(str(o.company)).replace(/^@/, "").trim() || p.company;
+      if (company) chips.push({ glyph: "briefcase", text: company });
       if (p.location?.city) chips.push({ glyph: "pin", text: p.location.city });
       for (const c of strings(o.extraChips).slice(0, 3)) chips.push({ glyph: "sparkle", text: fill2(c) });
     }
@@ -8252,6 +8280,7 @@ var projectHero = defineWidget({
   needs: ["project", "releases"],
   defaults: {
     title: "",
+    tagline: "",
     align: "left",
     version: true,
     stats: true,
@@ -8263,7 +8292,9 @@ var projectHero = defineWidget({
     glow: true
   },
   fields: [
-    { key: "title", label: "Headline", type: "text", placeholder: "Defaults to the project name" },
+    { key: "title", label: "Name", type: "text", placeholder: "Defaults to the repository name" },
+    { key: "tagline", label: "Tagline", type: "text", multiline: true, rows: 2, max: 200, placeholder: "Defaults to the repository description" },
+    { key: "emblem", label: "Logo", type: "icon", help: "The project's logo. Without one a monogram tile is drawn." },
     {
       key: "align",
       label: "Alignment",
@@ -8274,7 +8305,7 @@ var projectHero = defineWidget({
       ]
     },
     { key: "version", label: "Version pill", type: "toggle", help: "Latest release tag next to the name." },
-    { key: "install", label: "Install command", type: "text", placeholder: "npm i {npm}", help: "Shown in a code pill under the tagline. Leave empty to hide. It also stays hidden while a placeholder it uses has no value, such as {npm} without an npm package in the Project tab. Placeholders: {npm} {repo} {project} {version}" },
+    { key: "install", label: "Install command", type: "text", placeholder: "npm i {npm}", help: "Shown in a code pill under the tagline. Leave empty to hide. It also stays hidden while a placeholder it uses has no value, such as {npm} without an npm package in the Data tab. Placeholders: {npm} {repo} {project} {version}" },
     { key: "stats", label: "Headline numbers", type: "toggle" },
     {
       key: "third",
@@ -8287,7 +8318,6 @@ var projectHero = defineWidget({
         { value: "contributors", label: "Contributors" }
       ]
     },
-    { key: "emblem", label: "Emblem icon", type: "icon", help: "Defaults to the project logo; without one a monogram tile is drawn." },
     {
       key: "emblemStyle",
       label: "Emblem style",
@@ -8303,7 +8333,7 @@ var projectHero = defineWidget({
   ],
   alt: (ctx, o) => {
     const name = fillPlaceholders(optStr(o.title), ctx) || projectName(ctx.project);
-    const tag = (ctx.project.tagline || pdata(ctx)?.description || "").trim();
+    const tag = (fillPlaceholders(optStr(o.tagline), ctx) || pdata(ctx)?.description || "").trim();
     return tag ? `${name} \u2014 ${tag}` : name;
   },
   href: (ctx) => homeUrl(ctx),
@@ -8313,7 +8343,7 @@ var projectHero = defineWidget({
     const center = optPick(o.align, ["left", "center"], "left") === "center";
     const style = optPick(o.emblemStyle, ["orbit", "plain", "none"], "orbit");
     const name = fillPlaceholders(optStr(o.title), ctx) || projectName(ctx.project) || pd?.name || "project";
-    const tagline = (ctx.project.tagline || pd?.description || "").trim();
+    const tagline = (fillPlaceholders(optStr(o.tagline), ctx) || pd?.description || "").trim();
     const tag = optBool(o.version, true) ? latestTag(pd) : "";
     const cmd = installHint(ctx, optStr(o.install));
     const stats2 = optBool(o.stats, true) ? miniStats(ctx, optStr(o.third, "license")) : [];
@@ -8402,7 +8432,7 @@ ${xglyph("copy", cx0 + cmdW - 28, cmdY + 10, 16, t.muted)}
         return `<g class="in" style="${dl(d0)}">${g}${val}<text x="${(vx + it.vw + 6).toFixed(1)}" y="${statY}" font-size="13" class="m">${esc(it.s.unit)}</text>${sep}</g>`;
       }).join("");
     }
-    const logoId = optStr(o.emblem) || ctx.project.logo || "";
+    const logoId = optStr(o.emblem);
     const useIcon = hasMark(logoId);
     const emblemAt = (cx, cy, ks, rings2) => {
       const half = ks / 2;
@@ -11369,12 +11399,6 @@ var CONFIG_VERSION = 1;
 var SCHEMA_URL = "https://readme.niessen.dev/schema.json";
 var DEFAULT_PROFILE = {
   login: "octocat",
-  name: "Mona Octocat",
-  roles: ["Software Engineer", "Open-source tinkerer", "Coffee-driven developer"],
-  bio: "I build calm, fast software and the tools around it.",
-  company: "",
-  pronouns: "",
-  birthday: "",
   location: { city: "San Francisco", latitude: 37.77, longitude: -122.42, timezone: "America/Los_Angeles" },
   links: [
     { icon: "github", label: "GitHub", url: "https://github.com/octocat", handle: "@octocat" },
@@ -11384,10 +11408,6 @@ var DEFAULT_PROFILE = {
 };
 var DEFAULT_PROJECT = {
   repo: "octocat/aurora",
-  name: "",
-  tagline: "A tiny, fast design-token compiler for multi-brand UI kits.",
-  logo: "",
-  homepage: "",
   packages: { npm: "", pypi: "", crates: "" }
 };
 var DEFAULT_OUTPUT = { branch: "readme-studio", modes: ["dark", "light"], repository: "", schedule: "17 2 * * *" };
@@ -11413,7 +11433,7 @@ function assetRepository(c) {
   return c.kind === "project" ? c.project.repo : `${c.profile.login}/${c.profile.login}`;
 }
 function projectName(p) {
-  return p.name.trim() || p.repo.split("/")[1] || p.repo;
+  return (p.name ?? "").trim() || p.repo.split("/")[1] || p.repo;
 }
 function assetBase(c) {
   return `https://raw.githubusercontent.com/${assetRepository(c)}/${c.output.branch}`;
@@ -11434,12 +11454,6 @@ function normProfile(v, w) {
   const login = str2(p.login, d.login, 39).trim().replace(/^@/, "");
   return {
     login: /^[a-z\d](?:[a-z\d-]{0,38})$/i.test(login) ? login : d.login,
-    name: str2(p.name, d.name, 80),
-    roles: Array.isArray(p.roles) ? p.roles.filter((r) => typeof r === "string").map((r) => r.slice(0, 80)).slice(0, 12) : d.roles,
-    bio: str2(p.bio, "", 400),
-    company: str2(p.company, "", 80),
-    pronouns: str2(p.pronouns, "", 30),
-    birthday: /^\d{4}-\d{2}-\d{2}$/.test(str2(p.birthday, "")) ? str2(p.birthday, "") : "",
     location: {
       city: str2(loc.city, "", 60),
       latitude: num2(loc.latitude, d.location.latitude, -90, 90),
@@ -11527,10 +11541,6 @@ function normProject(v, login) {
   const pkg = (x) => str2(x, "", 214).trim();
   return {
     repo: REPO_RE.test(repo) ? repo : `${login || "octocat"}/aurora`,
-    name: str2(p.name, d.name, 80),
-    tagline: str2(p.tagline, d.tagline, 200),
-    logo: str2(p.logo, d.logo, 40),
-    homepage: str2(p.homepage, d.homepage, 300),
     packages: { npm: pkg(pk.npm), pypi: pkg(pk.pypi), crates: pkg(pk.crates) }
   };
 }
@@ -11560,10 +11570,46 @@ function normalizeConfig(raw) {
     profile,
     project: normProject(c.project, profile.login),
     theme: normTheme(c.theme),
-    layout: normLayout(c.layout, warnings),
+    layout: normLayout(moveIntoWidgets(c.layout, isObj(c.profile) ? c.profile : {}, isObj(c.project) ? c.project : {}), warnings),
     output: normOutput(c.output)
   };
   return { config, warnings };
+}
+var MOVED = [
+  { from: "profile", key: "name", to: [["hero", "title"], ["about", "name"], ["terminal", "name"]] },
+  { from: "profile", key: "roles", to: [["hero", "roles"], ["about", "roles"]] },
+  { from: "profile", key: "roles", to: [["terminal", "role"]], value: (v) => Array.isArray(v) && typeof v[0] === "string" ? v[0] : "" },
+  { from: "profile", key: "bio", to: [["about", "bio"]] },
+  { from: "profile", key: "company", to: [["about", "company"], ["terminal", "company"]] },
+  { from: "profile", key: "pronouns", to: [["about", "pronouns"], ["terminal", "pronouns"]] },
+  { from: "profile", key: "birthday", to: [["terminal", "birthday"]] },
+  { from: "project", key: "name", to: [["project-hero", "title"]] },
+  { from: "project", key: "tagline", to: [["project-hero", "tagline"]] },
+  { from: "project", key: "logo", to: [["project-hero", "emblem"]] }
+];
+function moveIntoWidgets(layout2, profile, project2) {
+  if (!Array.isArray(layout2)) return layout2;
+  const src = { profile, project: project2 };
+  const rows3 = layout2.map((r) => isObj(r) && Array.isArray(r.blocks) ? { ...r, blocks: r.blocks.map((b) => isObj(b) ? { ...b, options: isObj(b.options) ? { ...b.options } : {} } : b) } : r);
+  const blocks = rows3.flatMap((r) => isObj(r) && Array.isArray(r.blocks) ? r.blocks.filter(isObj) : []);
+  for (const m of MOVED) {
+    const raw = src[m.from][m.key];
+    if (raw === void 0) continue;
+    const v = m.value ? m.value(raw) : raw;
+    if (typeof v === "string" ? !v.trim() : !Array.isArray(v)) continue;
+    for (const b of blocks)
+      for (const [type, opt] of m.to) {
+        const def = getWidget(type);
+        const own = b.options[opt];
+        if (b.type !== type || !def || own !== void 0 && own !== "" || Array.isArray(def.defaults[opt]) !== Array.isArray(v)) continue;
+        b.options[opt] = Array.isArray(v) ? v.filter((x) => typeof x === "string").map((x) => x.slice(0, 80)).slice(0, 12) : String(v).slice(0, 400);
+      }
+  }
+  const home = typeof project2.homepage === "string" ? project2.homepage.trim().slice(0, 300) : "";
+  if (home) {
+    for (const b of blocks) if (b.type === "project-hero" && b.link === void 0) b.link = home;
+  }
+  return rows3;
 }
 
 // ../core/src/render.ts
@@ -11576,10 +11622,42 @@ function createCtx(config, data13, mode, env = {}) {
     d: derive(d),
     now: localParts(date, config.profile.location.timezone),
     date,
-    profile: config.profile,
+    ...views(config, data13),
     kind: config.kind,
-    project: config.project,
     run: env.run ?? null
+  };
+}
+function views(config, data13) {
+  const blocks = config.layout.flatMap((r) => r.blocks).filter((b) => !b.hidden);
+  const first = (types, key, ok) => {
+    for (const b of blocks) {
+      if (!types.includes(b.type)) continue;
+      const v = b.options[key] ?? getWidget(b.type)?.defaults[key];
+      if (ok(v)) return v;
+    }
+    return void 0;
+  };
+  const text = (v) => typeof v === "string" && v.trim() !== "";
+  const list = (v) => Array.isArray(v) && v.some((x) => typeof x === "string" && x.trim() !== "");
+  const pd = data13.project;
+  const login = config.profile.login;
+  return {
+    profile: {
+      ...config.profile,
+      name: (data13.name || "").trim() || login,
+      bio: data13.bio || "",
+      company: (data13.company || "").replace(/^@/, "").trim(),
+      roles: (first(["hero", "about"], "roles", list) ?? []).filter((r) => typeof r === "string" && r.trim() !== ""),
+      pronouns: first(["about", "terminal"], "pronouns", text) ?? "",
+      birthday: first(["terminal"], "birthday", (v) => typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v)) ?? ""
+    },
+    project: {
+      ...config.project,
+      name: config.project.repo.split("/")[1] || pd?.name || "",
+      tagline: first(["project-hero"], "tagline", text) ?? pd?.description ?? "",
+      logo: first(["project-hero"], "emblem", text) ?? "",
+      homepage: pd?.homepage ?? ""
+    }
   };
 }
 function viewData(config, data13) {
@@ -11588,7 +11666,7 @@ function viewData(config, data13) {
   return { ...data13, languages: p.languages, releases: p.releases };
 }
 function metaCtx(config, data13) {
-  return { profile: config.profile, data: viewData(config, data13), project: config.project, kind: config.kind };
+  return { ...views(config, data13), data: viewData(config, data13), kind: config.kind };
 }
 function blockParts(block, ctx) {
   const def = getWidget(block.type);
@@ -13775,7 +13853,7 @@ function dataNeeds(config) {
 async function loadData(o) {
   const now = o.now ?? /* @__PURE__ */ new Date();
   const p = o.config.profile;
-  if (o.mock) return mockData(now, p.login, p.name, p.location.timezone, o.config.kind === "project" ? o.config.project.repo : void 0);
+  if (o.mock) return mockData(now, p.login, "", p.location.timezone, o.config.kind === "project" ? o.config.project.repo : void 0);
   const needs = dataNeeds(o.config);
   if (o.config.kind === "project") {
     const pr = o.config.project;

@@ -25,8 +25,18 @@ interface Seg {
 const STYLE: Record<string, string> = { a: "a", m: "m", s: "str", n: "num", t: "t" };
 
 /** Values for the {placeholders} users can put into titles, commands and output. */
-export function terminalVars(ctx: Ctx, stack: string[] = []): Record<string, string | Seg[]> {
-  const { profile: p, data, d, now } = ctx;
+export function terminalVars(ctx: Ctx, stack: string[] = [], o: Record<string, unknown> = {}): Record<string, string | Seg[]> {
+  const { data, d, now } = ctx;
+  // the terminal's own values first, then what GitHub and the rest of the design say
+  const own = (k: string) => (typeof o[k] === "string" ? (o[k] as string).trim() : "");
+  const p = {
+    ...ctx.profile,
+    name: own("name") || ctx.profile.name,
+    company: own("company") || ctx.profile.company,
+    pronouns: own("pronouns") || ctx.profile.pronouns,
+    birthday: own("birthday") || ctx.profile.birthday,
+    roles: own("role") ? [own("role"), ...ctx.profile.roles.filter((r) => r !== own("role"))] : ctx.profile.roles,
+  };
   const yp = yearProgress(now);
   const bday = /^\d{4}-\d{2}-\d{2}$/.test(p.birthday) ? parseBirthday(p.birthday) : null;
   const created = data.createdAt ? new Date(data.createdAt) : null;
@@ -254,6 +264,11 @@ export const terminal = defineWidget({
     cwd: "~",
     commands: DEFAULT_COMMANDS,
     stack: ["typescript", "react", "node", "python", "go", "docker", "k8s", "postgres", "aws"],
+    name: "",
+    role: "",
+    company: "",
+    pronouns: "",
+    birthday: "",
     chrome: true,
     statusBar: true,
     tab: "[{login}] 0:zsh*",
@@ -283,17 +298,22 @@ export const terminal = defineWidget({
       ],
     },
     { key: "stack", label: "Stack ({stack})", type: "tags", placeholder: "rust", max: 24 },
+    { key: "name", label: "Name ({name})", type: "text", placeholder: "Defaults to your GitHub name", max: 80 },
+    { key: "role", label: "Role ({role})", type: "text", placeholder: "Defaults to the hero's first role", max: 80 },
+    { key: "company", label: "Company ({company})", type: "text", placeholder: "Defaults to your GitHub company", max: 80 },
+    { key: "pronouns", label: "Pronouns ({pronouns})", type: "text", placeholder: "they/them", max: 30 },
+    { key: "birthday", label: "Birthday ({age})", type: "text", placeholder: "YYYY-MM-DD", max: 10, help: "Optional. Gives {age}, {days_alive} and the uptime line." },
     { key: "chrome", label: "Window chrome", type: "toggle" },
     { key: "statusBar", label: "Status bar", type: "toggle" },
     { key: "tab", label: "Status tab", type: "text", when: { key: "statusBar", is: [true] } },
     { key: "status", label: "Status text", type: "text", when: { key: "statusBar", is: [true] }, help: "Supports the same placeholders, plus {clock}, {time}, {date} and {tz}." },
   ],
-  alt: (ctx) => `terminal session for ${ctx.profile.name || ctx.profile.login}`,
+  alt: (ctx, o) => `terminal session for ${(typeof o.name === "string" && o.name.trim()) || ctx.profile.name || ctx.profile.login}`,
   href: (ctx) => `https://github.com/${ctx.profile.login}`,
   render(ctx, o) {
     const t = ctx.theme;
     const stack = (Array.isArray(o.stack) ? (o.stack as unknown[]) : []).filter((s): s is string => typeof s === "string" && s.trim() !== "").slice(0, 24);
-    const vars = terminalVars(ctx, stack);
+    const vars = terminalVars(ctx, stack, o);
     const plain = (s: string) =>
       parseMarkup(s, vars)
         .map((x) => x.text)

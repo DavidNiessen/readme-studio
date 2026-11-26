@@ -88,7 +88,8 @@ const REPO_IDEAS: [string, string][] = [
   ["dotfiles", "My terminal, editor and shell setup"],
 ];
 
-export function mockData(now = new Date(), login = "octocat", name = "Mona Lisa Octocat", timeZone = "UTC", repo?: string): ProfileData {
+/** Sample data. Without a name, the sample person is called by their username (Mona for octocat). */
+export function mockData(now = new Date(), login = "octocat", name = "", timeZone = "UTC", repo?: string): ProfileData {
   const seed = hashSeed(login);
   const r = rng(seed);
   const weeks = mockWeeks(now, seed);
@@ -156,10 +157,10 @@ export function mockData(now = new Date(), login = "octocat", name = "Mona Lisa 
     source: "mock",
     generatedAt: now.toISOString(),
     login,
-    name,
+    name: name || (login === "octocat" ? "Mona Lisa Octocat" : login),
     createdAt: new Date(Date.UTC(year - 6, 6, 14, 10)).toISOString(),
     avatarUrl: `https://github.com/${login}.png`,
-    bio: "",
+    bio: "I build calm, fast software and the tools around it.",
     company: "",
     location: "",
     blog: "",

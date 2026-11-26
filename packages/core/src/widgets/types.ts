@@ -4,6 +4,29 @@ import type { ProfileData } from "../data/types";
 import type { LocalDate } from "../lib/astro";
 import type { Theme } from "../theme";
 
+/**
+ * The person as widgets see them: the config's connection settings plus what GitHub knows, and the
+ * values the design's widgets set (the first widget that sets roles, pronouns or a birthday).
+ * A widget's own option always comes first; these are the fallbacks and the placeholders' values.
+ */
+export interface ProfileView extends Profile {
+  name: string;
+  bio: string;
+  company: string;
+  roles: string[];
+  pronouns: string;
+  /** YYYY-MM-DD or "" */
+  birthday: string;
+}
+
+/** The repository as widgets see it: its own name, description and homepage, and the project hero's logo and tagline. */
+export interface ProjectView extends ProjectInfo {
+  name: string;
+  tagline: string;
+  logo: string;
+  homepage: string;
+}
+
 export interface Ctx {
   theme: Theme;
   data: ProfileData;
@@ -11,11 +34,11 @@ export interface Ctx {
   /** wall-clock fields in the profile's time zone */
   now: LocalDate;
   date: Date;
-  profile: Profile;
+  profile: ProfileView;
   /** what the README is for */
   kind: DesignKind;
   /** project settings (meaningful when kind is "project") */
-  project: ProjectInfo;
+  project: ProjectView;
   /** GitHub Actions run number, when available */
   run: string | null;
 }

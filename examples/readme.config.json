@@ -4,16 +4,6 @@
   "kind": "profile",
   "profile": {
     "login": "octocat",
-    "name": "Mona Octocat",
-    "roles": [
-      "Software Engineer",
-      "Open-source tinkerer",
-      "Coffee-driven developer"
-    ],
-    "bio": "I build calm, fast software and the tools around it.",
-    "company": "",
-    "pronouns": "",
-    "birthday": "",
     "location": {
       "city": "San Francisco",
       "latitude": 37.77,
@@ -43,10 +33,6 @@
   },
   "project": {
     "repo": "octocat/aurora",
-    "name": "",
-    "tagline": "A tiny, fast design-token compiler for multi-brand UI kits.",
-    "logo": "",
-    "homepage": "",
     "packages": {
       "npm": "",
       "pypi": "",
@@ -73,7 +59,12 @@
           "id": "hero",
           "type": "hero",
           "options": {
-            "title": "",
+            "title": "Mona Octocat",
+            "roles": [
+              "Software Engineer",
+              "Open-source tinkerer",
+              "Coffee-driven developer"
+            ],
             "typewriter": true,
             "greeting": true,
             "emblem": "github",
@@ -154,6 +145,11 @@
               "postgres",
               "aws"
             ],
+            "name": "Mona Octocat",
+            "role": "Software Engineer",
+            "company": "",
+            "pronouns": "",
+            "birthday": "",
             "chrome": true,
             "statusBar": true,
             "tab": "[{login}] 0:zsh*",
@@ -532,7 +528,8 @@
             "message": "rebuilt every night by readme studio",
             "stamp": true,
             "barcode": true,
-            "waves": true
+            "waves": true,
+            "credit": false
           }
         }
       ]

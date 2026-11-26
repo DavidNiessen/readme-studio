@@ -7,7 +7,6 @@ import {
   PALETTE_KEYS,
   palettePresets,
   resolvePalette,
-  projectName,
   type DesignKind,
   type Mode,
   type Palette,
@@ -42,7 +41,7 @@ import {
 import { useMemo, useState } from "react";
 import { ColorSwatchButton } from "../components/ColorPicker";
 import { arrayMove, SortableItem, SortableList, SortHandle } from "../components/Sortable";
-import { Button, ColorInput, Field, IconButton, Segmented, Select, Slider, Tabs, TagsInput, TextArea, TextInput, ToggleRow, useToast } from "../components/ui";
+import { Button, ColorInput, Field, IconButton, Segmented, Select, Slider, Tabs, TextInput, ToggleRow, useToast } from "../components/ui";
 import { canJoin, findBlock, setJoin, setRowAlign, updateBlock } from "../lib/layout";
 import { parseRepo } from "../github/repo";
 import { fetchLive } from "../lib/live";
@@ -189,62 +188,70 @@ function KindSwitch() {
   );
 }
 
-function ProjectPanel() {
+/**
+ * What the data is fetched for: the repository of a project README, the account of a profile
+ * README. Everything a README says (names, roles, taglines, logos) is set in its widgets.
+ */
+function ConnectionSection() {
   const { config, commit } = useStudio();
-  const p = config.project;
+  const project = config.kind === "project";
   const [repoDraft, setRepoDraft] = useState<string | null>(null);
-  const setP = (patch: Partial<ProjectInfo>, key?: string) => commit((c) => ({ ...c, project: { ...c.project, ...patch } }), key);
-  const setPkg = (k: keyof ProjectInfo["packages"], v: string) => setP({ packages: { ...p.packages, [k]: v.trim() } }, `pkg:${k}`);
+  const setLogin = (v: string) => commit((c) => ({ ...c, profile: { ...c.profile, login: v.replace(/[^a-z0-9-]/gi, "").slice(0, 39) } }), "login");
+  const setRepo = (full: string, owner: string) =>
+    // the maintainer follows the repository while it is the repository's owner
+    commit((c) => ({ ...c, project: { ...c.project, repo: full }, profile: c.profile.login === c.project.repo.split("/")[0] ? { ...c.profile, login: owner } : c.profile }), "repo");
   return (
-    <>
-      <KindSwitch />
-      <div className="panel__section">
-        <div className="subhead">Repository</div>
+    <div className="panel__section">
+      <div className="subhead">Connected to</div>
+      {project && (
         <Field label="Repository" help="owner/name (or a link to it) of the public repository this README is for. Its stars, contributors, releases and commits feed the project widgets.">
           <TextInput
             mono
             aria-label="Repository"
             placeholder="owner/name"
-            value={repoDraft ?? p.repo}
+            value={repoDraft ?? config.project.repo}
             onChange={(v) => {
               setRepoDraft(v);
               const repo = parseRepo(v);
-              if (repo) setP({ repo: repo.full }, "repo");
+              if (repo) setRepo(repo.full, repo.owner);
             }}
             onBlur={() => setRepoDraft(null)}
           />
         </Field>
-        <Field label="Project name" help={`Defaults to the repository name (${projectName({ ...p, name: "" })}).`}>
-          <TextInput aria-label="Project name" value={p.name} placeholder={projectName({ ...p, name: "" })} onChange={(v) => setP({ name: v }, "pname")} />
+      )}
+      <Field
+        label={project ? "Maintainer" : "GitHub username"}
+        help={project ? "The GitHub account behind the project, for sponsor links and the widgets that show a person." : "Your data is fetched for this account. Your profile repository is the one with the same name."}
+      >
+        <TextInput mono aria-label={project ? "Maintainer's GitHub username" : "GitHub username"} value={config.profile.login} onChange={setLogin} placeholder="octocat" />
+      </Field>
+    </div>
+  );
+}
+
+/** Published packages: where version numbers, download counts and install commands come from. */
+function PackagesSection() {
+  const { config, commit } = useStudio();
+  const p = config.project.packages;
+  const setPkg = (k: keyof ProjectInfo["packages"], v: string) => commit((c) => ({ ...c, project: { ...c.project, packages: { ...c.project.packages, [k]: v.trim() } } }), `pkg:${k}`);
+  return (
+    <div className="panel__section">
+      <div className="subhead">Packages</div>
+      <p className="field__help" style={{ marginBottom: 10 }}>
+        Used for version numbers, download counts and install commands. Leave empty if not published.
+      </p>
+      <Field label="npm">
+        <TextInput mono aria-label="npm package" placeholder="@scope/name" value={p.npm} onChange={(v) => setPkg("npm", v)} />
+      </Field>
+      <div className="grid-2">
+        <Field label="PyPI">
+          <TextInput mono aria-label="PyPI package" value={p.pypi} onChange={(v) => setPkg("pypi", v)} />
         </Field>
-        <Field label="Tagline">
-          <TextArea aria-label="Tagline" value={p.tagline} rows={2} maxLength={200} onChange={(v) => setP({ tagline: v }, "tagline")} />
-        </Field>
-        <Field label="Logo" help="Shown by the project hero. Leave empty for a monogram.">
-          <IconPicker label="Project logo" value={p.logo} onChange={(v) => setP({ logo: v })} />
-        </Field>
-        <Field label="Homepage">
-          <TextInput mono aria-label="Homepage" placeholder="https://" value={p.homepage} onChange={(v) => setP({ homepage: v }, "homepage")} />
+        <Field label="crates.io">
+          <TextInput mono aria-label="crates.io crate" value={p.crates} onChange={(v) => setPkg("crates", v)} />
         </Field>
       </div>
-      <div className="panel__section">
-        <div className="subhead">Packages</div>
-        <p className="field__help" style={{ marginBottom: 10 }}>
-          Used for version numbers, download counts and install commands. Leave empty if not published.
-        </p>
-        <Field label="npm">
-          <TextInput mono aria-label="npm package" placeholder="@scope/name" value={p.packages.npm} onChange={(v) => setPkg("npm", v)} />
-        </Field>
-        <div className="grid-2">
-          <Field label="PyPI">
-            <TextInput mono aria-label="PyPI package" value={p.packages.pypi} onChange={(v) => setPkg("pypi", v)} />
-          </Field>
-          <Field label="crates.io">
-            <TextInput mono aria-label="crates.io crate" value={p.packages.crates} onChange={(v) => setPkg("crates", v)} />
-          </Field>
-        </div>
-      </div>
-    </>
+    </div>
   );
 }
 
@@ -283,7 +290,8 @@ function TimezoneSelect({ value, onChange }: { value: string; onChange: (v: stri
   return <Select label="Time zone" value={value} onChange={onChange} options={["UTC", ...all.filter((z) => z !== "UTC")].map((z) => ({ value: z, label: z.replace(/_/g, " ") }))} />;
 }
 
-function ProfilePanel() {
+/** Where the person is: the weather, local time and greetings are fetched and worked out for it. */
+function LocationSection() {
   const { config, commit } = useStudio();
   const toast = useToast();
   const p = config.profile;
@@ -309,57 +317,28 @@ function ProfilePanel() {
     }
   };
   return (
-    <>
-      {config.kind === "profile" && <KindSwitch />}
-      <div className="panel__section">
-        <div className="subhead">{config.kind === "project" ? "Maintainer" : "Identity"}</div>
-        <Field label="GitHub username" help="Your data is fetched for this account. Your profile repository is the one with the same name.">
-          <TextInput mono aria-label="GitHub username" value={p.login} onChange={(v) => setP({ login: v.replace(/[^a-z0-9-]/gi, "").slice(0, 39) }, "login")} placeholder="octocat" />
-        </Field>
-        <Field label="Display name">
-          <TextInput aria-label="Display name" value={p.name} onChange={(v) => setP({ name: v }, "name")} />
-        </Field>
-        <Field label="Roles" help="Cycled by the hero typewriter and used in several widgets.">
-          <TagsInput label="Roles" value={p.roles} onChange={(v) => setP({ roles: v })} max={12} placeholder="Add a role and press Enter" />
-        </Field>
-        <Field label="Bio">
-          <TextArea aria-label="Bio" value={p.bio} onChange={(v) => setP({ bio: v }, "bio")} rows={3} maxLength={400} />
-        </Field>
-        <div className="grid-2">
-          <Field label="Company">
-            <TextInput aria-label="Company" value={p.company} onChange={(v) => setP({ company: v }, "company")} />
-          </Field>
-          <Field label="Pronouns">
-            <TextInput aria-label="Pronouns" value={p.pronouns} onChange={(v) => setP({ pronouns: v }, "pronouns")} placeholder="they/them" />
-          </Field>
+    <div className="panel__section">
+      <div className="subhead">Location</div>
+      <Field label="City" help="Used for the weather, local time, greetings and the city in the hero, about card and terminal.">
+        <div className="input-group">
+          <TextInput aria-label="City" value={p.location.city} onChange={(v) => setLoc({ city: v }, "city")} onKeyDown={(e) => e.key === "Enter" && geocode()} />
+          <Button onClick={geocode} disabled={busy}>
+            {busy ? <span className="spinner" /> : <MapPin />} Locate
+          </Button>
         </div>
-        <Field label="Birthday" help="Optional. Only used by the terminal's uptime line.">
-          <input className="input" type="date" aria-label="Birthday" value={p.birthday} onChange={(e) => setP({ birthday: e.target.value })} />
+      </Field>
+      <Field label="Time zone">
+        <TimezoneSelect value={p.location.timezone} onChange={(v) => setLoc({ timezone: v })} />
+      </Field>
+      <div className="grid-2">
+        <Field label="Latitude">
+          <input className="input input--mono" type="number" step="0.01" aria-label="Latitude" value={p.location.latitude} onChange={(e) => setLoc({ latitude: Number(e.target.value) }, "lat")} />
+        </Field>
+        <Field label="Longitude">
+          <input className="input input--mono" type="number" step="0.01" aria-label="Longitude" value={p.location.longitude} onChange={(e) => setLoc({ longitude: Number(e.target.value) }, "lon")} />
         </Field>
       </div>
-      <div className="panel__section">
-        <div className="subhead">Location</div>
-        <Field label="City" help="Used for greetings, local time and the weather in the today card.">
-          <div className="input-group">
-            <TextInput aria-label="City" value={p.location.city} onChange={(v) => setLoc({ city: v }, "city")} onKeyDown={(e) => e.key === "Enter" && geocode()} />
-            <Button onClick={geocode} disabled={busy}>
-              {busy ? <span className="spinner" /> : <MapPin />} Locate
-            </Button>
-          </div>
-        </Field>
-        <Field label="Time zone">
-          <TimezoneSelect value={p.location.timezone} onChange={(v) => setLoc({ timezone: v })} />
-        </Field>
-        <div className="grid-2">
-          <Field label="Latitude">
-            <input className="input input--mono" type="number" step="0.01" aria-label="Latitude" value={p.location.latitude} onChange={(e) => setLoc({ latitude: Number(e.target.value) }, "lat")} />
-          </Field>
-          <Field label="Longitude">
-            <input className="input input--mono" type="number" step="0.01" aria-label="Longitude" value={p.location.longitude} onChange={(e) => setLoc({ longitude: Number(e.target.value) }, "lon")} />
-          </Field>
-        </div>
-      </div>
-    </>
+    </div>
   );
 }
 
@@ -686,54 +665,60 @@ function DataPanel() {
     ["weather", data.weather ? `${Math.round(data.weather.temperature)}°` : "n/a"],
   ];
   return (
-    <div className="panel__section">
-      <div className="subhead">Preview data</div>
-      <Segmented
-        label="Data source"
-        value={dataMode}
-        onChange={(v) => (v === "sample" ? useSample() : load())}
-        options={[
-          { value: "sample", label: "Sample" },
-          { value: "live", label: "Live from GitHub" },
-        ]}
-      />
-      <p className="field__help" style={{ margin: "10px 0 16px" }}>
-        {dataMode === "sample"
-          ? "Realistic, deterministic sample data, seeded by your username. Nothing leaves your browser."
-          : `Public data for ${config.kind === "project" ? config.project.repo : `@${config.profile.login}`}, fetched just now.`}{" "}
-        The action always renders with your real numbers.
-      </p>
-      <Field label="GitHub token (optional)" help="Unlocks your exact contribution calendar in the preview. Kept in memory for this tab only and sent only to api.github.com.">
-        <input className="input input--mono" type="password" autoComplete="off" placeholder="github_pat_…" aria-label="GitHub token" value={token} onChange={(e) => setToken(e.target.value)} />
-      </Field>
-      <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-        <Button onClick={load} disabled={dataStatus.state === "loading"}>
-          {dataStatus.state === "loading" ? <span className="spinner" /> : <RefreshCw />} Load {config.kind === "project" ? config.project.repo : `@${config.profile.login}`}
-        </Button>
-      </div>
-      {dataStatus.state === "error" && (
-        <div className="warn" style={{ marginTop: 12 }}>
-          <AlertTriangle />
-          <span>{dataStatus.message}</span>
+    <>
+      <KindSwitch />
+      <ConnectionSection />
+      {config.kind === "project" && <PackagesSection />}
+      <LocationSection />
+      <div className="panel__section">
+        <div className="subhead">Preview data</div>
+        <Segmented
+          label="Data source"
+          value={dataMode}
+          onChange={(v) => (v === "sample" ? useSample() : load())}
+          options={[
+            { value: "sample", label: "Sample" },
+            { value: "live", label: "Live from GitHub" },
+          ]}
+        />
+        <p className="field__help" style={{ margin: "10px 0 16px" }}>
+          {dataMode === "sample"
+            ? "Realistic, deterministic sample data, seeded by your username. Nothing leaves your browser."
+            : `Public data for ${config.kind === "project" ? config.project.repo : `@${config.profile.login}`}, fetched just now.`}{" "}
+          The action always renders with your real numbers.
+        </p>
+        <Field label="GitHub token (optional)" help="Unlocks your exact contribution calendar in the preview. Kept in memory for this tab only and sent only to api.github.com.">
+          <input className="input input--mono" type="password" autoComplete="off" placeholder="github_pat_…" aria-label="GitHub token" value={token} onChange={(e) => setToken(e.target.value)} />
+        </Field>
+        <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+          <Button onClick={load} disabled={dataStatus.state === "loading"}>
+            {dataStatus.state === "loading" ? <span className="spinner" /> : <RefreshCw />} Load {config.kind === "project" ? config.project.repo : `@${config.profile.login}`}
+          </Button>
         </div>
-      )}
-      {dataMode === "live" && !token && config.kind === "profile" && (
-        <div className="note" style={{ marginTop: 12 }}>
-          <Info />
-          <span>Without a token the browser cannot read your contribution calendar, so the graph widgets show a stand-in. The published README uses the real one.</span>
+        {dataStatus.state === "error" && (
+          <div className="warn" style={{ marginTop: 12 }}>
+            <AlertTriangle />
+            <span>{dataStatus.message}</span>
+          </div>
+        )}
+        {dataMode === "live" && !token && config.kind === "profile" && (
+          <div className="note" style={{ marginTop: 12 }}>
+            <Info />
+            <span>Without a token the browser cannot read your contribution calendar, so the graph widgets show a stand-in. The published README uses the real one.</span>
+          </div>
+        )}
+        <div className="subhead" style={{ marginTop: 24 }}>
+          Loaded
         </div>
-      )}
-      <div className="subhead" style={{ marginTop: 24 }}>
-        Loaded
+        <div className="stat-list">
+          {rows
+            .filter(([k]) => k !== "current streak")
+            .map(([k, v]) => (
+              <FragmentRow key={k} k={k} v={v} />
+            ))}
+        </div>
       </div>
-      <div className="stat-list">
-        {rows
-          .filter(([k]) => k !== "current streak")
-          .map(([k, v]) => (
-            <FragmentRow key={k} k={k} v={v} />
-          ))}
-      </div>
-    </div>
+    </>
   );
 }
 
@@ -794,24 +779,19 @@ function SelectionPanel() {
 // ---------------------------------------------------------------- shell
 
 export function Inspector() {
-  const { tab, setTab, selected, selection, config } = useStudio();
-  const project = config.kind === "project";
+  const { tab, setTab, selected, selection } = useStudio();
   const tabs: { value: InspectorTab; label: string; icon: React.ReactNode }[] = [
     ...(selected ? [{ value: "block" as const, label: selection.length > 1 ? `${selection.length} widgets` : "Widget", icon: <SlidersHorizontal /> }] : []),
     { value: "theme", label: "Theme", icon: <PaletteIcon /> },
-    ...(project ? [{ value: "project" as const, label: "Project", icon: <FolderGit2 /> }] : []),
-    { value: "profile", label: project ? "Maintainer" : "Profile", icon: <User /> },
     { value: "data", label: "Data", icon: <Database /> },
   ];
-  const active = tab === "block" && !selected ? "theme" : tab === "project" && !project ? "profile" : tab;
+  const active = tab === "block" && !selected ? "theme" : tab === "data" || tab === "block" ? tab : "theme";
   return (
     <aside className="panel panel--inspector" aria-label="Inspector">
       <Tabs label="Inspector" value={active} onChange={setTab} tabs={tabs} />
       <div className="panel__scroll">
         {active === "block" && (selection.length > 1 ? <SelectionPanel /> : <BlockPanel />)}
         {active === "theme" && <ThemePanel />}
-        {active === "project" && <ProjectPanel />}
-        {active === "profile" && <ProfilePanel />}
         {active === "data" && <DataPanel />}
       </div>
     </aside>

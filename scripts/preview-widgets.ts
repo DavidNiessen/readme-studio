@@ -16,7 +16,7 @@ const { config } = normalizeConfig({
   theme: { preset, font, headingFont: font },
   layout: [{ blocks: widgetList.filter((w) => kind === "all" || widgetFits(w, kind as "profile" | "project")).map((w) => ({ type: w.type, id: w.type })) }],
 });
-const data = mockData(new Date("2026-11-26T09:00:00Z"), config.profile.login, config.profile.name, config.profile.location.timezone);
+const data = mockData(new Date("2026-11-26T09:00:00Z"), config.profile.login, "", config.profile.location.timezone);
 const ctx = createCtx(config, data, mode as "dark" | "light", { date: new Date("2026-11-26T09:00:00Z"), run: "42" });
 const imgs: string[] = [];
 for (const b of config.layout[0].blocks) {

@@ -46,6 +46,48 @@ describe("config normalisation", () => {
   });
 });
 
+describe("moving old global values into the widgets", () => {
+  const blocks = (c: ReturnType<typeof normalizeConfig>["config"]) => Object.fromEntries(c.layout.flatMap((r) => r.blocks).map((b) => [b.id, b]));
+
+  it("moves profile and project values into the widgets that show them", () => {
+    const { config } = normalizeConfig({
+      kind: "project",
+      profile: { login: "mona", name: "Mona", roles: ["Maker", "Writer"], bio: "Hi.", company: "@acme", pronouns: "she/her", birthday: "1990-05-01" },
+      project: { repo: "mona/aurora", name: "Aurora", tagline: "Tokens, fast.", logo: "music", homepage: "https://aurora.dev" },
+      layout: [{ blocks: [{ type: "hero" }, { type: "about" }, { type: "terminal" }, { type: "project-hero" }] }],
+    });
+    const b = blocks(config);
+    expect(b.hero.options).toMatchObject({ title: "Mona", roles: ["Maker", "Writer"] });
+    expect(b.about.options).toMatchObject({ name: "Mona", roles: ["Maker", "Writer"], bio: "Hi.", company: "@acme", pronouns: "she/her" });
+    expect(b.terminal.options).toMatchObject({ name: "Mona", role: "Maker", company: "@acme", pronouns: "she/her", birthday: "1990-05-01" });
+    expect(b["project-hero"].options).toMatchObject({ title: "Aurora", tagline: "Tokens, fast.", emblem: "music" });
+    expect(b["project-hero"].link).toBe("https://aurora.dev");
+    // nothing of it stays global
+    expect(config.profile).not.toHaveProperty("name");
+    expect(config.project).not.toHaveProperty("tagline");
+    // and the result moves nothing again
+    expect(normalizeConfig(JSON.parse(serializeConfig(config))).config).toEqual(config);
+  });
+
+  it("keeps a widget's own value, and an emptied roles list", () => {
+    const { config } = normalizeConfig({
+      profile: { name: "Mona", roles: [] },
+      layout: [{ blocks: [{ type: "hero", options: { title: "Hey there" } }, { type: "about", options: { roles: ["Own"] } }] }],
+    });
+    const b = blocks(config);
+    expect(b.hero.options).toMatchObject({ title: "Hey there", roles: [] });
+    expect(b.about.options).toMatchObject({ name: "Mona", roles: ["Own"] });
+  });
+
+  it("falls back to GitHub's name, bio and the repository's description", () => {
+    const { config } = normalizeConfig({ kind: "project", profile: { login: "mona" }, project: { repo: "mona/aurora" }, layout: [{ blocks: [{ type: "project-hero" }] }] });
+    const data = mockData(new Date("2026-01-01T00:00:00Z"), "mona", "Mona Lisa", "UTC", "mona/aurora");
+    const md = renderReadme(config, data);
+    expect(md).toContain(data.project!.description);
+    expect(mockData(new Date(), "someone").name).toBe("someone");
+  });
+});
+
 describe("presets", () => {
   it("every preset normalises without warnings and only uses known widgets", () => {
     const types = new Set(widgetList.map((w) => w.type));

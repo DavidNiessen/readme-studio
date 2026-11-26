@@ -50,24 +50,14 @@ export function configJsonSchema(): Record<string, unknown> {
     project: {
       type: "object",
       properties: {
-        repo: { type: "string", description: "owner/name of the public repository" },
-        name: { type: "string" },
-        tagline: { type: "string" },
-        logo: { type: "string", description: "icon id, or empty for a monogram" },
-        homepage: { type: "string" },
+        repo: { type: "string", description: "owner/name of the public repository. Its name, tagline and logo are project-hero options." },
         packages: { type: "object", properties: { npm: { type: "string" }, pypi: { type: "string" }, crates: { type: "string" } } },
       },
     },
     profile: {
       type: "object",
       properties: {
-        login: { type: "string", description: "GitHub username the data is fetched for" },
-        name: { type: "string" },
-        roles: { type: "array", items: { type: "string" } },
-        bio: { type: "string" },
-        company: { type: "string" },
-        pronouns: { type: "string" },
-        birthday: { type: "string", description: "YYYY-MM-DD or empty" },
+        login: { type: "string", description: "GitHub username the data is fetched for. Name, roles, bio and the like are options of the widgets that show them." },
         location: {
           type: "object",
           properties: { city: { type: "string" }, latitude: { type: "number" }, longitude: { type: "number" }, timezone: { type: "string", description: "IANA time zone" } },

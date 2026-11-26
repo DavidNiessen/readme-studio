@@ -17,18 +17,14 @@ export interface ProfileLink {
   handle: string;
 }
 
+/**
+ * Who the data is fetched for. What a README says about the person (name, roles, bio, …) is set
+ * in the widgets that show it, and defaults to the GitHub profile.
+ */
 export interface Profile {
   /** GitHub username the data is fetched for */
   login: string;
-  /** display name */
-  name: string;
-  /** rotating roles / taglines */
-  roles: string[];
-  bio: string;
-  company: string;
-  pronouns: string;
-  /** YYYY-MM-DD, optional (used by terminal/uptime widgets) */
-  birthday: string;
+  /** where the person is: local time, greetings and the weather */
   location: { city: string; latitude: number; longitude: number; timezone: string };
   links: ProfileLink[];
 }
@@ -64,15 +60,13 @@ export interface OutputSettings {
 
 export type DesignKind = "profile" | "project";
 
+/**
+ * The repository a project README is for. Its name, tagline, logo and homepage are set in the
+ * widgets that show them, and default to the repository's own.
+ */
 export interface ProjectInfo {
   /** owner/name of the repository the README is for */
   repo: string;
-  /** display name (defaults to the repository name) */
-  name: string;
-  tagline: string;
-  /** icon id for the project emblem, or "" for a monogram */
-  logo: string;
-  homepage: string;
   /** package names used for version and download numbers */
   packages: { npm: string; pypi: string; crates: string };
 }
@@ -91,12 +85,6 @@ export interface StudioConfig {
 
 export const DEFAULT_PROFILE: Profile = {
   login: "octocat",
-  name: "Mona Octocat",
-  roles: ["Software Engineer", "Open-source tinkerer", "Coffee-driven developer"],
-  bio: "I build calm, fast software and the tools around it.",
-  company: "",
-  pronouns: "",
-  birthday: "",
   location: { city: "San Francisco", latitude: 37.77, longitude: -122.42, timezone: "America/Los_Angeles" },
   links: [
     { icon: "github", label: "GitHub", url: "https://github.com/octocat", handle: "@octocat" },
@@ -107,10 +95,6 @@ export const DEFAULT_PROFILE: Profile = {
 
 export const DEFAULT_PROJECT: ProjectInfo = {
   repo: "octocat/aurora",
-  name: "",
-  tagline: "A tiny, fast design-token compiler for multi-brand UI kits.",
-  logo: "",
-  homepage: "",
   packages: { npm: "", pypi: "", crates: "" },
 };
 
@@ -154,8 +138,8 @@ export function assetRepository(c: StudioConfig): string {
 }
 
 /** Display name of the project: explicit name, else the repository name. */
-export function projectName(p: ProjectInfo): string {
-  return p.name.trim() || p.repo.split("/")[1] || p.repo;
+export function projectName(p: { repo: string; name?: string }): string {
+  return (p.name ?? "").trim() || p.repo.split("/")[1] || p.repo;
 }
 
 export function assetBase(c: StudioConfig): string {
@@ -187,12 +171,6 @@ function normProfile(v: unknown, w: string[]): Profile {
   const login = str(p.login, d.login, 39).trim().replace(/^@/, "");
   return {
     login: /^[a-z\d](?:[a-z\d-]{0,38})$/i.test(login) ? login : d.login,
-    name: str(p.name, d.name, 80),
-    roles: Array.isArray(p.roles) ? p.roles.filter((r): r is string => typeof r === "string").map((r) => r.slice(0, 80)).slice(0, 12) : d.roles,
-    bio: str(p.bio, "", 400),
-    company: str(p.company, "", 80),
-    pronouns: str(p.pronouns, "", 30),
-    birthday: /^\d{4}-\d{2}-\d{2}$/.test(str(p.birthday, "")) ? str(p.birthday, "") : "",
     location: {
       city: str(loc.city, "", 60),
       latitude: num(loc.latitude, d.location.latitude, -90, 90),
@@ -288,10 +266,6 @@ function normProject(v: unknown, login: string): ProjectInfo {
   const pkg = (x: unknown) => str(x, "", 214).trim();
   return {
     repo: REPO_RE.test(repo) ? repo : `${login || "octocat"}/aurora`,
-    name: str(p.name, d.name, 80),
-    tagline: str(p.tagline, d.tagline, 200),
-    logo: str(p.logo, d.logo, 40),
-    homepage: str(p.homepage, d.homepage, 300),
     packages: { npm: pkg(pk.npm), pypi: pkg(pk.pypi), crates: pkg(pk.crates) },
   };
 }
@@ -324,10 +298,55 @@ export function normalizeConfig(raw: unknown): Normalized {
     profile,
     project: normProject(c.project, profile.login),
     theme: normTheme(c.theme),
-    layout: normLayout(c.layout, warnings),
+    layout: normLayout(moveIntoWidgets(c.layout, isObj(c.profile) ? c.profile : {}, isObj(c.project) ? c.project : {}), warnings),
     output: normOutput(c.output),
   };
   return { config, warnings };
+}
+
+/**
+ * Older configs kept the name, roles, bio, tagline, logo and so on in `profile` and `project`, for
+ * every widget at once. Each widget now has its own, so a value from an older config moves into
+ * the widgets that showed it, unless the widget already sets its own.
+ */
+const MOVED: { from: "profile" | "project"; key: string; to: [type: string, option: string][]; value?: (v: unknown) => unknown }[] = [
+  { from: "profile", key: "name", to: [["hero", "title"], ["about", "name"], ["terminal", "name"]] },
+  { from: "profile", key: "roles", to: [["hero", "roles"], ["about", "roles"]] },
+  { from: "profile", key: "roles", to: [["terminal", "role"]], value: (v) => (Array.isArray(v) && typeof v[0] === "string" ? v[0] : "") },
+  { from: "profile", key: "bio", to: [["about", "bio"]] },
+  { from: "profile", key: "company", to: [["about", "company"], ["terminal", "company"]] },
+  { from: "profile", key: "pronouns", to: [["about", "pronouns"], ["terminal", "pronouns"]] },
+  { from: "profile", key: "birthday", to: [["terminal", "birthday"]] },
+  { from: "project", key: "name", to: [["project-hero", "title"]] },
+  { from: "project", key: "tagline", to: [["project-hero", "tagline"]] },
+  { from: "project", key: "logo", to: [["project-hero", "emblem"]] },
+];
+
+/** The raw layout with the moved values filled in, before widget defaults are applied. */
+function moveIntoWidgets(layout: unknown, profile: Obj, project: Obj): unknown {
+  if (!Array.isArray(layout)) return layout;
+  const src = { profile, project };
+  const rows = layout.map((r) => (isObj(r) && Array.isArray(r.blocks) ? { ...r, blocks: r.blocks.map((b) => (isObj(b) ? { ...b, options: isObj(b.options) ? { ...b.options } : {} } : b)) } : r));
+  const blocks = rows.flatMap((r) => (isObj(r) && Array.isArray(r.blocks) ? r.blocks.filter(isObj) : [])) as (Obj & { options: Obj })[];
+  for (const m of MOVED) {
+    const raw = src[m.from][m.key];
+    if (raw === undefined) continue;
+    const v = m.value ? m.value(raw) : raw;
+    // an empty text means "the GitHub value", which the widget falls back to anyway; an empty list is a choice
+    if (typeof v === "string" ? !v.trim() : !Array.isArray(v)) continue;
+    for (const b of blocks)
+      for (const [type, opt] of m.to) {
+        const def = getWidget(type);
+        const own = b.options[opt];
+        // the widget's own value wins; a value of the wrong shape is not carried over
+        if (b.type !== type || !def || (own !== undefined && own !== "") || Array.isArray(def.defaults[opt]) !== Array.isArray(v)) continue;
+        b.options[opt] = Array.isArray(v) ? v.filter((x): x is string => typeof x === "string").map((x) => x.slice(0, 80)).slice(0, 12) : String(v).slice(0, 400);
+      }
+  }
+  // the homepage was the project hero's link
+  const home = typeof project.homepage === "string" ? project.homepage.trim().slice(0, 300) : "";
+  if (home) for (const b of blocks) if (b.type === "project-hero" && b.link === undefined) b.link = home;
+  return rows;
 }
 
 /** Parse JSON text into a normalised config; throws on invalid JSON only. */

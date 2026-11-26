@@ -1,4 +1,4 @@
-import type { ProjectInfo } from "../config";
+import type { ProjectView } from "./types";
 import type { ProfileData } from "../data/types";
 import { fontInfo, measureText } from "../fonts";
 import { isHex, mix } from "../lib/color";
@@ -57,7 +57,7 @@ function slug(s: string): string {
 
 function badgeList(ctx: Meta, o: Record<string, unknown>, now = new Date(ctx.data?.generatedAt || Date.now())): Badge[] {
   const pd = pdata(ctx);
-  const url = repoUrl(ctx as { data: ProfileData; project: ProjectInfo });
+  const url = repoUrl(ctx as { data: ProfileData; project: ProjectView });
   const branch = pd?.defaultBranch || "main";
   const dash = "–";
   const out: Badge[] = [];

@@ -26,7 +26,7 @@ export function Welcome() {
   const startProfile = () => {
     const l = login.trim().replace(/^@/, "");
     if (l && !LOGIN.test(l)) return setError("That is not a GitHub username.");
-    const config = presetConfig("command-center", l ? { login: l, name: l } : {});
+    const config = presetConfig("command-center", l ? { login: l } : {});
     replace(config, l ? `${l} profile` : "My profile", true);
     toast(l ? `Started a profile README for ${l}` : "Started a profile README with sample data");
   };

@@ -27,7 +27,7 @@ const { config } = normalizeConfig({
   theme: { preset: "crimson", font: "jetbrains-mono", headingFont: "jetbrains-mono" },
   layout: [{ blocks: [{ type: "hero", id: "hero" }] }, { blocks: [{ type: "stats", id: "stats" }] }, { blocks: [{ type: "contrib", id: "contrib" }] }],
 });
-const data = mockData(date, config.profile.login, config.profile.name, config.profile.location.timezone);
+const data = mockData(date, config.profile.login, "", config.profile.location.timezone);
 const ctx = createCtx(config, data, "dark", { date, run: "42" });
 const imgs: string[] = [];
 for (const row of config.layout) {

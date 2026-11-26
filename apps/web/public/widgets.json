@@ -13,16 +13,28 @@
       "options": [
         {
           "key": "title",
-          "label": "Headline",
+          "label": "Name",
           "type": "text",
           "default": ""
+        },
+        {
+          "key": "roles",
+          "label": "Roles",
+          "type": "tags",
+          "default": [
+            "Software Engineer",
+            "Open-source tinkerer",
+            "Coffee-driven developer"
+          ],
+          "help": "Cycled by the typewriter. Other widgets and the {role} placeholder use the first.",
+          "max": 12
         },
         {
           "key": "typewriter",
           "label": "Typewriter roles",
           "type": "toggle",
           "default": true,
-          "help": "Cycles through the roles from your profile."
+          "help": "Cycles through the roles above."
         },
         {
           "key": "greeting",
@@ -198,9 +210,23 @@
       "options": [
         {
           "key": "title",
-          "label": "Headline",
+          "label": "Name",
           "type": "text",
           "default": ""
+        },
+        {
+          "key": "tagline",
+          "label": "Tagline",
+          "type": "text",
+          "default": "",
+          "max": 200
+        },
+        {
+          "key": "emblem",
+          "label": "Logo",
+          "type": "icon",
+          "default": "",
+          "help": "The project's logo. Without one a monogram tile is drawn."
         },
         {
           "key": "align",
@@ -230,7 +256,7 @@
           "label": "Install command",
           "type": "text",
           "default": "npm i {npm}",
-          "help": "Shown in a code pill under the tagline. Leave empty to hide. It also stays hidden while a placeholder it uses has no value, such as {npm} without an npm package in the Project tab. Placeholders: {npm} {repo} {project} {version}"
+          "help": "Shown in a code pill under the tagline. Leave empty to hide. It also stays hidden while a placeholder it uses has no value, such as {npm} without an npm package in the Data tab. Placeholders: {npm} {repo} {project} {version}"
         },
         {
           "key": "stats",
@@ -263,13 +289,6 @@
               "label": "Contributors"
             }
           ]
-        },
-        {
-          "key": "emblem",
-          "label": "Emblem icon",
-          "type": "icon",
-          "default": "",
-          "help": "Defaults to the project logo; without one a monogram tile is drawn."
         },
         {
           "key": "emblemStyle",
@@ -476,6 +495,42 @@
           "max": 24
         },
         {
+          "key": "name",
+          "label": "Name ({name})",
+          "type": "text",
+          "default": "",
+          "max": 80
+        },
+        {
+          "key": "role",
+          "label": "Role ({role})",
+          "type": "text",
+          "default": "",
+          "max": 80
+        },
+        {
+          "key": "company",
+          "label": "Company ({company})",
+          "type": "text",
+          "default": "",
+          "max": 80
+        },
+        {
+          "key": "pronouns",
+          "label": "Pronouns ({pronouns})",
+          "type": "text",
+          "default": "",
+          "max": 30
+        },
+        {
+          "key": "birthday",
+          "label": "Birthday ({age})",
+          "type": "text",
+          "default": "",
+          "help": "Optional. Gives {age}, {days_alive} and the uptime line.",
+          "max": 10
+        },
+        {
           "key": "chrome",
           "label": "Window chrome",
           "type": "toggle",
@@ -672,7 +727,21 @@
           "key": "chips",
           "label": "Company & location chips",
           "type": "toggle",
-          "default": true
+          "default": true,
+          "help": "The city comes from the location in the Data tab."
+        },
+        {
+          "key": "company",
+          "label": "Company",
+          "type": "text",
+          "default": "",
+          "when": {
+            "key": "chips",
+            "is": [
+              true
+            ]
+          },
+          "max": 60
         },
         {
           "key": "extraChips",

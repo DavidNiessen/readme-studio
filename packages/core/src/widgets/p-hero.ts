@@ -63,6 +63,7 @@ export const projectHero = defineWidget({
   needs: ["project", "releases"],
   defaults: {
     title: "",
+    tagline: "",
     align: "left",
     version: true,
     stats: true,
@@ -74,7 +75,9 @@ export const projectHero = defineWidget({
     glow: true,
   },
   fields: [
-    { key: "title", label: "Headline", type: "text", placeholder: "Defaults to the project name" },
+    { key: "title", label: "Name", type: "text", placeholder: "Defaults to the repository name" },
+    { key: "tagline", label: "Tagline", type: "text", multiline: true, rows: 2, max: 200, placeholder: "Defaults to the repository description" },
+    { key: "emblem", label: "Logo", type: "icon", help: "The project's logo. Without one a monogram tile is drawn." },
     {
       key: "align",
       label: "Alignment",
@@ -85,7 +88,7 @@ export const projectHero = defineWidget({
       ],
     },
     { key: "version", label: "Version pill", type: "toggle", help: "Latest release tag next to the name." },
-    { key: "install", label: "Install command", type: "text", placeholder: "npm i {npm}", help: "Shown in a code pill under the tagline. Leave empty to hide. It also stays hidden while a placeholder it uses has no value, such as {npm} without an npm package in the Project tab. Placeholders: {npm} {repo} {project} {version}" },
+    { key: "install", label: "Install command", type: "text", placeholder: "npm i {npm}", help: "Shown in a code pill under the tagline. Leave empty to hide. It also stays hidden while a placeholder it uses has no value, such as {npm} without an npm package in the Data tab. Placeholders: {npm} {repo} {project} {version}" },
     { key: "stats", label: "Headline numbers", type: "toggle" },
     {
       key: "third",
@@ -98,7 +101,6 @@ export const projectHero = defineWidget({
         { value: "contributors", label: "Contributors" },
       ],
     },
-    { key: "emblem", label: "Emblem icon", type: "icon", help: "Defaults to the project logo; without one a monogram tile is drawn." },
     {
       key: "emblemStyle",
       label: "Emblem style",
@@ -114,7 +116,7 @@ export const projectHero = defineWidget({
   ],
   alt: (ctx, o) => {
     const name = fillPlaceholders(optStr(o.title), ctx) || projectName(ctx.project);
-    const tag = (ctx.project.tagline || pdata(ctx)?.description || "").trim();
+    const tag = (fillPlaceholders(optStr(o.tagline), ctx) || pdata(ctx)?.description || "").trim();
     return tag ? `${name} — ${tag}` : name;
   },
   href: (ctx) => homeUrl(ctx),
@@ -124,7 +126,7 @@ export const projectHero = defineWidget({
     const center = optPick(o.align, ["left", "center"], "left") === "center";
     const style = optPick(o.emblemStyle, ["orbit", "plain", "none"], "orbit");
     const name = fillPlaceholders(optStr(o.title), ctx) || projectName(ctx.project) || pd?.name || "project";
-    const tagline = (ctx.project.tagline || pd?.description || "").trim();
+    const tagline = (fillPlaceholders(optStr(o.tagline), ctx) || pd?.description || "").trim();
     const tag = optBool(o.version, true) ? latestTag(pd) : "";
     const cmd = installHint(ctx, optStr(o.install));
     const stats = optBool(o.stats, true) ? miniStats(ctx, optStr(o.third, "license")) : [];
@@ -237,7 +239,7 @@ ${xglyph("copy", cx0 + cmdW - 28, cmdY + 10, 16, t.muted)}
     }
 
     // ------------------------------------------------ emblem
-    const logoId = optStr(o.emblem) || ctx.project.logo || "";
+    const logoId = optStr(o.emblem);
     // a brand icon or a line glyph: the picker offers both
     const useIcon = hasMark(logoId);
     const emblemAt = (cx: number, cy: number, ks: number, rings: boolean) => {

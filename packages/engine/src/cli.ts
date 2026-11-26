@@ -157,7 +157,7 @@ async function main(): Promise<void> {
       const login = flag(args, "login") ?? repo?.split("/")[0] ?? "octocat";
       const files: [string, string][] = [];
       if (existsSync(configPath) && flag(args, "force") !== "true") throw new Error(`${configPath} exists (use --force to overwrite)`);
-      const base = presetConfig(presetId, { login, name: login }, repo ? { repo, packages: { npm: flag(args, "npm") ?? "", pypi: flag(args, "pypi") ?? "", crates: flag(args, "crate") ?? "" } } : {});
+      const base = presetConfig(presetId, { login }, repo ? { repo, packages: { npm: flag(args, "npm") ?? "", pypi: flag(args, "pypi") ?? "", crates: flag(args, "crate") ?? "" } } : {});
       const config: StudioConfig = { ...base, kind };
       files.push([configPath, serializeConfig(config)]);
       const wantWorkflow = flag(args, "workflow") === "true";

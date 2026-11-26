@@ -52,6 +52,7 @@ export const about = defineWidget({
     pronouns: "",
     roles: [],
     bio: "",
+    company: "",
     layout: "left",
     monogram: true,
     chips: true,
@@ -59,10 +60,10 @@ export const about = defineWidget({
   },
   fields: [
     { key: "label", label: "Label", type: "text", placeholder: "about me" },
-    { key: "name", label: "Name", type: "text", placeholder: "Defaults to your profile name" },
-    { key: "pronouns", label: "Pronouns", type: "text", placeholder: "Defaults to your profile pronouns", max: 24 },
-    { key: "roles", label: "Roles", type: "tags", placeholder: "Defaults to your profile roles", max: 4 },
-    { key: "bio", label: "Bio", type: "text", multiline: true, placeholder: "Defaults to your profile bio", help: `Up to five lines; a blank line starts a new paragraph. ${PLACEHOLDER_HELP}` },
+    { key: "name", label: "Name", type: "text", placeholder: "Defaults to your GitHub name" },
+    { key: "pronouns", label: "Pronouns", type: "text", placeholder: "they/them", max: 24 },
+    { key: "roles", label: "Roles", type: "tags", placeholder: "Defaults to the hero's roles", max: 4 },
+    { key: "bio", label: "Bio", type: "text", multiline: true, placeholder: "Defaults to your GitHub bio", help: `Up to five lines; a blank line starts a new paragraph. ${PLACEHOLDER_HELP}` },
     {
       key: "layout",
       label: "Layout",
@@ -73,7 +74,8 @@ export const about = defineWidget({
       ],
     },
     { key: "monogram", label: "Monogram", type: "toggle", help: "Your initials in an accent disc." },
-    { key: "chips", label: "Company & location chips", type: "toggle" },
+    { key: "chips", label: "Company & location chips", type: "toggle", help: "The city comes from the location in the Data tab." },
+    { key: "company", label: "Company", type: "text", placeholder: "Defaults to your GitHub company", max: 60, when: { key: "chips", is: [true] } },
     { key: "extraChips", label: "Extra chips", type: "tags", placeholder: "Open to collaborations", max: 3, when: { key: "chips", is: [true] } },
   ],
   alt: (ctx, o) => {
@@ -93,7 +95,8 @@ export const about = defineWidget({
     const bio = fill(str(o.bio)) || p.bio || "";
     const chips: Chip[] = [];
     if (o.chips !== false) {
-      if (p.company) chips.push({ glyph: "briefcase", text: p.company });
+      const company = fill(str(o.company)).replace(/^@/, "").trim() || p.company;
+      if (company) chips.push({ glyph: "briefcase", text: company });
       if (p.location?.city) chips.push({ glyph: "pin", text: p.location.city });
       for (const c of strings(o.extraChips).slice(0, 3)) chips.push({ glyph: "sparkle", text: fill(c) });
     }

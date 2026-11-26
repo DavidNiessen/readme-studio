@@ -3,7 +3,7 @@ import { getWidget, hashSeed, mockData, mockWeeks, normalizeConfig, presetConfig
 import { addBlock, duplicateBlock, findBlock, flatten, moveBlock, moveBlocksTo, removeBlock, renameBlock, updateBlock, updateOptions } from "../lib/layout";
 import { findDesignBySource, getCurrentId, getPref, loadDesigns, saveDesign, setCurrentId, setPref, type SavedDesign } from "../lib/storage";
 
-export type InspectorTab = "block" | "profile" | "project" | "theme" | "data";
+export type InspectorTab = "block" | "theme" | "data";
 export type DialogId = "export" | "save" | "presets" | "import" | "json" | "shortcuts" | "designs" | "palette" | "add" | null;
 export type MobilePane = "layers" | "canvas" | "inspect";
 
@@ -104,7 +104,7 @@ interface StudioState {
   resetToSource: (committed: StudioConfig) => void;
 }
 
-const sampleFor = (c: StudioConfig) => mockData(new Date(), c.profile.login, c.profile.name, c.profile.location.timezone, c.kind === "project" ? c.project.repo : undefined);
+const sampleFor = (c: StudioConfig) => mockData(new Date(), c.profile.login, "", c.profile.location.timezone, c.kind === "project" ? c.project.repo : undefined);
 
 function initial(): { id: string; name: string; config: StudioConfig; source: string | null; base: StudioConfig | null; firstRun: boolean } {
   const designs = loadDesigns();
@@ -180,7 +180,6 @@ export const useStudio = create<StudioState>((set, get) => ({
     const past = merge ? s.past : [...s.past, s.config].slice(-HISTORY);
     const loginChanged =
       next.profile.login !== s.config.profile.login ||
-      next.profile.name !== s.config.profile.name ||
       next.profile.location.timezone !== s.config.profile.location.timezone ||
       next.kind !== s.config.kind ||
       next.project.repo !== s.config.project.repo;

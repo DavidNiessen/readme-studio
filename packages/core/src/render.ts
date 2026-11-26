@@ -6,7 +6,7 @@ import { esc } from "./lib/escape";
 import { svg, wrapText } from "./lib/svg";
 import { resolveTheme, type Mode } from "./theme";
 import { getWidget } from "./widgets/registry";
-import type { Ctx, GifFrames, WidgetDef } from "./widgets/types";
+import type { Ctx, GifFrames, ProfileView, ProjectView, WidgetDef } from "./widgets/types";
 
 export interface RenderEnv {
   date?: Date;
@@ -23,10 +23,48 @@ export function createCtx(config: StudioConfig, data: ProfileData, mode: Mode, e
     d: derive(d),
     now: localParts(date, config.profile.location.timezone),
     date,
-    profile: config.profile,
+    ...views(config, data),
     kind: config.kind,
-    project: config.project,
     run: env.run ?? null,
+  };
+}
+
+/**
+ * What widgets know about the person and the project. Nothing about them is configured globally:
+ * each widget has its own name, roles, tagline and so on, and falls back to these, which come from
+ * GitHub and from the first widget in the design that sets the value.
+ */
+export function views(config: StudioConfig, data: ProfileData): { profile: ProfileView; project: ProjectView } {
+  const blocks = config.layout.flatMap((r) => r.blocks).filter((b) => !b.hidden);
+  const first = <T>(types: string[], key: string, ok: (v: unknown) => v is T): T | undefined => {
+    for (const b of blocks) {
+      if (!types.includes(b.type)) continue;
+      const v = b.options[key] ?? getWidget(b.type)?.defaults[key];
+      if (ok(v)) return v;
+    }
+    return undefined;
+  };
+  const text = (v: unknown): v is string => typeof v === "string" && v.trim() !== "";
+  const list = (v: unknown): v is string[] => Array.isArray(v) && v.some((x) => typeof x === "string" && x.trim() !== "");
+  const pd = data.project;
+  const login = config.profile.login;
+  return {
+    profile: {
+      ...config.profile,
+      name: (data.name || "").trim() || login,
+      bio: data.bio || "",
+      company: (data.company || "").replace(/^@/, "").trim(),
+      roles: (first(["hero", "about"], "roles", list) ?? []).filter((r) => typeof r === "string" && r.trim() !== ""),
+      pronouns: first(["about", "terminal"], "pronouns", text) ?? "",
+      birthday: first(["terminal"], "birthday", (v): v is string => typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v)) ?? "",
+    },
+    project: {
+      ...config.project,
+      name: config.project.repo.split("/")[1] || pd?.name || "",
+      tagline: first(["project-hero"], "tagline", text) ?? pd?.description ?? "",
+      logo: first(["project-hero"], "emblem", text) ?? "",
+      homepage: pd?.homepage ?? "",
+    },
   };
 }
 
@@ -42,7 +80,7 @@ export function viewData(config: Pick<StudioConfig, "kind">, data: ProfileData):
 
 /** The slice of context needed to work out parts, alt text and links (no theme). */
 export function metaCtx(config: StudioConfig, data: ProfileData): Pick<Ctx, "profile" | "data" | "project" | "kind"> {
-  return { profile: config.profile, data: viewData(config, data), project: config.project, kind: config.kind };
+  return { ...views(config, data), data: viewData(config, data), kind: config.kind };
 }
 
 /** One image (or markdown snippet) produced by a block. */

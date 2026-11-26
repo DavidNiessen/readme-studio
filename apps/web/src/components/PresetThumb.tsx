@@ -10,7 +10,7 @@ export function PresetThumb({ id, mode: forced, height = 210, maxRows = 5 }: { i
   const mode: Mode = forced ?? (layoutPresets.find((p) => p.id === id)?.tags.includes("light-first") ? "light" : "dark");
   const config = useMemo(() => presetConfig(id), [id]);
   const ready = useFontsReady([config.theme.font, config.theme.headingFont]);
-  const data = useMemo(() => mockData(DATE, config.profile.login, config.profile.name, config.profile.location.timezone), [config]);
+  const data = useMemo(() => mockData(DATE, config.profile.login, "", config.profile.location.timezone), [config]);
   const rows = useMemo(() => (ready ? renderLayout(config, data, mode, DATE).slice(0, maxRows) : []), [ready, config, data, mode, maxRows]);
   const bg = mode === "dark" ? "#0d1117" : "#ffffff";
   return (

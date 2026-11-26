@@ -68,7 +68,7 @@ export function dataNeeds(config: StudioConfig): { weather: boolean; events: boo
 export async function loadData(o: Pick<BuildOptions, "config" | "mock" | "now" | "token" | "log">): Promise<ProfileData> {
   const now = o.now ?? new Date();
   const p = o.config.profile;
-  if (o.mock) return mockData(now, p.login, p.name, p.location.timezone, o.config.kind === "project" ? o.config.project.repo : undefined);
+  if (o.mock) return mockData(now, p.login, "", p.location.timezone, o.config.kind === "project" ? o.config.project.repo : undefined);
   const needs = dataNeeds(o.config);
   if (o.config.kind === "project") {
     const pr = o.config.project;
