@@ -30,7 +30,7 @@ jobs:
     needs: checks
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - id: v
         name: Pick the version
@@ -51,7 +51,7 @@ jobs:
             --generate-notes \
             --notes "A build of \`$GITHUB_SHA\` on main, for trying the newest work. Pin it with \`uses: ${{ github.repository }}@v$VERSION\`. The floating \`v1\` tag does not move to pre-releases. The browser extension for Chrome and Firefox is attached; load it unpacked to try it."
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
