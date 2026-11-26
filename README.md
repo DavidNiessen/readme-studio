@@ -6,30 +6,15 @@
 -->
 
 <p align="center">
-<a href="https://readme.niessen.dev"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/DavidNiessen/readme-studio/readme-studio/hero-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/DavidNiessen/readme-studio/readme-studio/hero-light.svg"><img alt="readme-studio — A tiny, fast design-token compiler for multi-brand UI kits." src="https://raw.githubusercontent.com/DavidNiessen/readme-studio/readme-studio/hero-dark.svg" width="100%"></picture></a>
+<a href="https://readme.niessen.dev"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/DavidNiessen/readme-studio/readme-studio/hero-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/DavidNiessen/readme-studio/readme-studio/hero-light.svg"><img alt="Readme  Studio — A tiny, fast design-token compiler for multi-brand UI kits." src="https://raw.githubusercontent.com/DavidNiessen/readme-studio/readme-studio/hero-dark.svg" width="100%"></picture></a>
 </p>
 
 <p align="center">
+<a href="https://github.com/DavidNiessen/readme-studio/actions/runs/45885647898"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/DavidNiessen/readme-studio/readme-studio/shields-ci-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/DavidNiessen/readme-studio/readme-studio/shields-ci-light.svg"><img alt="Pre-release: running" src="https://raw.githubusercontent.com/DavidNiessen/readme-studio/readme-studio/shields-ci-dark.svg" height="28"></picture></a>
 <a href="https://github.com/DavidNiessen/readme-studio/releases/tag/v1.0.1"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/DavidNiessen/readme-studio/readme-studio/shields-version-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/DavidNiessen/readme-studio/readme-studio/shields-version-light.svg"><img alt="version: v1.0.1" src="https://raw.githubusercontent.com/DavidNiessen/readme-studio/readme-studio/shields-version-dark.svg" height="28"></picture></a>
-<a href="https://github.com/DavidNiessen/readme-studio/graphs/contributors"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/DavidNiessen/readme-studio/readme-studio/shields-contributors-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/DavidNiessen/readme-studio/readme-studio/shields-contributors-light.svg"><img alt="contributors: 2" src="https://raw.githubusercontent.com/DavidNiessen/readme-studio/readme-studio/shields-contributors-dark.svg" height="28"></picture></a>
 <a href="https://github.com/DavidNiessen/readme-studio/issues"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/DavidNiessen/readme-studio/readme-studio/shields-issues-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/DavidNiessen/readme-studio/readme-studio/shields-issues-light.svg"><img alt="issues: 0 open" src="https://raw.githubusercontent.com/DavidNiessen/readme-studio/readme-studio/shields-issues-dark.svg" height="28"></picture></a>
 <a href="https://github.com/DavidNiessen/readme-studio/pulls"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/DavidNiessen/readme-studio/readme-studio/shields-prs-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/DavidNiessen/readme-studio/readme-studio/shields-prs-light.svg"><img alt="pull requests: 2 open" src="https://raw.githubusercontent.com/DavidNiessen/readme-studio/readme-studio/shields-prs-dark.svg" height="28"></picture></a>
-<a href="https://github.com/DavidNiessen/readme-studio/blob/main/LICENSE"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/DavidNiessen/readme-studio/readme-studio/shields-license-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/DavidNiessen/readme-studio/readme-studio/shields-license-light.svg"><img alt="license: MIT" src="https://raw.githubusercontent.com/DavidNiessen/readme-studio/readme-studio/shields-license-dark.svg" height="28"></picture></a>
-<a href="https://github.com/DavidNiessen/readme-studio/actions/runs/45877966932"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/DavidNiessen/readme-studio/readme-studio/shields-ci-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/DavidNiessen/readme-studio/readme-studio/shields-ci-light.svg"><img alt="npm_and_yarn in / for @types/node, fast-xml-parser, typescript, vitest, esbuild, @vitejs/plugin-react, vite - Update #1733184849: passing" src="https://raw.githubusercontent.com/DavidNiessen/readme-studio/readme-studio/shields-ci-dark.svg" height="28"></picture></a>
 </p>
-
-<div align="center">
-
-# Readme Studio
-
-**Design animated, self-updating READMEs for your GitHub profile and your projects, in the browser.**<br>
-A GitHub Action re-renders every image on a schedule, so streaks, stars, contributors and releases are never stale.
-
-[Open the studio](https://readme.niessen.dev/#/studio) · [Presets](https://readme.niessen.dev/#/presets) · [Docs](https://readme.niessen.dev/#/docs)
-
-</div>
-
----
 
 <p align="center">
 <a href="https://github.com/DavidNiessen/readme-studio/graphs/contributors"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/DavidNiessen/readme-studio/readme-studio/contributors-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/DavidNiessen/readme-studio/readme-studio/contributors-light.svg"><img alt="2 contributors to DavidNiessen/readme-studio" src="https://raw.githubusercontent.com/DavidNiessen/readme-studio/readme-studio/contributors-dark.svg" width="100%"></picture></a>
