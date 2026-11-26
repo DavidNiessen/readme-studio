@@ -1,19 +1,19 @@
-import { Button } from "@readme-studio/web/ui";
 import { RotateCw } from "lucide-react";
 import { useEffect, useState } from "react";
-import { RepoUnavailable, TokenRejected } from "../github/design";
-import { loadAuth, type Auth } from "../settings";
+import { Button } from "../../components/ui";
+import { RepoUnavailable, TokenRejected } from "../../github/design";
+import type { Auth, GitHubPlatform } from "../../github/platform";
 import { AuthPanel } from "./AuthPanel";
 
 /**
  * What the studio shows when a repository could not be opened. A 404 without a token is most
  * likely a private repository, which signing in can open; with a token it is a plain 404.
  */
-export function OpenFailed({ error, retry }: { error: unknown; retry: () => void }) {
+export function OpenFailed({ platform, error, retry }: { platform: GitHubPlatform; error: unknown; retry: () => void }) {
   const [auth, setAuth] = useState<Auth | null>(null);
   useEffect(() => {
-    loadAuth().then(setAuth);
-  }, []);
+    platform.loadAuth().then(setAuth);
+  }, [platform]);
 
   if (error instanceof RepoUnavailable && !error.signedIn) {
     return (
@@ -25,6 +25,7 @@ export function OpenFailed({ error, retry }: { error: unknown; retry: () => void
             : "GitHub does not show this repository without signing in. It is probably private. Sign in with an account that can see it, or use a token that includes it."}
         </p>
         <AuthPanel
+          platform={platform}
           auth={auth}
           onChange={(next) => {
             setAuth(next);
@@ -41,6 +42,7 @@ export function OpenFailed({ error, retry }: { error: unknown; retry: () => void
         <h2>Sign in again</h2>
         <p className="muted">GitHub no longer accepts the saved sign-in: the token expired or was revoked. Sign out, then sign in again or use a new token.</p>
         <AuthPanel
+          platform={platform}
           auth={auth}
           onChange={(next) => {
             setAuth(next);
@@ -72,6 +74,7 @@ export function OpenFailed({ error, retry }: { error: unknown; retry: () => void
           It does not exist, or {auth ? <b>{auth.login}</b> : "the account you signed in with"} cannot see it. For a private repository, sign in with an account that has access, or use a token that includes it.
         </p>
         <AuthPanel
+          platform={platform}
           auth={auth}
           onChange={(next) => {
             // signing out goes back to the sign-in screen, signing in as someone else tries again

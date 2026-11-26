@@ -4,17 +4,12 @@
  * It needs a GitHub OAuth App with "Enable Device Flow" ticked, and only its client ID.
  */
 
-/** Enough to commit the design and add the workflow file to public repositories. */
-export const OAUTH_SCOPES = "public_repo workflow";
+import type { DeviceCode } from "@readme-studio/web/github";
 
-export interface DeviceCode {
-  deviceCode: string;
-  userCode: string;
-  verificationUri: string;
-  /** seconds between polls */
-  interval: number;
-  expiresAt: number;
-}
+export type { DeviceCode };
+
+/** Enough to open private repositories, commit the design and add the workflow file. */
+export const OAUTH_SCOPES = "repo workflow";
 
 async function post<T>(http: typeof fetch, url: string, body: Record<string, string>): Promise<T> {
   const res = await http(url, {

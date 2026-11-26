@@ -1,8 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { fillOutsideCode, normalizeConfig, serializeConfig } from "@readme-studio/core";
-import { GitHub, _private } from "../src/github/api";
+import { CONFIG_PATH, defaultPrBranch, designFromReadme, filesFor, GitHub, _private, openDesign, RepoUnavailable, saveDesign, TokenRejected, splitSections, starterFor, WORKFLOW_PATH, inspectRepo } from "@readme-studio/web/github";
 import { requestDeviceCode, waitForToken } from "../src/github/auth";
-import { CONFIG_PATH, defaultPrBranch, designFromReadme, filesFor, openDesign, RepoUnavailable, saveDesign, TokenRejected, splitSections, starterFor, WORKFLOW_PATH } from "../src/github/design";
 import { editorUrl, isFresh, PENDING_TTL } from "../src/github/editor";
 import { buildManifest, manifestVersion } from "../src/manifest";
 import { DEFAULT_SETTINGS, upgradeSettings } from "../src/settings";
@@ -135,6 +134,17 @@ describe("opening a design", () => {
     expect(await openDesign(new GitHub("expired", http), repo).catch((e) => e)).toBeInstanceOf(TokenRejected);
   });
 
+  it("checks a repository the website saves to", async () => {
+    const http = (async (u: string | URL) => {
+      if (String(u).endsWith("/repos/mona/aurora")) return json({ default_branch: "trunk", private: true });
+      if (String(u).includes(`/contents/${CONFIG_PATH}`)) return json({ content: btoa("{}"), sha: "abc" });
+      return json({ message: "Not Found" }, 404);
+    }) as typeof fetch;
+    expect(await inspectRepo(new GitHub("t", http), repo)).toEqual({ repo, branch: "trunk", configExists: true, workflowExists: false });
+    const missing = (async () => json({ message: "Not Found" }, 404)) as typeof fetch;
+    expect(await inspectRepo(new GitHub(null, missing), repo).catch((e) => e)).toBeInstanceOf(RepoUnavailable);
+  });
+
   it("still fails loudly on other errors", async () => {
     const http = (async () => json({ message: "Server Error" }, 500)) as typeof fetch;
     const e = await openDesign(new GitHub("t", http), repo).catch((x) => x);
@@ -203,11 +213,17 @@ describe("saving a design", () => {
 describe("GitHub's editor", () => {
   it("pre-fills new files in the URL and opens existing ones for the content script", () => {
     const e = { repo: "mona/aurora", branch: "main", path: ".github/workflows/readme.yml", text: "name: readme\n" };
-    const fresh = new URL(editorUrl(e, false));
+    const link = editorUrl(e, false);
+    const fresh = new URL(link.url);
+    expect(link.prefilled).toBe(true);
     expect(fresh.pathname).toBe("/mona/aurora/new/main/.github/workflows");
     expect(fresh.searchParams.get("filename")).toBe("readme.yml");
     expect(fresh.searchParams.get("value")).toBe("name: readme\n");
-    expect(editorUrl({ ...e, path: CONFIG_PATH }, true)).toBe("https://github.com/mona/aurora/edit/main/readme.config.json");
+    expect(editorUrl({ ...e, path: CONFIG_PATH }, true)).toEqual({ url: "https://github.com/mona/aurora/edit/main/readme.config.json", prefilled: false });
+    // too long for a link: the file opens empty and gets its text another way
+    const long = editorUrl({ ...e, text: "x".repeat(20000) }, false);
+    expect(long.prefilled).toBe(false);
+    expect(new URL(long.url).searchParams.has("value")).toBe(false);
     expect(isFresh({ ...e, at: 0 }, PENDING_TTL - 1)).toBe(true);
     expect(isFresh({ ...e, at: 0 }, PENDING_TTL + 1)).toBe(false);
     expect(isFresh(undefined)).toBe(false);

@@ -1197,6 +1197,108 @@
   height: 22px;
 }
 
+/* ------------------------------------------------------ save to GitHub */
+
+.gh-save {
+  display: grid;
+  gap: 14px;
+}
+.gh-note {
+  margin: 0;
+  font-size: var(--t-xs);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.gh-row {
+  display: flex;
+  gap: 8px;
+}
+.gh-row > :first-child {
+  flex: 1;
+  min-width: 0;
+}
+.gh-auth {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--paper-2, transparent);
+}
+.gh-auth > .btn {
+  justify-self: start;
+}
+.gh-auth--in {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.gh-device {
+  display: grid;
+  gap: 10px;
+}
+.gh-device p {
+  margin: 0;
+}
+.gh-device__code {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.gh-device__code code {
+  font: 600 22px/1 var(--font-mono);
+  letter-spacing: 0.12em;
+  padding: 8px 12px;
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+}
+.gh-done {
+  margin: 0;
+  line-height: 1.55;
+}
+
+
+.gh-manual {
+  margin-right: auto;
+}
+.gh-error {
+  color: var(--danger, #d1242f);
+}
+
+/* draft state in the top bar */
+.draft-notice {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--t-xs);
+  color: var(--muted);
+  white-space: nowrap;
+}
+.draft-notice__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+.draft-notice button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+.draft-notice button:hover {
+  background: var(--line);
+}
+
 /* ------------------------------------------- unsaved changes on reopening */
 
 .draft-banner {

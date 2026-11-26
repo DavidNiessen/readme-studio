@@ -1,7 +1,7 @@
+import type { Auth, SaveMode } from "@readme-studio/web/github";
 import { ext } from "./platform";
 
-/** How a design gets back into the repository. */
-export type SaveMode = "commit" | "pull-request" | "editor";
+export type { Auth, SaveMode };
 
 export interface Settings {
   /** what the save dialog starts with */
@@ -13,15 +13,6 @@ export interface Settings {
   clientId: string;
   /** Offer "Design README" on every repository, not only profile repositories and ones with a design. */
   everyRepo: boolean;
-}
-
-export interface Auth {
-  token: string;
-  /** how the token was obtained */
-  via: "oauth" | "token";
-  login: string;
-  /** scopes GitHub reported for the token (classic tokens and OAuth only) */
-  scopes: string[];
 }
 
 export const DEFAULT_SETTINGS: Settings = { saveMode: "commit", clientId: "", everyRepo: true };

@@ -4,7 +4,7 @@ import { addBlock, duplicateBlock, findBlock, moveBlock, removeBlock, renameBloc
 import { findDesignBySource, getCurrentId, getPref, loadDesigns, saveDesign, setCurrentId, setPref, type SavedDesign } from "../lib/storage";
 
 export type InspectorTab = "block" | "profile" | "project" | "theme" | "data";
-export type DialogId = "export" | "presets" | "import" | "json" | "shortcuts" | "designs" | "palette" | "add" | null;
+export type DialogId = "export" | "save" | "presets" | "import" | "json" | "shortcuts" | "designs" | "palette" | "add" | null;
 export type MobilePane = "layers" | "canvas" | "inspect";
 
 export interface DataStatus {

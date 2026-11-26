@@ -36,6 +36,9 @@ import { Canvas } from "./Canvas";
 import { Dialogs } from "./Dialogs";
 import { Inspector } from "./Inspector";
 import { Rail } from "./Rail";
+import { DraftNotice, SaveButton, SaveDialog } from "./github/SaveToGitHub";
+import { OpenFailed } from "./github/OpenFailed";
+import { webPlatform } from "./github/webPlatform";
 import { StudioHostContext, useStudioHost, type StudioHost } from "./host";
 
 function SavedIndicator() {
@@ -146,6 +149,7 @@ function TopBar() {
             { label: "My designs", icon: <FolderOpen />, onSelect: () => s.openDialog("designs") },
             { label: "Import config", icon: <Upload />, onSelect: () => s.openDialog("import") },
             { label: "Edit as JSON", icon: <FileJson />, onSelect: () => s.openDialog("json") },
+            { label: "Export manually", icon: <Download />, shortcut: `${MOD} E`, onSelect: () => s.openDialog("export") },
             {
               label: "Copy share link",
               icon: <Link2 />,
@@ -164,10 +168,9 @@ function TopBar() {
             { label: "Documentation", icon: <BookOpen />, onSelect: docs },
           ]}
         />
+        <DraftNotice />
         {host?.actions}
-        <Button variant={host?.actions ? "secondary" : "accent"} aria-label="Export" onClick={() => s.openDialog("export")}>
-          <Download /> <span className="hide-sm">Export</span>
-        </Button>
+        <SaveButton />
         {host?.onClose && (
           <IconButton label="Close and return" onClick={host.onClose}>
             <X />
@@ -195,6 +198,11 @@ function useShortcuts() {
         return;
       }
       if (s.dialog) return;
+      if (mod && k === "s") {
+        e.preventDefault();
+        s.openDialog("save");
+        return;
+      }
       if (mod && k === "e") {
         e.preventDefault();
         s.openDialog("export");
@@ -371,13 +379,7 @@ function StudioShell() {
               Opening {host?.context ?? "the design"}…
             </p>
           ) : (
-            (host?.failed?.(opening.error, () => setAttempt((n) => n + 1)) ?? (
-              <>
-                <h2>Could not open {host?.context ?? "the design"}</h2>
-                <p className="muted">{(opening.error as Error)?.message ?? String(opening.error)}</p>
-                <Button onClick={() => setAttempt((n) => n + 1)}>Try again</Button>
-              </>
-            ))
+            (host?.failed?.(opening.error, () => setAttempt((n) => n + 1)) ?? <OpenFailed platform={host?.github ?? webPlatform} error={opening.error} retry={() => setAttempt((n) => n + 1)} />)
           )}
         </div>
       </div>
@@ -395,6 +397,7 @@ function StudioShell() {
       <MobileTabs />
       {draft && <DraftBanner {...draft} context={host?.context} onDone={() => setDraft(null)} />}
       <Dialogs />
+      <SaveDialog platform={host?.github ?? webPlatform} />
       {host?.overlays}
     </div>
   );

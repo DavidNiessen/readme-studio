@@ -1,21 +1,17 @@
 import { normalizeConfig, parseConfig, presetConfig, serializeConfig, workflowYaml, type Block, type StudioConfig } from "@readme-studio/core";
-import { isProfileRepo, type RepoRef } from "../repo";
+import { isProfileRepo, type RepoRef } from "./repo";
 import { GitHub, GitHubError } from "./api";
 
 export const CONFIG_PATH = "readme.config.json";
 export const WORKFLOW_PATH = ".github/workflows/readme.yml";
 
 /** What the studio knows about the repository it edits. */
-export interface Opened {
-  repo: RepoRef;
-  branch: string;
+export interface Opened extends SaveTarget {
   config: StudioConfig;
   name: string;
   warnings: string[];
   /** the committed config's SHA (null when it does not exist yet, or was read without the API) */
   configSha: string | null;
-  configExists: boolean;
-  workflowExists: boolean;
   /** the README the design was started from, when the repository had no design yet */
   importedReadme: string | null;
 }
@@ -106,26 +102,51 @@ export class TokenRejected extends Error {
   }
 }
 
-/** Loads the repository's committed design, or a starter design when it has none. */
-export async function openDesign(gh: GitHub, repo: RepoRef, ref?: string): Promise<Opened> {
-  let branch = ref;
-  let limited = false;
+/**
+ * The branch to read and write: `ref`, else the default branch. Asked even with a ref, since it
+ * is how a private repository shows up (404) before any file is read. `limited`: the API was
+ * rate-limited, so the branch is HEAD and only raw files can be read.
+ */
+async function resolveBranch(gh: GitHub, repo: RepoRef, ref?: string): Promise<{ branch: string; limited: boolean }> {
   try {
-    // asked even with a ref: it is how a private repository shows up (404) before any file read
     const info = await gh.repo(repo.full);
-    branch ??= info.defaultBranch;
+    return { branch: ref ?? info.defaultBranch, limited: false };
   } catch (e) {
     if (e instanceof GitHubError && e.status === 404) throw new RepoUnavailable(repo, gh.signedIn);
     if (e instanceof GitHubError && e.status === 401 && gh.signedIn) throw new TokenRejected();
     // unauthenticated API calls are rate-limited; raw files still answer on HEAD
     if (!(e instanceof GitHubError) || (e.status !== 403 && e.status !== 429)) throw e;
-    limited = true;
-    branch ??= "HEAD";
+    return { branch: ref ?? "HEAD", limited: true };
   }
-  const [config, workflow] = await Promise.all([gh.file(repo.full, CONFIG_PATH, branch), gh.file(repo.full, WORKFLOW_PATH, branch)]).catch((e) => {
+}
+
+async function designFiles(gh: GitHub, repo: RepoRef, branch: string, limited: boolean) {
+  return Promise.all([gh.file(repo.full, CONFIG_PATH, branch), gh.file(repo.full, WORKFLOW_PATH, branch)]).catch((e) => {
     if (limited && e instanceof GitHubError && (e.status === 403 || e.status === 429)) throw new RepoUnavailable(repo, gh.signedIn, true);
     throw e;
   });
+}
+
+/** Where a save goes, and what is there already. */
+export interface SaveTarget {
+  repo: RepoRef;
+  /** "HEAD" when it could only be read without the API; resolved before writing */
+  branch: string;
+  configExists: boolean;
+  workflowExists: boolean;
+}
+
+/** What the save dialog needs to know about a repository the design was not opened from. */
+export async function inspectRepo(gh: GitHub, repo: RepoRef): Promise<SaveTarget> {
+  const { branch, limited } = await resolveBranch(gh, repo);
+  const [config, workflow] = await designFiles(gh, repo, branch, limited);
+  return { repo, branch, configExists: !!config, workflowExists: !!workflow };
+}
+
+/** Loads the repository's committed design, or a starter design when it has none. */
+export async function openDesign(gh: GitHub, repo: RepoRef, ref?: string): Promise<Opened> {
+  const { branch, limited } = await resolveBranch(gh, repo, ref);
+  const [config, workflow] = await designFiles(gh, repo, branch, limited);
   if (config) {
     const parsed = parseConfig(config.text);
     return {
