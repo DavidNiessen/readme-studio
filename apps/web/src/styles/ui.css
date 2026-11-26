@@ -1061,3 +1061,65 @@ a.btn {
   margin-left: 6px;
   font-size: var(--t-xs);
 }
+
+/* ---------------------------------------------------------------- preview data status */
+
+.data-refresh {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 9px;
+  border-radius: var(--r-2);
+  color: var(--muted);
+  font-size: var(--t-xs);
+  white-space: nowrap;
+  transition: background var(--dur-1), color var(--dur-1);
+}
+.data-refresh svg {
+  width: 15px;
+  height: 15px;
+  flex: none;
+}
+.data-refresh:hover:not(:disabled) {
+  background: var(--sunken);
+  color: var(--ink);
+}
+.data-refresh:disabled {
+  cursor: default;
+}
+.data-refresh--warn,
+.data-refresh--warn:hover:not(:disabled) {
+  color: var(--warn);
+}
+.data-status {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.data-status .field__help {
+  margin: 2px 0 0;
+}
+.data-status--warn {
+  border-color: color-mix(in srgb, var(--warn) 45%, var(--line));
+}
+.data-status--warn b {
+  color: var(--warn);
+}
+.spin {
+  animation: spin 0.9s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .spin {
+    animation: none;
+  }
+}

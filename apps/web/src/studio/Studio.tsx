@@ -28,6 +28,7 @@ import {
   FolderGit2,
   RotateCcw,
   X,
+  RefreshCw,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { layoutPresets, parseConfig, resolvePalette, type StudioConfig } from "@readme-studio/core";
@@ -52,6 +53,8 @@ import { OpenFailed } from "./github/OpenFailed";
 import { webPlatform } from "./github/webPlatform";
 import { StudioHostContext, useStudioHost, type StudioHost } from "./host";
 import { Welcome } from "./Welcome";
+import { DataRefreshButton } from "./DataStatus";
+import { useLiveData } from "../lib/liveData";
 
 export function useUiTheme(): ["light" | "dark" | "system", (t: "light" | "dark" | "system") => void] {
   const [t, setT] = useState<"light" | "dark" | "system">(() => getPref("ui-theme-choice", "system"));
@@ -158,6 +161,7 @@ function TopBar() {
         </div>
       </div>
       <div className="topbar__right">
+        <DataRefreshButton />
         <Button variant="ghost" className="hide-md" onClick={() => s.openDialog("presets")}>
           <LayoutTemplate /> Presets
         </Button>
@@ -188,6 +192,7 @@ function TopBar() {
             { label: s.mode === "dark" ? "Preview light" : "Preview dark", icon: s.mode === "dark" ? <Sun /> : <Moon />, shortcut: "T", onSelect: () => s.setMode(s.mode === "dark" ? "light" : "dark") },
             { label: s.device === "desktop" ? "Mobile width" : "Desktop width", icon: s.device === "desktop" ? <Smartphone /> : <Monitor />, onSelect: () => s.setDevice(s.device === "desktop" ? "mobile" : "desktop") },
             { label: "Replay animations", icon: <Play />, shortcut: "R", onSelect: s.replay },
+            { label: "Refresh GitHub data", icon: <RefreshCw />, onSelect: s.refreshData },
             { label: `App theme: ${ui}`, icon: <SunMoon />, onSelect: () => setUi(ui === "system" ? "dark" : ui === "dark" ? "light" : "system") },
             "sep",
             { label: "Keyboard shortcuts", icon: <Keyboard />, shortcut: "?", onSelect: () => s.openDialog("shortcuts") },
@@ -363,6 +368,7 @@ function StudioShell() {
   const host = useStudioHost();
   useShortcuts();
   useUiTheme();
+  useLiveData(host?.github ?? webPlatform);
   // a host (the browser extension) decides what opens; the website reads its URL. Until that
   // design is in, the editor stays hidden: whatever design the store held is not this one.
   const [opening, setOpening] = useState<{ state: "loading" } | { state: "ready" } | { state: "failed"; error: unknown }>({ state: host?.open ? "loading" : "ready" });

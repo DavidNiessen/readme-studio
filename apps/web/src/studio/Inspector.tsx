@@ -45,7 +45,11 @@ import { arrayMove, SortableItem, SortableList, SortHandle } from "../components
 import { Button, ColorInput, Field, IconButton, Segmented, Select, Slider, Tabs, TextInput, ToggleRow, MOD, useConfirm, useToast } from "../components/ui";
 import { canJoin, findBlock, setJoin, setRowAlign, updateBlock } from "../lib/layout";
 import { parseRepo } from "../github/repo";
-import { fetchLive } from "../lib/live";
+import { AuthPanel } from "./github/AuthPanel";
+import { setSession, useSession } from "./github/session";
+import { webPlatform } from "./github/webPlatform";
+import { useStudioHost } from "./host";
+import { DataStatusLine } from "./DataStatus";
 import { blockActions } from "./blockActions";
 import { useStudio, type InspectorTab } from "../state/store";
 import { FieldControl, IconPicker } from "./FieldControl";
@@ -670,17 +674,9 @@ function hslHex(h: number, s: number, l: number): string {
 // ---------------------------------------------------------------- data
 
 function DataPanel() {
-  const { config, data, dataMode, dataStatus, useSample, setLive, setDataStatus } = useStudio();
-  const [token, setToken] = useState("");
-  const load = async () => {
-    setDataStatus({ state: "loading" });
-    try {
-      const d = await fetchLive(config, token.trim());
-      setLive(d);
-    } catch (e) {
-      setDataStatus({ state: "error", message: (e as Error).message.includes("404") ? config.kind === "project" ? `Repository “${config.project.repo}” not found (or private).` : `GitHub user “${config.profile.login}” not found.` : (e as Error).message.includes("403") ? "GitHub rate limit reached. Add a token or try again later." : (e as Error).message });
-    }
-  };
+  const { config, data, dataMode } = useStudio();
+  const { auth } = useSession();
+  const platform = useStudioHost()?.github ?? webPlatform;
   const pr = data.project;
   const rows: [string, string | number][] = config.kind === "project" && pr ? [
     ["source", data.source],
@@ -711,41 +707,18 @@ function DataPanel() {
       <LocationSection />
       <div className="panel__section">
         <div className="subhead">Preview data</div>
-        <Segmented
-          label="Data source"
-          value={dataMode}
-          onChange={(v) => (v === "sample" ? useSample() : load())}
-          options={[
-            { value: "sample", label: "Sample" },
-            { value: "live", label: "Live from GitHub" },
-          ]}
-        />
+        <DataStatusLine />
         <p className="field__help" style={{ margin: "10px 0 16px" }}>
-          {dataMode === "sample"
-            ? "Realistic, deterministic sample data, seeded by your username. Nothing leaves your browser."
-            : `Public data for ${config.kind === "project" ? config.project.repo : `@${config.profile.login}`}, fetched just now.`}{" "}
-          The action always renders with your real numbers.
+          The preview shows real GitHub data, cached in this browser. Until it has loaded, or when GitHub cannot be reached, sample data stands in. The action always renders with your
+          real numbers.
         </p>
-        <Field label="GitHub token (optional)" help="Unlocks your exact contribution calendar in the preview. Kept in memory for this tab only and sent only to api.github.com.">
-          <input className="input input--mono" type="password" autoComplete="off" placeholder="github_pat_…" aria-label="GitHub token" value={token} onChange={(e) => setToken(e.target.value)} />
-        </Field>
-        <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-          <Button onClick={load} disabled={dataStatus.state === "loading"}>
-            {dataStatus.state === "loading" ? <span className="spinner" /> : <RefreshCw />} Load {config.kind === "project" ? config.project.repo : `@${config.profile.login}`}
-          </Button>
-        </div>
-        {dataStatus.state === "error" && (
-          <div className="warn" style={{ marginTop: 12 }}>
-            <AlertTriangle />
-            <span>{dataStatus.message}</span>
-          </div>
-        )}
-        {dataMode === "live" && !token && config.kind === "profile" && (
-          <div className="note" style={{ marginTop: 12 }}>
+        {dataMode === "live" && !auth && config.kind === "profile" && (
+          <div className="note" style={{ marginBottom: 12 }}>
             <Info />
-            <span>Without a token the browser cannot read your contribution calendar, so the graph widgets show a stand-in. The published README uses the real one.</span>
+            <span>Without signing in, the browser cannot read your contribution calendar, so the graph widgets show a stand-in. The published README uses the real one.</span>
           </div>
         )}
+        <AuthPanel platform={platform} auth={auth} onChange={(a) => setSession({ auth: a })} />
         <div className="subhead" style={{ marginTop: 24 }}>
           Loaded
         </div>

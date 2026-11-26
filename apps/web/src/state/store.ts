@@ -10,6 +10,8 @@ export type MobilePane = "layers" | "canvas" | "inspect";
 export interface DataStatus {
   state: "idle" | "loading" | "ok" | "error";
   message?: string;
+  /** when the shown live data was fetched */
+  updatedAt?: number;
 }
 
 interface StudioState {
@@ -47,10 +49,14 @@ interface StudioState {
   dialog: DialogId;
   railTab: "layers" | "add";
 
+  /** live: GitHub data for `dataKey`; sample: the stand-in until there is some (see lib/liveData) */
   dataMode: "sample" | "live";
   data: ProfileData;
-  liveData: ProfileData | null;
+  /** the account or repository the live data is for */
+  dataKey: string | null;
   dataStatus: DataStatus;
+  /** bumped to fetch fresh data now */
+  dataRefresh: number;
 
   /** apply a config change; consecutive changes with the same key merge into one undo step */
   commit: (fn: (c: StudioConfig) => StudioConfig, key?: string) => void;
@@ -87,9 +93,10 @@ interface StudioState {
   setOptions: (id: string, patch: Record<string, unknown>, key?: string) => void;
   rename: (id: string, wanted: string) => void;
 
-  useSample: () => void;
-  setLive: (d: ProfileData) => void;
+  showSample: () => void;
+  setLive: (d: ProfileData, key: string, at: number) => void;
   setDataStatus: (s: DataStatus) => void;
+  refreshData: () => void;
 
   newDesign: (presetId: string) => void;
   openDesign: (d: SavedDesign) => void;
@@ -118,7 +125,7 @@ function initial(): { id: string; name: string; config: StudioConfig; source: st
  * A design that was just started or switched to shows sample data: live data belongs to the
  * account or repository it was loaded for, which the next design may not share.
  */
-const freshData = (c: StudioConfig) => ({ dataMode: "sample" as const, data: sampleFor(c), liveData: null, dataStatus: { state: "idle" } as const });
+const freshData = (c: StudioConfig) => ({ dataMode: "sample" as const, data: sampleFor(c), dataKey: null, dataStatus: { state: "idle" } as const });
 
 /** Two configs are the same design when they serialise the same way. */
 export function sameConfig(a: StudioConfig, b: StudioConfig): boolean {
@@ -168,8 +175,9 @@ export const useStudio = create<StudioState>((set, get) => ({
 
   dataMode: "sample",
   data: sampleFor(init.config),
-  liveData: null,
+  dataKey: null,
   dataStatus: { state: "idle" },
+  dataRefresh: 0,
 
   commit(fn, key) {
     const s = get();
@@ -336,11 +344,14 @@ export const useStudio = create<StudioState>((set, get) => ({
     set({ selected: r.id });
   },
 
-  useSample() {
-    set((s) => ({ dataMode: "sample", data: sampleFor(s.config), dataStatus: { state: "idle" } }));
+  showSample() {
+    set((s) => ({ dataMode: "sample", data: sampleFor(s.config), dataKey: null, dataStatus: { state: s.dataStatus.state === "loading" ? "loading" : "idle" } }));
   },
-  setLive(d) {
-    set({ dataMode: "live", data: d, liveData: d, dataStatus: { state: "ok" } });
+  setLive(d, key, at) {
+    set({ dataMode: "live", data: d, dataKey: key, dataStatus: { state: "ok", updatedAt: at } });
+  },
+  refreshData() {
+    set((s) => ({ dataRefresh: s.dataRefresh + 1 }));
   },
   setDataStatus(st) {
     set({ dataStatus: st });
