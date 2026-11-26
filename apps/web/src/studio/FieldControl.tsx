@@ -165,7 +165,15 @@ export function FieldControl({ field, values, onChange }: { field: Field; values
       return (
         <FieldWrap label={field.label} help={field.help}>
           {field.multiline ? (
-            <TextArea value={String(v ?? "")} onChange={set} placeholder={field.placeholder} rows={4} maxLength={field.max} />
+            <TextArea
+              value={String(v ?? "")}
+              onChange={set}
+              placeholder={field.placeholder}
+              rows={field.rows ?? 4}
+              // a value already over the limit (an imported section, an older config) must stay
+              // editable: browsers refuse every keystroke in a textarea that is past its maxLength
+              maxLength={field.max && String(v ?? "").length <= field.max ? field.max : undefined}
+            />
           ) : (
             <TextInput value={String(v ?? "")} onChange={set} placeholder={field.placeholder} maxLength={field.max} aria-label={field.label} />
           )}

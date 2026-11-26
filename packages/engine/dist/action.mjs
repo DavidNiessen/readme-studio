@@ -5442,7 +5442,8 @@ var markdown = defineWidget({
       label: "Markdown",
       type: "text",
       multiline: true,
-      max: 5e3,
+      max: 2e4,
+      rows: 12,
       placeholder: "**Bold**, _italic_, [links](https://example.com), lists, tables and HTML all work.",
       help: `Emitted verbatim into the README; the row's alignment applies. ${PLACEHOLDER_HELP}`
     }

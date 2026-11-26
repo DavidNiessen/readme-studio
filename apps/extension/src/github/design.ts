@@ -26,8 +26,11 @@ export function starterFor(repo: RepoRef): StudioConfig {
   return { ...presetConfig("oss-library", { login: repo.owner, name: repo.owner }, { repo: repo.full }), kind: "project" };
 }
 
-/** The Markdown widget's limit for one block; longer sections are split at paragraphs. */
-export const MARKDOWN_MAX = 5000;
+/**
+ * Longest section kept in one Markdown block; longer ones are split at paragraphs. Well under the
+ * widget's limit, so an imported section can still grow while it is edited.
+ */
+export const MARKDOWN_MAX = 8000;
 
 /** Top-level sections of a Markdown document, never splitting inside fenced code. */
 export function splitSections(md: string, max = MARKDOWN_MAX): string[] {

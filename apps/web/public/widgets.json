@@ -3984,7 +3984,7 @@
           "type": "text",
           "default": "Hi, I'm **{name}**. I build calm, fast software and the tools around it.\nCurrently exploring local-first apps and typed APIs. Say hello any time!",
           "help": "Emitted verbatim into the README; the row's alignment applies. Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions} {project} {repo} {tagline} {version} {license} {forks} {contributors} {npm} {pypi} {crate} {owner}",
-          "max": 5000
+          "max": 20000
         }
       ]
     },
