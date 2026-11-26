@@ -169,7 +169,7 @@ Category Header · output svg · width full · for project READMEs
 - `title` (text) · default ""
 - `align` (segmented: left | center) · default "left"
 - `version` (toggle) · default true · Latest release tag next to the name.
-- `install` (text) · default "npm i {npm}" · Shown in a code pill under the tagline. Leave empty to hide. Placeholders: {npm} {repo} {project} {version}
+- `install` (text) · default "npm i {npm}" · Shown in a code pill under the tagline. Leave empty to hide. It also stays hidden while a placeholder it uses has no value, such as {npm} without an npm package in the Project tab. Placeholders: {npm} {repo} {project} {version}
 - `stats` (toggle) · default true
 - `third` (segmented: license | downloads | contributors) · default "license"
 - `emblem` (icon) · default "" · Defaults to the project logo; without one a monogram tile is drawn.

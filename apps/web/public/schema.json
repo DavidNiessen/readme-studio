@@ -471,7 +471,7 @@
                           },
                           "install": {
                             "title": "Install command",
-                            "description": "Shown in a code pill under the tagline. Leave empty to hide. Placeholders: {npm} {repo} {project} {version}",
+                            "description": "Shown in a code pill under the tagline. Leave empty to hide. It also stays hidden while a placeholder it uses has no value, such as {npm} without an npm package in the Project tab. Placeholders: {npm} {repo} {project} {version}",
                             "type": "string"
                           },
                           "stats": {

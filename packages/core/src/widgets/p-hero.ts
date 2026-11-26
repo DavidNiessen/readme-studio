@@ -85,7 +85,7 @@ export const projectHero = defineWidget({
       ],
     },
     { key: "version", label: "Version pill", type: "toggle", help: "Latest release tag next to the name." },
-    { key: "install", label: "Install command", type: "text", placeholder: "npm i {npm}", help: "Shown in a code pill under the tagline. Leave empty to hide. Placeholders: {npm} {repo} {project} {version}" },
+    { key: "install", label: "Install command", type: "text", placeholder: "npm i {npm}", help: "Shown in a code pill under the tagline. Leave empty to hide. It also stays hidden while a placeholder it uses has no value, such as {npm} without an npm package in the Project tab. Placeholders: {npm} {repo} {project} {version}" },
     { key: "stats", label: "Headline numbers", type: "toggle" },
     {
       key: "third",
