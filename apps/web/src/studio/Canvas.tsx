@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { Button, IconButton, cn } from "../components/ui";
 import { WidgetImage } from "../components/WidgetImage";
 import { useRenderedLayout, type RenderedPart } from "../lib/render";
+import { resolveRepoLinks } from "../lib/repoLinks";
 import { useStudio } from "../state/store";
 
 marked.setOptions({ gfm: true, breaks: false });
@@ -33,8 +34,9 @@ function Tools({ id }: { id: string }) {
   );
 }
 
-function Markdown({ part, selected, onSelect }: { part: RenderedPart; selected: boolean; onSelect: () => void }) {
-  const html = useMemo(() => marked.parse(part.markdown ?? "", { async: false }) as string, [part.markdown]);
+function Markdown({ part, repo, selected, onSelect }: { part: RenderedPart; repo: string; selected: boolean; onSelect: () => void }) {
+  // relative images and links resolve against the design's repository, as they do on GitHub
+  const html = useMemo(() => resolveRepoLinks(marked.parse(part.markdown ?? "", { async: false }) as string, repo), [part.markdown, repo]);
   return (
     <div className={cn("cv-md", selected && "is-selected")} onClick={onSelect} data-block={part.meta.block.id}>
       {selected && <div className="cv-tag">{part.meta.block.id}</div>}
@@ -73,12 +75,13 @@ export function Canvas() {
   const parts = rows.reduce((a, r) => a + r.parts.length, 0);
   const bytes = rows.reduce((a, r) => a + r.parts.reduce((b, p) => b + (p.svg?.length ?? 0), 0), 0);
   const pick = (id: string) => select(selected === id ? null : id);
+  const repo = assetRepository(config);
   return (
     <main className="canvas" ref={scroller} onClick={() => select(null)} aria-label="Preview">
       <div className="canvas__inner">
         <div className="canvas__meta">
           <span className="mono">
-            {assetRepository(config)} · README.md
+            {repo} · README.md
           </span>
           <span className="mono hide-sm">
             {parts} images · ~{Math.round(bytes / 1024)} KB per theme · {data.source === "mock" ? "sample data" : `live: ${data.source}`}
@@ -121,6 +124,7 @@ export function Canvas() {
                       <Markdown
                         key={p.meta.name}
                         part={p}
+                        repo={repo}
                         selected={selected === p.meta.block.id}
                         onSelect={() => {
                           pick(p.meta.block.id);
