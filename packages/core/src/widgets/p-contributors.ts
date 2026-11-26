@@ -130,7 +130,9 @@ ${names ? `<text x="${f(cx)}" y="${f(cy + r + 16)}" font-size="10" text-anchor="
       const ring = k < 3 ? t.accent : t.border;
       const halo =
         k === 0
-          ? `<circle cx="${f(cx)}" cy="${f(cy)}" r="${f(r + 3)}" stroke="${t.glow}" stroke-width="1.5" class="fx loop loop-only" style="animation:ping 2.6s ease-out 2.6s infinite"/>`
+          ? shape === "rounded"
+            ? `<rect x="${f(cx - r - 3)}" y="${f(cy - r - 3)}" width="${f(size + 6)}" height="${f(size + 6)}" rx="${f(Math.max(3, r * 0.42) + 3)}" stroke="${t.glow}" stroke-width="1.5" class="fx loop loop-only" style="animation:ping 2.6s ease-out 2.6s infinite"/>`
+            : `<circle cx="${f(cx)}" cy="${f(cy)}" r="${f(r + 3)}" stroke="${t.glow}" stroke-width="1.5" class="fx loop loop-only" style="animation:ping 2.6s ease-out 2.6s infinite"/>`
           : "";
       cells.push(`${halo}${avatar(t, c, cx, cy, r, `av${i}`, { shape, ring, ringWidth: k < 3 ? 2 : 1, extra: `class="fx" style="animation:pop .5s ease ${d0.toFixed(2)}s both"` })}
 ${names ? `<text x="${f(cx)}" y="${f(cy + r + 16)}" font-size="10" text-anchor="middle" class="${k < 3 ? "t" : "m"} fade" style="${dl(d0 + 0.2)}">${esc(fitText(t, c.login, 10, cellW - 8))}</text>` : ""}`);
