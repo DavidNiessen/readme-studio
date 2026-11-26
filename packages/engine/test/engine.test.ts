@@ -100,7 +100,8 @@ describe("build", () => {
     expect(existsSync(join(out, "hero-dark.svg"))).toBe(true);
     expect(existsSync(join(out, "hero-light.svg"))).toBe(true);
     expect(res.readme).toContain("raw.githubusercontent.com/mona/mona/output/hero-dark.svg");
-    expect(dataNeeds(config).weather).toBe(false);
+    expect(dataNeeds(config).weather).toBe(true);
+    expect(existsSync(join(out, "skyline-dark.gif"))).toBe(true);
   });
 
   it("converts WOFF to SFNT for rasterising", () => {

@@ -97,3 +97,22 @@ describe("widgets", () => {
     check(c, mockData(DATE, "octocat"), "hostile");
   });
 });
+
+describe("presets render", () => {
+  it("every layout preset renders every part in both modes", async () => {
+    const { layoutPresets, presetConfig } = await import("../src/index");
+    await loadAllFonts();
+    for (const p of layoutPresets) {
+      const c = presetConfig(p.id);
+      for (const mode of c.output.modes) {
+        const ctx = createCtx(c, mockData(DATE, "octocat"), mode, { date: DATE });
+        for (const row of c.layout)
+          for (const b of row.blocks)
+            for (const part of blockParts(b, ctx)) {
+              const out = renderPart(part, ctx);
+              expect(out, `${p.id}/${mode}/${part.name}`).not.toContain("could not be rendered");
+            }
+      }
+    }
+  });
+});
