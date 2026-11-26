@@ -48,7 +48,7 @@ describe("project data", () => {
 
   it("prefers full releases and reads the build from the project's own workflow", async () => {
     const rel = (tag: string, day: number, prerelease: boolean) => ({ tag_name: tag, name: "", html_url: `https://github.com/mona/aurora/releases/tag/${tag}`, published_at: `2026-11-${day}T00:00:00Z`, draft: false, prerelease, body: "" });
-    const run = (name: string, path: string, status: string, conclusion: string | null) => ({ name, path, status, conclusion, html_url: `https://github.com/mona/aurora/actions/${name}` });
+    const run = (name: string, path: string, status: string, conclusion: string | null, event = "push") => ({ name, path, event, status, conclusion, html_url: `https://github.com/mona/aurora/actions/${name}` });
     const with_ = (releases: unknown[], runs: unknown[]) =>
       (async (input: string | URL) => {
         const u = String(input);
@@ -57,7 +57,8 @@ describe("project data", () => {
         return fake(input);
       }) as typeof fetch;
     // both names the README's workflow has had are skipped: readme-studio.yml now, readme.yml before
-    const runs = [run("Readme Studio", ".github/workflows/readme-studio.yml", "in_progress", null), run("readme", ".github/workflows/readme.yml", "completed", "failure"), run("profile", ".github/workflows/profile.yml", "completed", "success"), run("Pre-release", ".github/workflows/prerelease.yml", "completed", "failure")];
+    // Dependabot's runs (event "dynamic") are skipped too: their names are whole PR titles
+    const runs = [run("npm_and_yarn in / for @types/node, vite - Update #1733184849", "dynamic/dependabot/dependabot-updates", "completed", "success", "dynamic"), run("Readme Studio", ".github/workflows/readme-studio.yml", "in_progress", null), run("readme", ".github/workflows/readme.yml", "completed", "failure"), run("profile", ".github/workflows/profile.yml", "completed", "success"), run("Pre-release", ".github/workflows/prerelease.yml", "completed", "failure")];
 
     const mixed = await fetchProjectData({ repo: "mona/aurora", fetch: with_([rel("v1.5.1-108", 23, true), rel("v1.5.1", 22, false), rel("v1.5.0", 21, false)], runs), avatars: 0 });
     expect(mixed.releases.map((r) => r.tag)).toEqual(["v1.5.1", "v1.5.0"]);

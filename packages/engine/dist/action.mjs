@@ -1551,6 +1551,68 @@ function iconSvg(id, x, y, size, fill2, extra = "") {
   return `<svg x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${size}" height="${size}" viewBox="${i.viewBox}" color="${color}" ${extra}>${i.inner}</svg>`;
 }
 
+// ../core/src/widgets/kit-c.ts
+function str(v, d = "") {
+  return typeof v === "string" ? v.trim() : typeof v === "number" ? String(v) : d;
+}
+function numOpt(v, d, lo = -Infinity, hi = Infinity) {
+  const n = typeof v === "number" ? v : typeof v === "string" && v.trim() !== "" ? Number(v) : NaN;
+  return Number.isFinite(n) ? Math.min(hi, Math.max(lo, n)) : d;
+}
+function items(v) {
+  return Array.isArray(v) ? v.filter((x) => typeof x === "object" && x !== null && !Array.isArray(x)) : [];
+}
+function strings(v) {
+  return Array.isArray(v) ? v.map((x) => str(x)).filter(Boolean) : [];
+}
+function pick(v, list, d) {
+  return list.includes(v) ? v : d;
+}
+function isGlyph(id) {
+  return Object.prototype.hasOwnProperty.call(glyphs, id);
+}
+function hasMark(id) {
+  return !!id && (isGlyph(id) || hasIcon(id) || hasIcon(id.toLowerCase().replace(/[^a-z0-9]/g, "")));
+}
+function mark(t, id, x, y, size, color, bg = t.card, extra = "") {
+  if (!hasMark(id)) return "";
+  if (isGlyph(id)) return glyph(id, x, y, size, color === "brand" ? t.accent : color, extra);
+  let c = color;
+  if (color === "brand") {
+    const b = icon(id).color;
+    c = b && contrast(b, bg) >= 1.7 ? b : t.text;
+  }
+  return iconSvg(id, x, y, size, c, extra);
+}
+function emblemMark(id, x, y, size, paint) {
+  if (isGlyph(id)) return glyph(id, x, y, size, paint);
+  const em = icon(hasIcon(id) ? id : id.toLowerCase().replace(/[^a-z0-9]/g, ""));
+  return `<svg x="${x}" y="${y}" width="${size}" height="${size}" viewBox="${em.viewBox}">${em.inner.replace(/fill="currentColor"/g, `fill="${paint}"`)}</svg>`;
+}
+function colorOr(v, d) {
+  return isHex(v) ? v : d;
+}
+function initials(name) {
+  const parts = name.trim().split(/[\s._-]+/).filter(Boolean);
+  if (!parts.length) return "";
+  if (parts.length === 1) return [...parts[0]].slice(0, 2).join("").toUpperCase();
+  return ([...parts[0]][0] + [...parts[parts.length - 1]][0]).toUpperCase();
+}
+function n1(v) {
+  return Number(v.toFixed(1)).toString();
+}
+function statusColor(t, status) {
+  const dark = t.name === "dark";
+  if (status === "open") return dark ? "#22c55e" : "#16a34a";
+  if (status === "busy") return dark ? "#f59e0b" : "#d97706";
+  return dark ? "#ef4444" : "#dc2626";
+}
+function emptyHint(t, cx, baseline, g, text) {
+  const tw = textWidth(t, text, 13);
+  const x0 = cx - (16 + 10 + tw) / 2;
+  return `<g class="in" style="animation-delay:.2s">${glyph(g, x0, baseline - 12.5, 16, t.accent)}<text x="${n1(x0 + 26)}" y="${baseline}" font-size="13" class="m">${esc(text)}</text></g>`;
+}
+
 // ../core/src/widgets/hero.ts
 var W4 = 840;
 var H2 = 280;
@@ -1669,14 +1731,13 @@ var hero = defineWidget({
     const footY = 236;
     const greet = `${greeting(ctx.now.hour)}${ctx.profile.location.city ? ` from ${ctx.profile.location.city}` : ""}`;
     const moon = moonPhase(ctx.date);
-    const em = icon(o.emblem);
-    const emInner = em.inner.replace(/fill="currentColor"/g, 'fill="url(#kgrad)"');
+    const emblemId = String(o.emblem ?? "");
     const emblem = o.emblemStyle === "none" ? "" : `<g transform="translate(${kx} ${ky})">
   ${o.emblemStyle === "orbit" ? `<circle class="ring loop" cx="${ks / 2}" cy="${ks / 2}" r="${ks * 0.78}" stroke="${t.subtle}" stroke-dasharray="2 10" stroke-width="2"/>
   <circle class="ring2 loop" cx="${ks / 2}" cy="${ks / 2}" r="${ks * 0.62}" stroke="${t.accent}" stroke-opacity=".5" stroke-dasharray="40 160 10 60" stroke-width="1.5"/>` : ""}
   <g class="bob loop">
     <circle class="kpulse loop" cx="${ks / 2}" cy="${ks / 2}" r="${ks * 0.36}" fill="${t.accent}" filter="url(#softglow)"/>
-    <svg x="${ks * 0.2}" y="${ks * 0.2}" width="${ks * 0.6}" height="${ks * 0.6}" viewBox="${em.viewBox}">${emInner}</svg>
+    ${emblemMark(hasMark(emblemId) ? emblemId : "github", ks * 0.2, ks * 0.2, ks * 0.6, "url(#kgrad)")}
   </g>
 </g>`;
     const roles = o.typewriter ? ctx.profile.roles.filter(Boolean) : [];
@@ -4333,63 +4394,6 @@ ${empty}`;
 
 // ../core/src/widgets/set-b.ts
 var setB = [rhythm, nowBuilding, journey, board, project, trophies, today];
-
-// ../core/src/widgets/kit-c.ts
-function str(v, d = "") {
-  return typeof v === "string" ? v.trim() : typeof v === "number" ? String(v) : d;
-}
-function numOpt(v, d, lo = -Infinity, hi = Infinity) {
-  const n = typeof v === "number" ? v : typeof v === "string" && v.trim() !== "" ? Number(v) : NaN;
-  return Number.isFinite(n) ? Math.min(hi, Math.max(lo, n)) : d;
-}
-function items(v) {
-  return Array.isArray(v) ? v.filter((x) => typeof x === "object" && x !== null && !Array.isArray(x)) : [];
-}
-function strings(v) {
-  return Array.isArray(v) ? v.map((x) => str(x)).filter(Boolean) : [];
-}
-function pick(v, list, d) {
-  return list.includes(v) ? v : d;
-}
-function isGlyph(id) {
-  return Object.prototype.hasOwnProperty.call(glyphs, id);
-}
-function hasMark(id) {
-  return !!id && (isGlyph(id) || hasIcon(id) || hasIcon(id.toLowerCase().replace(/[^a-z0-9]/g, "")));
-}
-function mark(t, id, x, y, size, color, bg = t.card, extra = "") {
-  if (!hasMark(id)) return "";
-  if (isGlyph(id)) return glyph(id, x, y, size, color === "brand" ? t.accent : color, extra);
-  let c = color;
-  if (color === "brand") {
-    const b = icon(id).color;
-    c = b && contrast(b, bg) >= 1.7 ? b : t.text;
-  }
-  return iconSvg(id, x, y, size, c, extra);
-}
-function colorOr(v, d) {
-  return isHex(v) ? v : d;
-}
-function initials(name) {
-  const parts = name.trim().split(/[\s._-]+/).filter(Boolean);
-  if (!parts.length) return "";
-  if (parts.length === 1) return [...parts[0]].slice(0, 2).join("").toUpperCase();
-  return ([...parts[0]][0] + [...parts[parts.length - 1]][0]).toUpperCase();
-}
-function n1(v) {
-  return Number(v.toFixed(1)).toString();
-}
-function statusColor(t, status) {
-  const dark = t.name === "dark";
-  if (status === "open") return dark ? "#22c55e" : "#16a34a";
-  if (status === "busy") return dark ? "#f59e0b" : "#d97706";
-  return dark ? "#ef4444" : "#dc2626";
-}
-function emptyHint(t, cx, baseline, g, text) {
-  const tw = textWidth(t, text, 13);
-  const x0 = cx - (16 + 10 + tw) / 2;
-  return `<g class="in" style="animation-delay:.2s">${glyph(g, x0, baseline - 12.5, 16, t.accent)}<text x="${n1(x0 + 26)}" y="${baseline}" font-size="13" class="m">${esc(text)}</text></g>`;
-}
 
 // ../core/src/widgets/placeholders.ts
 var PLACEHOLDERS = [
@@ -8399,14 +8403,12 @@ ${xglyph("copy", cx0 + cmdW - 28, cmdY + 10, 16, t.muted)}
       }).join("");
     }
     const logoId = optStr(o.emblem) || ctx.project.logo || "";
-    const useIcon = !!logoId && hasIcon(logoId);
+    const useIcon = hasMark(logoId);
     const emblemAt = (cx, cy, ks, rings2) => {
       const half = ks / 2;
       let inner;
       if (useIcon) {
-        const em = icon(logoId);
-        const emInner = em.inner.replace(/fill="currentColor"/g, 'fill="url(#kgrad)"');
-        inner = `<svg x="${-ks * 0.3}" y="${-ks * 0.3}" width="${ks * 0.6}" height="${ks * 0.6}" viewBox="${em.viewBox}" color="url(#kgrad)">${emInner}</svg>`;
+        inner = emblemMark(logoId, -ks * 0.3, -ks * 0.3, ks * 0.6, "url(#kgrad)");
       } else {
         const s = ks * 0.62;
         const m = monogramText(name);
@@ -8516,7 +8518,8 @@ function badgeList(ctx, o, now = new Date(ctx.data?.generatedAt || Date.now())) 
       case "ci": {
         if (pd && !pd.ci) break;
         const s = ciStatus(pd);
-        out.push({ key: k, label: pd?.ci?.name || "build", value: s, status: s, icon: "x:shield", href: pd?.ci?.url || `${url}/actions` });
+        const wf = (pd?.ci?.name ?? "").trim();
+        out.push({ key: k, label: wf && wf.length <= 14 ? wf.toLowerCase() : "ci", value: s, status: s, icon: "x:shield", href: pd?.ci?.url || `${url}/actions` });
         break;
       }
       case "stars":
@@ -12791,7 +12794,8 @@ async function fetchProjectData(o) {
           `${R}/actions/runs?per_page=20&exclude_pull_requests=true&branch=${encodeURIComponent(repo.default_branch)}`
         );
         const skip = new Set([...README_WORKFLOWS, o.skipWorkflow].filter(Boolean));
-        const r = j.workflow_runs.find((x) => !x.path || !skip.has(x.path.replace(/@.*$/, "")));
+        const own = (x) => x.event !== "dynamic" && !(x.path ?? "").startsWith("dynamic/");
+        const r = j.workflow_runs.find((x) => own(x) && (!x.path || !skip.has(x.path.replace(/@.*$/, ""))));
         if (!r) return null;
         const status = r.status !== "completed" ? "running" : r.conclusion === "success" ? "passing" : r.conclusion === "failure" || r.conclusion === "timed_out" ? "failing" : "unknown";
         return { name: r.name, status, url: r.html_url };

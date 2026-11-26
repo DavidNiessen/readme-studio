@@ -77,7 +77,9 @@ function badgeList(ctx: Meta, o: Record<string, unknown>, now = new Date(ctx.dat
       case "ci": {
         if (pd && !pd.ci) break;
         const s = ciStatus(pd);
-        out.push({ key: k, label: pd?.ci?.name || "build", value: s, status: s, icon: "x:shield", href: pd?.ci?.url || `${url}/actions` });
+        // the workflow's name when it is short ("CI", "build"), else a plain "ci": a badge, not a title
+        const wf = (pd?.ci?.name ?? "").trim();
+        out.push({ key: k, label: wf && wf.length <= 14 ? wf.toLowerCase() : "ci", value: s, status: s, icon: "x:shield", href: pd?.ci?.url || `${url}/actions` });
         break;
       }
       case "stars":

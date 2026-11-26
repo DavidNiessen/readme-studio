@@ -182,12 +182,15 @@ export async function fetchProjectData(o: ProjectFetchOptions): Promise<ProjectD
     http.soft(
       "ci status",
       async () => {
-        const j = await http.gh<{ workflow_runs: { name: string; path?: string; status: string; conclusion: string | null; html_url: string }[] }>(
+        const j = await http.gh<{ workflow_runs: { name: string; path?: string; event?: string; status: string; conclusion: string | null; html_url: string }[] }>(
           `${R}/actions/runs?per_page=20&exclude_pull_requests=true&branch=${encodeURIComponent(repo.default_branch)}`,
         );
         // the README's own workflow is not the project's build (and is running right now)
         const skip = new Set([...README_WORKFLOWS, o.skipWorkflow].filter(Boolean));
-        const r = j.workflow_runs.find((x) => !x.path || !skip.has(x.path.replace(/@.*$/, "")));
+        // nor are runs GitHub generates itself (Dependabot updates, code scanning): their path is
+        // "dynamic/…" and their name is the whole update title, not a workflow name
+        const own = (x: { path?: string; event?: string }) => x.event !== "dynamic" && !(x.path ?? "").startsWith("dynamic/");
+        const r = j.workflow_runs.find((x) => own(x) && (!x.path || !skip.has(x.path.replace(/@.*$/, ""))));
         if (!r) return null;
         const status = r.status !== "completed" ? "running" : r.conclusion === "success" ? "passing" : r.conclusion === "failure" || r.conclusion === "timed_out" ? "failing" : "unknown";
         return { name: r.name, status, url: r.html_url } as ProjectData["ci"];
