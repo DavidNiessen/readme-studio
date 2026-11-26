@@ -538,11 +538,11 @@ const KEYS: [string, string][] = [
 ];
 
 const TOKENS: [string, string][] = [
-  ["{name}", "Display name, or the login when empty"],
+  ["{name}", "Your name on GitHub, or the login when it has none"],
   ["{login}", "GitHub username"],
   ["{city}", "profile.location.city"],
-  ["{company}", "profile.company"],
-  ["{role}", "First entry of profile.roles"],
+  ["{company}", "Your company on GitHub"],
+  ["{role}", "The hero's first role"],
   ["{year}", "Current year in your time zone"],
   ["{followers}", "Follower count"],
   ["{stars}", "Stars across your public repositories"],
@@ -597,7 +597,11 @@ function ConfigReference() {
         <li>clamps numbers into range and replaces values of the wrong type with the widget default;</li>
         <li>skips blocks with an unknown widget type and drops rows that end up empty, with a warning for each;</li>
         <li>turns block ids into file-name-safe slugs and de-duplicates them (<code>stats</code>, <code>stats-2</code>);</li>
-        <li>falls back to UTC for an unknown time zone, with a warning.</li>
+        <li>falls back to UTC for an unknown time zone, with a warning;</li>
+        <li>
+          moves values older configs kept for the whole design (<code>profile.name</code>, <code>roles</code>, <code>bio</code>, <code>company</code>, <code>pronouns</code>,{" "}
+          <code>birthday</code>; <code>project.name</code>, <code>tagline</code>, <code>logo</code>, <code>homepage</code>) into the widgets that show them, unless a widget sets its own.
+        </li>
       </ul>
       <p>
         Run <code>validate</code> from the <DocLink to="action" anchor="cli">CLI</DocLink> to see the warnings without rendering.
@@ -606,7 +610,8 @@ function ConfigReference() {
       <Heading id="kind">kind and project</Heading>
       <p>
         <code>kind</code> says what the README is for: <code>"profile"</code> (default) or <code>"project"</code>. Project designs read the repository named in{" "}
-        <code>project.repo</code>, and the widget library offers the project widgets.
+        <code>project.repo</code>, and the widget library offers the project widgets. The project's name, tagline and logo are options of the project hero; they default to the
+        repository's name and description.
       </p>
       <Table
         caption="kind and project fields"
@@ -615,10 +620,6 @@ function ConfigReference() {
         rows={[
           [<code>kind</code>, <code>"profile" | "project"</code>, "What the README is for. Unknown values fall back to profile."],
           [<code>project.repo</code>, "owner/name", "Public repository the project widgets read. GitHub URLs are accepted and trimmed."],
-          [<code>project.name</code>, "string ≤ 80", "Display name. Empty uses the repository name; available as {project}."],
-          [<code>project.tagline</code>, "string ≤ 200", "One-line description for the project hero; {tagline}."],
-          [<code>project.logo</code>, "icon id", "Emblem for the project hero. Empty draws a monogram."],
-          [<code>project.homepage</code>, "URL", "Where the hero links to."],
           [<code>project.packages.npm</code>, "string", "npm package: version, weekly downloads and install commands."],
           [<code>project.packages.pypi</code>, "string", "PyPI package: version and recent downloads."],
           [<code>project.packages.crates</code>, "string", "crates.io crate: version and downloads."],
@@ -626,18 +627,16 @@ function ConfigReference() {
       />
 
       <Heading id="profile">profile</Heading>
+      <p>
+        Who the data is fetched for and where they are. What the README says about them is set in the widgets: the hero's name and roles, the about card's bio, the terminal's
+        birthday. Each defaults to the GitHub profile.
+      </p>
       <Table
         caption="profile fields"
         className="t-ref"
         head={["Field", "Type", "Description"]}
         rows={[
           [<code>login</code>, "string", "GitHub username the data is fetched for. Invalid logins fall back to octocat."],
-          [<code>name</code>, "string ≤ 80", "Display name used by headers and alt text."],
-          [<code>roles</code>, "string[] ≤ 12", "Taglines. Headers rotate through them; {role} is the first."],
-          [<code>bio</code>, "string ≤ 400", "Short introduction for the about widget."],
-          [<code>company</code>, "string", "Shown by identity widgets and available as {company}."],
-          [<code>pronouns</code>, "string", "Optional, shown by the about and terminal widgets."],
-          [<code>birthday</code>, "YYYY-MM-DD", "Optional. Used by the terminal’s uptime line; never shown as a date."],
           [<code>location.city</code>, "string", "City name, available as {city}."],
           [<code>location.latitude</code>, "number", "−90 to 90. Used for weather and daylight."],
           [<code>location.longitude</code>, "number", "−180 to 180."],
@@ -769,7 +768,7 @@ let demo: { config: ReturnType<typeof presetConfig>; data: ReturnType<typeof moc
 function demoSetup() {
   if (!demo) {
     const config = presetConfig("command-center");
-    demo = { config, data: mockData(DEMO_DATE, config.profile.login, config.profile.name, config.profile.location.timezone) };
+    demo = { config, data: mockData(DEMO_DATE, config.profile.login, "", config.profile.location.timezone) };
   }
   return demo;
 }

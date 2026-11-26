@@ -136,11 +136,13 @@ Everything is driven by one file, \`readme.config.json\` (schema: ${SCHEMA_URL})
 6. Hand off: \`link\` prints a ${STUDIO_URL} URL that opens the design in the visual studio.
    A committed config can also be opened with ${STUDIO_URL}#/studio?repo=owner/name.
 7. Commit readme.config.json, README.md (from the build) and the workflow; the user enables
-   Settings → Actions → General → Workflow permissions → Read and write, and runs the "readme" workflow once.
+   Settings → Actions → General → Workflow permissions → Read and write, and runs the "Readme Studio" workflow once.
 
 ## Config essentials
 
 - \`kind\`: "profile" (the <login>/<login> repository) or "project" (any public repository; set \`project.repo\`).
+- \`profile\`: \`login\` (whose data is fetched), \`location\` (city, latitude, longitude, timezone) and \`links\`. \`project\`: \`repo\` and \`packages\` (npm, pypi, crates).
+- Names, roles, bios, taglines and logos are options of the widgets that show them (hero \`title\`/\`roles\`, about \`name\`/\`bio\`, project-hero \`title\`/\`tagline\`/\`emblem\`) and default to the GitHub profile or repository.
 - \`layout\`: array of rows \`{ align, blocks: [{ id, type, options, hidden?, link? }] }\`. Blocks in one row sit side by side (use half-width widgets in pairs). \`id\` becomes the image file name.
 - \`theme\`: \`preset\` (palette), \`font\`, \`headingFont\`, \`radius\`, \`border\`, \`texture\` (dots|grid|lines|none), \`motion\` (full|subtle|off), \`surface\`, optional \`accent\` to generate a palette.
 - \`output\`: \`branch\` (asset branch, default "readme-studio"), \`modes\` (["dark","light"]), \`schedule\` (cron), \`repository\`.

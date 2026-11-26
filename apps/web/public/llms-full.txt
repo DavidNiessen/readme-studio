@@ -17,11 +17,13 @@ Everything is driven by one file, `readme.config.json` (schema: https://readme.n
 6. Hand off: `link` prints a https://readme.niessen.dev/ URL that opens the design in the visual studio.
    A committed config can also be opened with https://readme.niessen.dev/#/studio?repo=owner/name.
 7. Commit readme.config.json, README.md (from the build) and the workflow; the user enables
-   Settings → Actions → General → Workflow permissions → Read and write, and runs the "readme" workflow once.
+   Settings → Actions → General → Workflow permissions → Read and write, and runs the "Readme Studio" workflow once.
 
 ## Config essentials
 
 - `kind`: "profile" (the <login>/<login> repository) or "project" (any public repository; set `project.repo`).
+- `profile`: `login` (whose data is fetched), `location` (city, latitude, longitude, timezone) and `links`. `project`: `repo` and `packages` (npm, pypi, crates).
+- Names, roles, bios, taglines and logos are options of the widgets that show them (hero `title`/`roles`, about `name`/`bio`, project-hero `title`/`tagline`/`emblem`) and default to the GitHub profile or repository.
 - `layout`: array of rows `{ align, blocks: [{ id, type, options, hidden?, link? }] }`. Blocks in one row sit side by side (use half-width widgets in pairs). `id` becomes the image file name.
 - `theme`: `preset` (palette), `font`, `headingFont`, `radius`, `border`, `texture` (dots|grid|lines|none), `motion` (full|subtle|off), `surface`, optional `accent` to generate a palette.
 - `output`: `branch` (asset branch, default "readme-studio"), `modes` (["dark","light"]), `schedule` (cron), `repository`.
@@ -140,7 +142,8 @@ Hero banner: Your name drawn on stroke by stroke, a typewriter cycling through y
 Category Header · output svg · width full · for profile READMEs
 
 - `title` (text) · default ""
-- `typewriter` (toggle) · default true · Cycles through the roles from your profile.
+- `roles` (tags) · default ["Software Engineer","Open-source tinkerer","Coffee-driven developer"] · Cycled by the typewriter. Other widgets and the {role} placeholder use the first.
+- `typewriter` (toggle) · default true · Cycles through the roles above.
 - `greeting` (toggle) · default true · Time-of-day greeting, date and moon phase.
 - `emblem` (icon) · default "github"
 - `emblemStyle` (segmented: orbit | plain | none) · default "orbit"
@@ -167,12 +170,13 @@ Project hero: Your project's name drawn on, its tagline, version, install comman
 Category Header · output svg · width full · for project READMEs
 
 - `title` (text) · default ""
+- `tagline` (text) · default ""
+- `emblem` (icon) · default "" · The project's logo. Without one a monogram tile is drawn.
 - `align` (segmented: left | center) · default "left"
 - `version` (toggle) · default true · Latest release tag next to the name.
-- `install` (text) · default "npm i {npm}" · Shown in a code pill under the tagline. Leave empty to hide. It also stays hidden while a placeholder it uses has no value, such as {npm} without an npm package in the Project tab. Placeholders: {npm} {repo} {project} {version}
+- `install` (text) · default "npm i {npm}" · Shown in a code pill under the tagline. Leave empty to hide. It also stays hidden while a placeholder it uses has no value, such as {npm} without an npm package in the Data tab. Placeholders: {npm} {repo} {project} {version}
 - `stats` (toggle) · default true
 - `third` (segmented: license | downloads | contributors) · default "license"
-- `emblem` (icon) · default "" · Defaults to the project logo; without one a monogram tile is drawn.
 - `emblemStyle` (segmented: orbit | plain | none) · default "orbit"
 - `scanline` (toggle) · default true
 - `glow` (toggle) · default true
@@ -198,6 +202,11 @@ Category Identity · output svg · width full · for profile READMEs
   - `cmd` (text) · default "echo hello"
   - `output` (text) · default "hello, {name}!" · One line per row. Colours: {a}accent {m}muted {s}string {n}number {b}bold {/}reset. Placeholders: {name} {login} {city} {company} {role} {year} {age} {days_alive} {account_age} {followers} {stars} {repos} {streak} {year_pct} {stack}. Wrap text in {? … ?} to hide it when a placeholder is empty.
 - `stack` (tags) · default ["typescript","react","node","python","go","docker","k8s","postgres","aws"]
+- `name` (text) · default ""
+- `role` (text) · default ""
+- `company` (text) · default ""
+- `pronouns` (text) · default ""
+- `birthday` (text) · default "" · Optional. Gives {age}, {days_alive} and the uptime line.
 - `chrome` (toggle) · default true
 - `statusBar` (toggle) · default true
 - `tab` (text) · default "[{login}] 0:zsh*"
@@ -227,7 +236,8 @@ Category Identity · output svg · width full · for profile READMEs
 - `bio` (text) · default "" · Up to five lines; a blank line starts a new paragraph. Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions} {project} {repo} {tagline} {version} {license} {forks} {contributors} {npm} {pypi} {crate} {owner}
 - `layout` (segmented: left | center) · default "left"
 - `monogram` (toggle) · default true · Your initials in an accent disc.
-- `chips` (toggle) · default true
+- `chips` (toggle) · default true · The city comes from the location in the Data tab.
+- `company` (text) · default ""
 - `extraChips` (tags) · default ["Open to collaborations"]
 
 ### facts
