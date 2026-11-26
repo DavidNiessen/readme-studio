@@ -3,6 +3,7 @@ import { marked } from "marked";
 import TurndownService from "turndown";
 import { gfm } from "turndown-plugin-gfm";
 import { repoUrl } from "../../lib/repoLinks";
+import { sanitizeReadmeHtml } from "../../lib/sanitize";
 
 /**
  * Markdown ⇄ HTML for the rich view of the Markdown editor. The HTML shows relative images and
@@ -15,7 +16,8 @@ const ORIGINAL = "data-md-url";
 
 /** Markdown to editable HTML, with relative URLs resolved for display. */
 export function toEditableHtml(md: string, repo: string): string {
-  const html = marked.parse(md, { async: false, gfm: true, breaks: false }) as string;
+  // sanitised first: the Markdown may come from any repository's README
+  const html = sanitizeReadmeHtml(marked.parse(md, { async: false, gfm: true, breaks: false }) as string);
   const doc = new DOMParser().parseFromString(`<body>${html}</body>`, "text/html");
   if (/^[\w.-]+\/[\w.-]+$/.test(repo)) {
     for (const el of doc.querySelectorAll<HTMLElement>("img[src], source[srcset], a[href]")) {

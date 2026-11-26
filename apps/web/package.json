@@ -17,6 +17,7 @@
     "@fontsource/instrument-serif": "5.3.0",
     "@fontsource/jetbrains-mono": "5.3.0",
     "@readme-studio/core": "*",
+    "dompurify": "3.5.0",
     "fflate": "0.8.3",
     "lucide-react": "1.81.0",
     "marked": "18.3.0",
@@ -31,6 +32,7 @@
     "@types/react-dom": "19.3.0",
     "@types/turndown": "5.0.6",
     "@vitejs/plugin-react": "5.2.0",
+    "jsdom": "31.0.1",
     "vite": "7.3.8"
   },
   "exports": {

@@ -6,6 +6,7 @@ import { Button, IconButton, cn } from "../components/ui";
 import { WidgetImage } from "../components/WidgetImage";
 import { useRenderedLayout, type RenderedPart } from "../lib/render";
 import { resolveRepoLinks } from "../lib/repoLinks";
+import { sanitizeReadmeHtml } from "../lib/sanitize";
 import { useStudio } from "../state/store";
 import { clickBlock, onBlockContextMenu, onEmptyContextMenu } from "./blockActions";
 import { MarkdownEditor } from "./markdown/MarkdownEditor";
@@ -46,7 +47,8 @@ function Markdown({ part, repo, selected, primary, drop, drag, dragged }: { part
   const id = part.meta.block.id;
   const editable = part.meta.block.type === "markdown";
   // relative images and links resolve against the design's repository, as they do on GitHub
-  const html = useMemo(() => resolveRepoLinks(marked.parse(part.markdown ?? "", { async: false }) as string, repo), [part.markdown, repo]);
+  // README HTML is untrusted (it may come from any repository): sanitised before it reaches the page
+  const html = useMemo(() => resolveRepoLinks(sanitizeReadmeHtml(marked.parse(part.markdown ?? "", { async: false }) as string), repo), [part.markdown, repo]);
   return (
     <div
       className={cn("cv-md", selected && "is-selected", dragged && "is-dragged", drop?.id === id && (drop.after ? "is-drop-after" : "is-drop-before"))}

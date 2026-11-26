@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from "react";
 import { Button, Menu, MOD, Segmented, cn } from "../../components/ui";
+import { sanitizeReadmeHtml } from "../../lib/sanitize";
 import { toEditableHtml, toMarkdown } from "./convert";
 import { continueBlock, indentLines, insertBlock, insertLink, TABLE_TEMPLATE, toggleLinePrefix, toggleWrap, type Sel } from "./rawEdit";
 
@@ -443,6 +444,13 @@ export function MarkdownEditor({ text, repo, onChange, onClose }: { text: string
             aria-label="Markdown, as it renders"
             spellCheck
             onInput={richChanged}
+            onPaste={(e) => {
+              // pasted HTML goes through the same sanitiser as a README; plain text stays plain text
+              const html = e.clipboardData.getData("text/html");
+              if (!html) return;
+              e.preventDefault();
+              cmd("insertHTML", sanitizeReadmeHtml(html));
+            }}
             onKeyDown={richKeys}
             onKeyUp={remember}
             onMouseUp={remember}
