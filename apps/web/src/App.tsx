@@ -10,7 +10,7 @@ const Presets = lazy(loadPage(() => import("./pages/Presets")));
 const Docs = lazy(loadPage(() => import("./pages/Docs")));
 
 const TITLES: Record<string, string> = {
-  "/": "Readme Studio: animated GitHub profile READMEs",
+  "/": "Readme Studio: animated GitHub READMEs",
   "/studio": "Studio · Readme Studio",
   "/presets": "Presets · Readme Studio",
   "/docs": "Docs · Readme Studio",
