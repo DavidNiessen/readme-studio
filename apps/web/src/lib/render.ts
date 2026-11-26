@@ -12,6 +12,7 @@ import {
   type PartMeta,
   type ProfileData,
   type StudioConfig,
+  views,
 } from "@readme-studio/core";
 import { useEffect, useMemo, useRef, useState } from "react";
 
@@ -51,7 +52,8 @@ function sizeOf(svg: string): { width: number; height: number } {
 }
 
 function cacheKey(block: Block, part: PartMeta, config: StudioConfig, data: ProfileData, mode: Mode, minute: number): string {
-  return JSON.stringify([block.type, block.options, part.key, config.theme, config.profile, mode, dataId(data), minute]);
+  // views: a widget falls back to names and roles other widgets set, so those count too
+  return JSON.stringify([block.type, block.options, part.key, config.theme, views(config, data), mode, dataId(data), minute]);
 }
 
 /** Render (or fetch from cache) one part for a mode. */
@@ -102,22 +104,26 @@ export function renderBlock(block: Block, config: StudioConfig, data: ProfileDat
 
 // ---------------------------------------------------------------- object URLs
 
-const urlCache = new Map<string, string>();
+const urlCache = new Map<string, { url: string; epoch: number }>();
 
-/** A blob URL for an SVG string; `epoch` forces a fresh URL (replays animations). */
-export function svgUrl(svg: string, cacheKeyStr: string, epoch = 0): string {
-  const k = `${cacheKeyStr}#${epoch}`;
-  let u = urlCache.get(k);
-  if (!u) {
-    u = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml" }));
-    urlCache.set(k, u);
-    if (urlCache.size > 400) {
-      const [oldK, oldU] = urlCache.entries().next().value!;
-      urlCache.delete(oldK);
-      setTimeout(() => URL.revokeObjectURL(oldU), 4000);
-    }
+/**
+ * A blob URL for an SVG string. The same text keeps its URL, so an image whose SVG did not change
+ * is not reloaded (which would replay its entrance animation); a new `epoch` forces a fresh URL,
+ * which is how "replay" restarts the animations.
+ */
+export function svgUrl(svg: string, epoch = 0): string {
+  const hit = urlCache.get(svg);
+  if (hit && hit.epoch === epoch) return hit.url;
+  const url = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml" }));
+  if (hit) setTimeout(() => URL.revokeObjectURL(hit.url), 4000);
+  urlCache.delete(svg);
+  urlCache.set(svg, { url, epoch });
+  if (urlCache.size > 400) {
+    const [oldK, old] = urlCache.entries().next().value!;
+    urlCache.delete(oldK);
+    setTimeout(() => URL.revokeObjectURL(old.url), 4000);
   }
-  return u;
+  return url;
 }
 
 // ---------------------------------------------------------------- hooks
@@ -142,25 +148,16 @@ export function useFontsReady(fonts: string[]): boolean {
   return ready;
 }
 
-/** The current minute, ticking, so clocks and greetings stay plausible during long sessions. */
-export function useMinute(): Date {
-  const [d, setD] = useState(() => new Date());
-  useEffect(() => {
-    const t = window.setInterval(() => setD(new Date()), 60_000);
-    return () => window.clearInterval(t);
-  }, []);
-  return d;
-}
-
 /** Render the layout, debounced so typing stays responsive. */
 export function useRenderedLayout(config: StudioConfig, data: ProfileData, mode: Mode, delay = 90): { rows: RenderedRow[]; ready: boolean } {
   const fontsReady = useFontsReady([config.theme.font, config.theme.headingFont]);
-  const now = useMinute();
   const [rows, setRows] = useState<RenderedRow[]>([]);
   const first = useRef(true);
   useEffect(() => {
     if (!fontsReady) return;
-    const run = () => setRows(renderLayout(config, data, mode, now, true));
+    // the time is read when something changes, not on a timer: re-rendering every minute gave every
+    // image a new URL, and each one reloaded and replayed its entrance animation
+    const run = () => setRows(renderLayout(config, data, mode, new Date(), true));
     if (first.current) {
       first.current = false;
       run();
@@ -168,7 +165,7 @@ export function useRenderedLayout(config: StudioConfig, data: ProfileData, mode:
     }
     const t = window.setTimeout(run, delay);
     return () => window.clearTimeout(t);
-  }, [config, data, mode, now, fontsReady, delay]);
+  }, [config, data, mode, fontsReady, delay]);
   return { rows, ready: fontsReady && rows.length >= 0 };
 }
 

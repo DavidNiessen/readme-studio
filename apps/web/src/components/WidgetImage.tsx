@@ -4,7 +4,9 @@ import { svgUrl, type RenderedPart } from "../lib/render";
 /** Plays GIF widget frames as a flipbook (the real GIF is encoded by the action). */
 function Flipbook({ part, epoch, alt, style }: { part: RenderedPart; epoch: number; alt: string; style?: React.CSSProperties }) {
   const frames = part.frames!.frames;
-  const urls = useMemo(() => frames.map((f, i) => svgUrl(f.svg, `${part.key}:f${i}`)), [frames, part.key]);
+  const urls = useMemo(() => frames.map((f) => svgUrl(f.svg)), [frames]);
+  // restart only when the frames really change, not when the same frames are rendered again
+  const sig = `${urls.join("|")}|${frames.map((f) => f.delay).join(",")}`;
   const [i, setI] = useState(0);
   useEffect(() => {
     setI(0);
@@ -27,7 +29,8 @@ function Flipbook({ part, epoch, alt, style }: { part: RenderedPart; epoch: numb
       alive = false;
       window.clearTimeout(t);
     };
-  }, [urls, frames, epoch]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sig, epoch]);
   return <img src={urls[i]} alt={alt} width={part.width} height={part.height} style={style} draggable={false} />;
 }
 
@@ -37,7 +40,7 @@ export function WidgetImage({ part, epoch = 0, style, className }: { part: Rende
   return (
     <img
       className={className}
-      src={svgUrl(part.svg, part.key, epoch)}
+      src={svgUrl(part.svg, epoch)}
       alt={part.meta.alt}
       width={part.width}
       height={part.height}
