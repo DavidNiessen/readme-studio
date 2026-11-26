@@ -25,28 +25,49 @@ export function SaveButton() {
  * Shown while a design opened from a repository differs from what the repository has: the draft
  * survives closing the studio, and Reset goes back to the repository's design (undoable).
  */
-export function DraftNotice() {
+/**
+ * Whether the design differs from what its repository holds. While this tab has the repository
+ * open, that is the session's copy; after a reload, the saved draft's base (what it started from,
+ * or last saved), so the notice survives reloading.
+ */
+export function useDraftChanges(): { repo: string; committed: StudioConfig; configExists: boolean } | null {
   const { opened } = useSession();
   const config = useStudio((s) => s.config);
+  const source = useStudio((s) => s.source);
+  const base = useStudio((s) => s.base);
+  return useMemo(() => {
+    const fromSource = source?.startsWith("github:") ? source.slice("github:".length) : null;
+    const repo = opened?.repo.full ?? fromSource;
+    const committed = opened?.config ?? (fromSource ? base : null);
+    if (!repo || !committed || sameConfig(config, committed)) return null;
+    return { repo, committed, configExists: opened ? opened.configExists : true };
+  }, [opened, config, source, base]);
+}
+
+/** Asks, then puts the design back to what the repository holds (one undoable step). */
+export function useResetDraft(): () => Promise<void> {
   const confirm = useConfirm();
-  const changed = useMemo(() => !!opened && !sameConfig(config, opened.config), [opened, config]);
-  if (!opened || !changed) return null;
+  const draft = useDraftChanges();
+  return async () => {
+    if (!draft) return;
+    const ok = await confirm({
+      title: "Reset your changes?",
+      body: <p>{draft.configExists ? `This goes back to the design committed to ${draft.repo}.` : `This starts again from what ${draft.repo} has.`} You can undo it with Ctrl/⌘ Z.</p>,
+      confirmLabel: "Reset changes",
+    });
+    if (ok) useStudio.getState().resetToSource(draft.committed);
+  };
+}
+
+export function DraftNotice() {
+  const draft = useDraftChanges();
+  const reset = useResetDraft();
+  if (!draft) return null;
   return (
-    <span className="draft-notice hide-sm" title={opened.configExists ? "Differs from the design in the repository" : "Not saved to the repository yet"}>
+    <span className="draft-notice hide-sm" title={draft.configExists ? `Differs from the design in ${draft.repo}` : "Not saved to the repository yet"}>
       <span className="draft-notice__dot" />
-      {opened.configExists ? "Unsaved changes" : "Not saved yet"}
-      <button
-        type="button"
-        title="Undo with Ctrl/⌘ Z"
-        onClick={async () => {
-          const ok = await confirm({
-            title: "Reset your changes?",
-            body: <p>{opened.configExists ? `This goes back to the design committed to ${opened.repo.full}.` : `This starts again from what ${opened.repo.full} has.`} You can undo it with Ctrl/⌘ Z.</p>,
-            confirmLabel: "Reset changes",
-          });
-          if (ok) useStudio.getState().resetToSource(opened.config);
-        }}
-      >
+      <span className="draft-notice__label">{draft.configExists ? "Unsaved changes" : "Not saved yet"}</span>
+      <button type="button" title="Undo with Ctrl/⌘ Z" onClick={() => void reset()}>
         <RotateCcw size={12} /> Reset
       </button>
     </span>
