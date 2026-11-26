@@ -82,7 +82,7 @@ function ExportDialog() {
           <Button
             variant="accent"
             onClick={() => {
-              download(`${slugName}-readme.zip`, projectZip(config, data, { profileToken: pat }), "application/zip");
+              download(`${slugName}-readme-studio.zip`, projectZip(config, data, { profileToken: pat }), "application/zip");
               toast("Project downloaded");
             }}
           >

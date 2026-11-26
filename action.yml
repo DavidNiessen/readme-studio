@@ -1,5 +1,5 @@
 name: Readme Studio
-description: Render an animated, self-updating GitHub profile README from a Readme Studio config.
+description: Render an animated, self-updating GitHub profile or project README from a Readme Studio config.
 author: David Nießen
 branding:
   icon: layout

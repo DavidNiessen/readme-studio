@@ -21,8 +21,8 @@ export interface ProjectFetchOptions extends Pick<FetchOptions, "token" | "fetch
   skipWorkflow?: string;
 }
 
-/** The workflow file Readme Studio writes; its runs never count as the project's build. */
-export const README_WORKFLOW = ".github/workflows/readme.yml";
+/** The workflow files Readme Studio writes (now and before); their runs never count as the project's build. */
+export const README_WORKFLOWS = [".github/workflows/readme-studio.yml", ".github/workflows/readme.yml"];
 
 /** Path of a workflow inside its repository, from GITHUB_WORKFLOW_REF ("owner/repo/.github/workflows/x.yml@refs/heads/main"). */
 export function workflowPath(ref: string | undefined): string | undefined {
@@ -186,7 +186,7 @@ export async function fetchProjectData(o: ProjectFetchOptions): Promise<ProjectD
           `${R}/actions/runs?per_page=20&exclude_pull_requests=true&branch=${encodeURIComponent(repo.default_branch)}`,
         );
         // the README's own workflow is not the project's build (and is running right now)
-        const skip = new Set([README_WORKFLOW, o.skipWorkflow].filter(Boolean));
+        const skip = new Set([...README_WORKFLOWS, o.skipWorkflow].filter(Boolean));
         const r = j.workflow_runs.find((x) => !x.path || !skip.has(x.path.replace(/@.*$/, "")));
         if (!r) return null;
         const status = r.status !== "completed" ? "running" : r.conclusion === "success" ? "passing" : r.conclusion === "failure" || r.conclusion === "timed_out" ? "failing" : "unknown";

@@ -32,7 +32,7 @@ Everything is static: no server, no database, no third-party image host. Your de
    Or choose **Export manually** in that dialog (or press Ctrl/⌘ E) and download the project. It contains:
    ```
    readme.config.json              your design
-   .github/workflows/readme.yml    the scheduled workflow
+   .github/workflows/readme-studio.yml    the scheduled workflow
    README.md                       the generated layout
    SETUP.md                        these steps in detail
    ```
@@ -53,13 +53,13 @@ Agents can design, check and hand over a README without the web UI:
 ## The action
 
 ```yaml
-name: readme
+name: Readme Studio
 on:
   schedule:
     - cron: "17 2 * * *"
   workflow_dispatch:
   push:
-    paths: [readme.config.json, .github/workflows/readme.yml]
+    paths: [readme.config.json, .github/workflows/readme-studio.yml]
 
 permissions:
   contents: write

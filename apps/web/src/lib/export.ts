@@ -10,6 +10,7 @@ import {
   renderReadme,
   serializeConfig,
   setupGuide,
+  WORKFLOW_FILE,
   workflowYaml,
   type Frame,
   type GifFrames,
@@ -26,7 +27,7 @@ export interface ProjectFile {
 export function projectFiles(config: StudioConfig, data: ProfileData, opts: { profileToken: boolean }): ProjectFile[] {
   return [
     { path: "readme.config.json", content: `${serializeConfig(config)}`, description: "Your design. Import it in the studio to keep editing." },
-    { path: ".github/workflows/readme.yml", content: workflowYaml(config, { profileToken: opts.profileToken }), description: "Runs the action on a schedule." },
+    { path: WORKFLOW_FILE, content: workflowYaml(config, { profileToken: opts.profileToken }), description: "Runs the action on a schedule." },
     { path: "README.md", content: renderReadme(config, data), description: "The generated layout (the action keeps it up to date)." },
     { path: "SETUP.md", content: setupGuide(config), description: "Step-by-step setup instructions." },
   ];

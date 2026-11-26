@@ -20,6 +20,7 @@ import {
   workflowYaml,
   type DesignKind,
   type StudioConfig,
+  WORKFLOW_FILE,
 } from "@readme-studio/core";
 import { build } from "./build";
 import { readConfig } from "./io";
@@ -56,7 +57,7 @@ Options
   --repo <owner/name> repository (project READMEs; implies --kind project)
   --npm/--pypi/--crate <name>   published package (project READMEs)
   --preset <id>       design preset (default: command-center, or oss-library for projects)
-  --workflow          also write .github/workflows/readme.yml
+  --workflow          also write .github/workflows/readme-studio.yml
   --force             overwrite existing files
 
   build
@@ -160,7 +161,7 @@ async function main(): Promise<void> {
       const config: StudioConfig = { ...base, kind };
       files.push([configPath, serializeConfig(config)]);
       const wantWorkflow = flag(args, "workflow") === "true";
-      const wf = resolve(dirname(configPath), ".github/workflows/readme.yml");
+      const wf = resolve(dirname(configPath), WORKFLOW_FILE);
       if (wantWorkflow) {
         if (existsSync(wf) && flag(args, "force") !== "true") throw new Error(`${wf} exists (use --force to overwrite)`);
         files.push([wf, workflowYaml(config)]);
@@ -171,7 +172,7 @@ async function main(): Promise<void> {
         console.log(`wrote ${p}`);
       }
       if (getLayoutPreset(presetId).kind && getLayoutPreset(presetId).kind !== kind) console.warn(`⚠ preset ${presetId} is made for ${getLayoutPreset(presetId).kind} READMEs`);
-      if (!wantWorkflow) console.log(`\nAdd the workflow with --workflow, or as .github/workflows/readme.yml:\n\n${workflowYaml(config)}`);
+      if (!wantWorkflow) console.log(`\nAdd the workflow with --workflow, or as ${WORKFLOW_FILE}:\n\n${workflowYaml(config)}`);
       console.log(`\nNext: edit the config, run validate and build --mock, or open it in the studio: run link`);
       break;
     }

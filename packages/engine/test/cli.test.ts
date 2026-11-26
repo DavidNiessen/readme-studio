@@ -36,7 +36,7 @@ describe("cli", () => {
     const dir = mkdtempSync(join(tmpdir(), "rs-cli-"));
     const init = run(dir, "init", "--repo", "mona/aurora", "--npm", "aurora", "--workflow");
     expect(init.code).toBe(0);
-    expect(existsSync(join(dir, ".github/workflows/readme.yml"))).toBe(true);
+    expect(existsSync(join(dir, ".github/workflows/readme-studio.yml"))).toBe(true);
     const cfg = JSON.parse(readFileSync(join(dir, "readme.config.json"), "utf8"));
     expect(cfg).toMatchObject({ kind: "project", project: { repo: "mona/aurora", packages: { npm: "aurora" } } });
     expect(cfg.layout.flatMap((r: { blocks: { type: string }[] }) => r.blocks.map((b) => b.type))).toContain("project-hero");

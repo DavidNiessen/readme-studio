@@ -1,9 +1,10 @@
-import { normalizeConfig, parseConfig, presetConfig, serializeConfig, workflowYaml, type Block, type StudioConfig } from "@readme-studio/core";
+import { LEGACY_WORKFLOW_FILES, normalizeConfig, parseConfig, presetConfig, serializeConfig, WORKFLOW_FILE, workflowYaml, type Block, type StudioConfig } from "@readme-studio/core";
 import { isProfileRepo, type RepoRef } from "./repo";
 import { GitHub, GitHubError } from "./api";
 
 export const CONFIG_PATH = "readme.config.json";
-export const WORKFLOW_PATH = ".github/workflows/readme.yml";
+/** Where the Readme Studio workflow goes; a repository set up before keeps its older file. */
+export const WORKFLOW_PATH = WORKFLOW_FILE;
 
 /** What the studio knows about the repository it edits. */
 export interface Opened extends SaveTarget {
@@ -121,7 +122,15 @@ async function resolveBranch(gh: GitHub, repo: RepoRef, ref?: string): Promise<{
 }
 
 async function designFiles(gh: GitHub, repo: RepoRef, branch: string, limited: boolean) {
-  return Promise.all([gh.file(repo.full, CONFIG_PATH, branch), gh.file(repo.full, WORKFLOW_PATH, branch)]).catch((e) => {
+  // the workflow under its current name or the one it had before (readme.yml) counts as there
+  const workflow = async () => {
+    for (const path of [WORKFLOW_PATH, ...LEGACY_WORKFLOW_FILES]) {
+      const f = await gh.file(repo.full, path, branch);
+      if (f) return f;
+    }
+    return null;
+  };
+  return Promise.all([gh.file(repo.full, CONFIG_PATH, branch), workflow()]).catch((e) => {
     if (limited && e instanceof GitHubError && (e.status === 403 || e.status === 429)) throw new RepoUnavailable(repo, gh.signedIn, true);
     throw e;
   });

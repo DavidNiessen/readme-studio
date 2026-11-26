@@ -130,7 +130,7 @@ Everything is driven by one file, \`readme.config.json\` (schema: ${SCHEMA_URL})
    then \`node ~/.cache/readme-studio/packages/engine/dist/cli.mjs <command>\`.
 2. Discover: \`widgets --json [--kind profile|project]\`, \`presets --json\`, \`themes --json\`, \`schema\`.
 3. Start: \`init --login <user> [--kind project --repo owner/name --npm <pkg>] [--preset <id>] --workflow\`
-   writes readme.config.json and .github/workflows/readme.yml in the current directory.
+   writes readme.config.json and .github/workflows/readme-studio.yml in the current directory.
 4. Edit readme.config.json (layout rows → blocks with \`type\`, \`id\`, \`options\`; theme; profile/project).
 5. Check: \`validate --json\` (repairs are reported as warnings), then \`build --mock --out /tmp/rs\` renders every asset and README.md offline (open preview.html to look at it).
 6. Hand off: \`link\` prints a ${STUDIO_URL} URL that opens the design in the visual studio.

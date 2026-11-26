@@ -220,8 +220,8 @@ const PICTURE_SNIPPET = `<picture>
 
 const PUSH_SNIPPET = `git clone https://github.com/<login>/<login>.git
 cd <login>
-# copy readme.config.json, README.md and .github/workflows/readme.yml here
-git add readme.config.json README.md .github/workflows/readme.yml
+# copy readme.config.json, README.md and .github/workflows/readme-studio.yml here
+git add readme.config.json README.md .github/workflows/readme-studio.yml
 git commit -m "feat: animated profile readme"
 git push`;
 
@@ -281,7 +281,7 @@ function GettingStarted() {
         head={["File", "Branch", "Purpose"]}
         rows={[
           [<code>readme.config.json</code>, <span className="d-tag">main</span>, "Your design: profile, theme, layout and widget options. Import it in the studio to keep editing."],
-          [<code>.github/workflows/readme.yml</code>, <span className="d-tag">main</span>, `Runs the action ${DEFAULT_SCHEDULE}, on manual dispatch and whenever the config or workflow changes.`],
+          [<code>.github/workflows/readme-studio.yml</code>, <span className="d-tag">main</span>, `Runs the action ${DEFAULT_SCHEDULE}, on manual dispatch and whenever the config or workflow changes.`],
           [<code>README.md</code>, <span className="d-tag">main</span>, "The generated layout. It contains only <picture> and <img> tags (and any Markdown blocks), so it stays small and readable."],
           [<code>SETUP.md</code>, <span className="d-tag">zip only</span>, "Setup instructions for your account. Optional; you do not need to commit it."],
           [<code>&lt;id&gt;-dark.svg</code>, <span className="d-tag">{DEFAULT_OUTPUT.branch}</span>, "One image per block and colour scheme. The block id from the config is the file name, so links stay stable."],
@@ -398,7 +398,8 @@ function ActionReference() {
       <Heading id="usage">Usage</Heading>
       <p>
         This is the workflow the studio exports. Apart from the cron line and the asset branch it is the same for everyone, so you can also write it by hand. Save it as{" "}
-        <code>.github/workflows/readme.yml</code>.
+        <code>.github/workflows/readme-studio.yml</code>. Repositories set up before it had this name use <code>.github/workflows/readme.yml</code>; that keeps working, and
+        the studio recognises either.
       </p>
       <CodeBlock code={SAMPLE_WORKFLOW} maxHeight={560} />
       <p>

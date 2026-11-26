@@ -145,6 +145,16 @@ describe("opening a design", () => {
     expect(await inspectRepo(new GitHub(null, missing), repo).catch((e) => e)).toBeInstanceOf(RepoUnavailable);
   });
 
+  it("counts a workflow under its older name as there", async () => {
+    const http = (async (u: string | URL) => {
+      if (String(u).endsWith("/repos/mona/aurora")) return json({ default_branch: "main", private: false });
+      if (String(u).endsWith("/main/.github/workflows/readme.yml")) return new Response("name: readme");
+      return new Response("", { status: 404 });
+    }) as typeof fetch;
+    expect(await inspectRepo(new GitHub(null, http), repo)).toMatchObject({ workflowExists: true, configExists: false });
+    expect(WORKFLOW_PATH).toBe(".github/workflows/readme-studio.yml");
+  });
+
   it("still fails loudly on other errors", async () => {
     const http = (async () => json({ message: "Server Error" }, 500)) as typeof fetch;
     const e = await openDesign(new GitHub("t", http), repo).catch((x) => x);

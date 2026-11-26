@@ -35,7 +35,7 @@ export function publishAssets(o: PublishAssetsOptions): void {
   git(["config", "user.name", BOT_NAME], o.dir);
   git(["config", "user.email", BOT_EMAIL], o.dir);
   git(["add", "-A"], o.dir);
-  git(["commit", "-q", "-m", o.message ?? `chore: rebuild profile assets ${new Date().toISOString().slice(0, 10)}`], o.dir);
+  git(["commit", "-q", "-m", o.message ?? `chore(readme-studio): render the README images ${new Date().toISOString().slice(0, 10)}`], o.dir);
   const remote = o.remote ?? `https://x-access-token:${o.token}@${server}/${o.repository}.git`;
   git(["push", "-q", "--force", remote, `${o.branch}:${o.branch}`], o.dir, o.token);
   rmSync(join(o.dir, ".git"), { recursive: true, force: true });
@@ -61,7 +61,7 @@ export function commitReadme(o: CommitReadmeOptions): boolean {
   git(["config", "user.name", BOT_NAME], o.workspace);
   git(["config", "user.email", BOT_EMAIL], o.workspace);
   git(["add", o.target], o.workspace);
-  git(["commit", "-q", "-m", o.message ?? "chore(readme): update generated layout [skip ci]"], o.workspace);
+  git(["commit", "-q", "-m", o.message ?? "chore(readme-studio): update the README [skip ci]"], o.workspace);
   if (o.push !== false) git(["push", "-q"], o.workspace);
   return true;
 }

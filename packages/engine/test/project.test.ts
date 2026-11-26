@@ -56,7 +56,8 @@ describe("project data", () => {
         if (u.includes("/actions/runs")) return json({ workflow_runs: runs });
         return fake(input);
       }) as typeof fetch;
-    const runs = [run("readme", ".github/workflows/readme.yml", "in_progress", null), run("profile", ".github/workflows/profile.yml", "completed", "success"), run("Pre-release", ".github/workflows/prerelease.yml", "completed", "failure")];
+    // both names the README's workflow has had are skipped: readme-studio.yml now, readme.yml before
+    const runs = [run("Readme Studio", ".github/workflows/readme-studio.yml", "in_progress", null), run("readme", ".github/workflows/readme.yml", "completed", "failure"), run("profile", ".github/workflows/profile.yml", "completed", "success"), run("Pre-release", ".github/workflows/prerelease.yml", "completed", "failure")];
 
     const mixed = await fetchProjectData({ repo: "mona/aurora", fetch: with_([rel("v1.5.1-108", 23, true), rel("v1.5.1", 22, false), rel("v1.5.0", 21, false)], runs), avatars: 0 });
     expect(mixed.releases.map((r) => r.tag)).toEqual(["v1.5.1", "v1.5.0"]);
