@@ -1,0 +1,31 @@
+{
+  "name": "readme-studio",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Design, generate and auto-update animated GitHub profile READMEs",
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22"
+  },
+  "workspaces": [
+    "packages/core",
+    "packages/engine",
+    "apps/web"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w apps/web",
+    "build": "npm run build -w apps/web",
+    "bundle": "npm run bundle -w packages/engine",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "example": "npm run cli -w packages/engine -- build --config ../../examples/readme.config.json --out ../../examples/dist --mock"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.7",
+    "tsx": "4.23.15",
+    "typescript": "5.9.3",
+    "vitest": "4.1.12"
+  }
+}

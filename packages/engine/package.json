@@ -1,0 +1,18 @@
+{
+  "name": "@readme-studio/engine",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Node runtime: live GitHub data, GIF rasterisation, CLI and the GitHub Action entry",
+  "type": "module",
+  "bin": {
+    "readme-studio": "./dist/cli.mjs"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "cli": "tsx src/cli.ts",
+    "bundle": "tsx scripts/bundle.ts"
+  },
+  "dependencies": {
+    "@readme-studio/core": "*"
+  }
+}

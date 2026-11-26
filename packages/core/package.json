@@ -1,0 +1,15 @@
+{
+  "name": "@readme-studio/core",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Isomorphic widget renderer, themes and README composer",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./fonts/*": "./src/fonts/data/*.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "assets": "tsx ../../scripts/build-assets.ts"
+  }
+}
