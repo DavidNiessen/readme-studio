@@ -279,7 +279,9 @@ function PresetsDialog() {
                   })
                 : "confirm";
               if (!answer) return;
-              replace(next, answer === "alt" ? p.name : undefined, answer === "alt");
+              // a new project is the preset as it comes; "keep my details" applies to replacing this one
+              if (answer === "alt") replace(fresh, p.name, true);
+              else replace(next);
               openDialog(null);
               toast(answer === "alt" ? `Started “${p.name}” as a new project` : `Applied “${p.name}”`);
             }}

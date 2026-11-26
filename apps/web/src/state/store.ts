@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { getLayoutPreset, getWidget, hashSeed, mockData, mockWeeks, normalizeConfig, presetConfig, type Mode, type ProfileData, type StudioConfig } from "@readme-studio/core";
+import { getWidget, hashSeed, mockData, mockWeeks, normalizeConfig, presetConfig, type Mode, type ProfileData, type StudioConfig } from "@readme-studio/core";
 import { addBlock, duplicateBlock, findBlock, flatten, moveBlock, moveBlocksTo, removeBlock, renameBlock, updateBlock, updateOptions } from "../lib/layout";
 import { findDesignBySource, getCurrentId, getPref, loadDesigns, saveDesign, setCurrentId, setPref, type SavedDesign } from "../lib/storage";
 
@@ -111,6 +111,12 @@ function initial(): { id: string; name: string; config: StudioConfig; source: st
   return { id: newId(), name: "My profile", config: presetConfig("command-center"), source: null, base: null, firstRun: true };
 }
 
+/**
+ * A design that was just started or switched to shows sample data: live data belongs to the
+ * account or repository it was loaded for, which the next design may not share.
+ */
+const freshData = (c: StudioConfig) => ({ dataMode: "sample" as const, data: sampleFor(c), liveData: null, dataStatus: { state: "idle" } as const });
+
 /** Two configs are the same design when they serialise the same way. */
 export function sameConfig(a: StudioConfig, b: StudioConfig): boolean {
   return JSON.stringify(normalizeConfig(a).config) === JSON.stringify(normalizeConfig(b).config);
@@ -202,8 +208,7 @@ export const useStudio = create<StudioState>((set, get) => ({
       selected: null,
       lastKey: null,
       ...(name ? { name } : {}),
-      ...(newDesign ? { designId: newId(), source: null, base: null, restoredDraft: null, firstRun: false } : {}),
-      ...(s.dataMode === "sample" ? { data: sampleFor(config) } : {}),
+      ...(newDesign ? { designId: newId(), source: null, base: null, restoredDraft: null, firstRun: false, ...freshData(config) } : s.dataMode === "sample" ? { data: sampleFor(config) } : {}),
     });
   },
 
@@ -336,8 +341,8 @@ export const useStudio = create<StudioState>((set, get) => ({
   },
 
   newDesign(presetId) {
-    const s = get();
-    const config = { ...presetConfig(presetId, s.config.profile), ...(getLayoutPreset(presetId).kind === "project" && s.config.kind === "project" ? { project: s.config.project } : {}) };
+    // a new project starts from the preset alone: nothing of the design that was open carries over
+    const config = presetConfig(presetId);
     set({
       designId: newId(),
       source: null,
@@ -349,11 +354,11 @@ export const useStudio = create<StudioState>((set, get) => ({
       past: [],
       future: [],
       selected: null,
-      ...(s.dataMode === "sample" ? { data: sampleFor(config) } : {}),
+      ...freshData(config),
     });
   },
   openDesign(d) {
-    set((s) => ({ designId: d.id, source: d.source ?? null, base: d.base ?? null, restoredDraft: null, firstRun: false, name: d.name, config: d.config, past: [], future: [], selected: null, ...(s.dataMode === "sample" ? { data: sampleFor(d.config) } : {}) }));
+    set((s) => ({ designId: d.id, source: d.source ?? null, base: d.base ?? null, restoredDraft: null, firstRun: false, name: d.name, config: d.config, past: [], future: [], selected: null, ...freshData(d.config) }));
   },
   openSource(source, committed, name) {
     const kept = findDesignBySource(source);
@@ -370,7 +375,7 @@ export const useStudio = create<StudioState>((set, get) => ({
       future: [],
       selected: null,
       lastKey: null,
-      ...(s.dataMode === "sample" ? { data: sampleFor(config) } : {}),
+      ...freshData(config),
     }));
     const restored = !!kept && !sameConfig(kept.config, committed);
     const stale = restored && !!kept?.base && !sameConfig(kept.base, committed);
