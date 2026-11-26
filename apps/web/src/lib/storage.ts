@@ -24,6 +24,12 @@ export interface SavedDesign {
   name: string;
   updatedAt: number;
   config: StudioConfig;
+  /**
+   * Where the design came from and saves back to, e.g. "github:owner/repo" for a repository
+   * opened from the browser extension. Each source keeps one draft, so several repositories can
+   * have unsaved work at the same time.
+   */
+  source?: string;
 }
 
 export function loadDesigns(): SavedDesign[] {
@@ -34,6 +40,11 @@ export function loadDesigns(): SavedDesign[] {
         .map((d) => ({ ...d, name: String(d.name || "Untitled"), config: normalizeConfig(d.config).config }))
         .sort((a, b) => b.updatedAt - a.updatedAt)
     : [];
+}
+
+/** The draft kept for a source, if any. */
+export function findDesignBySource(source: string): SavedDesign | undefined {
+  return loadDesigns().find((d) => d.source === source);
 }
 
 export function saveDesign(d: SavedDesign): void {

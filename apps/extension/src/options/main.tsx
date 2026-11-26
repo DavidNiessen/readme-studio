@@ -95,7 +95,7 @@ function Options() {
           checked={s.everyRepo}
           onChange={(v) => set({ everyRepo: v })}
           label="Offer “Design README” on every repository"
-          help="Off: the button shows on repositories that already have a design, and on your profile repository."
+          help="On by default. Off: the button shows only on repositories that already have a design, and on your profile repository."
         />
       </section>
     </main>

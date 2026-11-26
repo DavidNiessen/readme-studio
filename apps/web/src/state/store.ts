@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { getLayoutPreset, getWidget, hashSeed, mockData, mockWeeks, normalizeConfig, presetConfig, type Mode, type ProfileData, type StudioConfig } from "@readme-studio/core";
 import { addBlock, duplicateBlock, findBlock, moveBlock, removeBlock, renameBlock, updateOptions } from "../lib/layout";
-import { getCurrentId, getPref, loadDesigns, saveDesign, setCurrentId, setPref, type SavedDesign } from "../lib/storage";
+import { findDesignBySource, getCurrentId, getPref, loadDesigns, saveDesign, setCurrentId, setPref, type SavedDesign } from "../lib/storage";
 
 export type InspectorTab = "block" | "profile" | "project" | "theme" | "data";
 export type DialogId = "export" | "presets" | "import" | "json" | "shortcuts" | "designs" | "palette" | "add" | null;
@@ -14,6 +14,8 @@ export interface DataStatus {
 
 interface StudioState {
   designId: string;
+  /** where the design saves back to (e.g. "github:owner/repo"); null for designs of the studio itself */
+  source: string | null;
   name: string;
   config: StudioConfig;
   past: StudioConfig[];
@@ -65,16 +67,26 @@ interface StudioState {
 
   newDesign: (presetId: string) => void;
   openDesign: (d: SavedDesign) => void;
+  /**
+   * Opens the design of a source: its kept draft when there is one, else `committed` as a new
+   * draft. Returns whether the draft differs from `committed` (unsaved changes came back).
+   */
+  openSource: (source: string, committed: StudioConfig, name: string) => { restored: boolean };
 }
 
 const sampleFor = (c: StudioConfig) => mockData(new Date(), c.profile.login, c.profile.name, c.profile.location.timezone, c.kind === "project" ? c.project.repo : undefined);
 
-function initial(): { id: string; name: string; config: StudioConfig } {
+function initial(): { id: string; name: string; config: StudioConfig; source: string | null } {
   const designs = loadDesigns();
   const current = getCurrentId();
   const found = designs.find((d) => d.id === current) ?? designs[0];
-  if (found) return { id: found.id, name: found.name, config: found.config };
-  return { id: newId(), name: "My profile", config: presetConfig("command-center") };
+  if (found) return { id: found.id, name: found.name, config: found.config, source: found.source ?? null };
+  return { id: newId(), name: "My profile", config: presetConfig("command-center"), source: null };
+}
+
+/** Two configs are the same design when they serialise the same way. */
+export function sameConfig(a: StudioConfig, b: StudioConfig): boolean {
+  return JSON.stringify(normalizeConfig(a).config) === JSON.stringify(normalizeConfig(b).config);
 }
 
 export function newId(): string {
@@ -86,6 +98,7 @@ const HISTORY = 120;
 
 export const useStudio = create<StudioState>((set, get) => ({
   designId: init.id,
+  source: init.source,
   name: init.name,
   config: init.config,
   past: [],
@@ -152,7 +165,7 @@ export const useStudio = create<StudioState>((set, get) => ({
       selected: null,
       lastKey: null,
       ...(name ? { name } : {}),
-      ...(newDesign ? { designId: newId() } : {}),
+      ...(newDesign ? { designId: newId(), source: null } : {}),
       ...(s.dataMode === "sample" ? { data: sampleFor(config) } : {}),
     });
   },
@@ -233,6 +246,7 @@ export const useStudio = create<StudioState>((set, get) => ({
     const config = { ...presetConfig(presetId, s.config.profile), ...(getLayoutPreset(presetId).kind === "project" && s.config.kind === "project" ? { project: s.config.project } : {}) };
     set({
       designId: newId(),
+      source: null,
       name: "Untitled design",
       config,
       past: [],
@@ -242,7 +256,23 @@ export const useStudio = create<StudioState>((set, get) => ({
     });
   },
   openDesign(d) {
-    set((s) => ({ designId: d.id, name: d.name, config: d.config, past: [], future: [], selected: null, ...(s.dataMode === "sample" ? { data: sampleFor(d.config) } : {}) }));
+    set((s) => ({ designId: d.id, source: d.source ?? null, name: d.name, config: d.config, past: [], future: [], selected: null, ...(s.dataMode === "sample" ? { data: sampleFor(d.config) } : {}) }));
+  },
+  openSource(source, committed, name) {
+    const kept = findDesignBySource(source);
+    const config = normalizeConfig(kept?.config ?? committed).config;
+    set((s) => ({
+      designId: kept?.id ?? newId(),
+      source,
+      name: kept?.name ?? name,
+      config,
+      past: [],
+      future: [],
+      selected: null,
+      lastKey: null,
+      ...(s.dataMode === "sample" ? { data: sampleFor(config) } : {}),
+    }));
+    return { restored: !!kept && !sameConfig(kept.config, committed) };
   },
 }));
 
@@ -253,7 +283,7 @@ useStudio.subscribe((s, prev) => {
   window.clearTimeout(saveTimer);
   saveTimer = window.setTimeout(() => {
     const st = useStudio.getState();
-    saveDesign({ id: st.designId, name: st.name, updatedAt: Date.now(), config: st.config });
+    saveDesign({ id: st.designId, name: st.name, updatedAt: Date.now(), config: st.config, ...(st.source ? { source: st.source } : {}) });
     setCurrentId(st.designId);
     useStudio.setState({ savedAt: Date.now() });
   }, 500);

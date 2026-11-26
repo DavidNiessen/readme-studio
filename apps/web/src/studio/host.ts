@@ -9,8 +9,12 @@ import type { StudioConfig } from "@readme-studio/core";
 export interface StudioHost {
   /** Short name of where the studio runs, shown in the top bar (e.g. "DavidNiessen/soundwave"). */
   context?: string;
-  /** Loads the design to edit when the studio opens. Replaces the website's `#/studio?…` loading. */
-  open?: () => Promise<{ config: StudioConfig; name: string; warnings?: string[] } | null>;
+  /**
+   * Loads the design to edit when the studio opens. Replaces the website's `#/studio?…` loading.
+   * With a `source` (e.g. "github:owner/repo") the studio keeps one draft per source: reopening
+   * brings back unsaved changes instead of the committed design.
+   */
+  open?: () => Promise<{ config: StudioConfig; name: string; warnings?: string[]; source?: string } | null>;
   /** Primary actions for the top bar, placed before Export (e.g. "Save to GitHub"). */
   actions?: ReactNode;
   /** Dialogs or panels the host renders next to the studio's own. */

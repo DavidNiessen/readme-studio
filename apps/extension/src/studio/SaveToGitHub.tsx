@@ -1,6 +1,6 @@
-import { useStudio } from "@readme-studio/web/state";
+import { sameConfig, useStudio } from "@readme-studio/web/state";
 import { Button, Dialog, Field, Segmented, TextInput, ToggleRow, useToast } from "@readme-studio/web/ui";
-import { ExternalLink, GitBranch, GitCommitHorizontal, GitPullRequest, Pencil, UploadCloud } from "lucide-react";
+import { ExternalLink, GitBranch, GitCommitHorizontal, GitPullRequest, Pencil, RotateCcw, UploadCloud } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { GitHub } from "../github/api";
 import { defaultPrBranch, filesFor, saveDesign, CONFIG_PATH, WORKFLOW_PATH, type SaveResult } from "../github/design";
@@ -19,6 +19,33 @@ export function SaveButton() {
     <Button variant="accent" disabled={!opened} onClick={() => showSaveDialog(true)} aria-label="Save to GitHub">
       <UploadCloud /> <span className="hide-sm">Save to GitHub</span>
     </Button>
+  );
+}
+
+/**
+ * Shown while the design differs from what the repository has: the draft survives closing the
+ * studio, and Discard goes back to the committed design.
+ */
+export function DraftNotice() {
+  const { opened } = useSession();
+  const config = useStudio((s) => s.config);
+  const changed = useMemo(() => !!opened && !sameConfig(config, opened.config), [opened, config]);
+  if (!opened || !changed) return null;
+  return (
+    <span className="ext-draft hide-sm" title={opened.configExists ? "Differs from the design in the repository" : "Not saved to the repository yet"}>
+      <span className="ext-draft__dot" />
+      {opened.configExists ? "Unsaved changes" : "Not saved yet"}
+      {opened.configExists && (
+        <button
+          type="button"
+          onClick={() => {
+            if (window.confirm(`Discard your changes and load the design committed to ${opened.repo.full}?`)) useStudio.getState().replace(opened.config, opened.name);
+          }}
+        >
+          <RotateCcw size={12} /> Discard
+        </button>
+      )}
+    </span>
   );
 }
 
@@ -94,8 +121,9 @@ export function SaveDialog() {
         prBranch,
       });
       setDone(result);
-      if (result.kind === "commit") setSession({ opened: { ...opened, configExists: true, workflowExists: opened.workflowExists || (needsWorkflow && addWorkflow) } });
-      tellPage({ type: "saved", url: result.url });
+      // the committed design is now this one: the draft has nothing unsaved left
+      if (result.kind === "commit") setSession({ opened: { ...opened, config, configExists: true, workflowExists: opened.workflowExists || (needsWorkflow && addWorkflow) } });
+      tellPage({ type: "saved", url: result.url, kind: result.kind });
       toast(result.kind === "pull-request" ? "Pull request opened" : "Committed to GitHub");
     } catch (e) {
       toast((e as Error).message);

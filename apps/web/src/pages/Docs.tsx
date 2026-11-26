@@ -1559,9 +1559,14 @@ function ExtensionGuide() {
   return (
     <>
       <p>
-        The Readme Studio extension for Chrome and Firefox puts this studio inside GitHub. Open a repository that has a <code>readme.config.json</code>, or your profile
-        repository, and an <b>Edit README</b> button appears in the corner. It opens the studio over the page with the committed design loaded; the extension's toolbar
-        button does the same from anywhere in the repository.
+        The Readme Studio extension for Chrome and Firefox puts this studio inside GitHub. Every repository gets a button in the corner: <b>Edit README</b> when it has a{" "}
+        <code>readme.config.json</code>, <b>Design README</b> when it has none. It opens the studio as an overlay on the page with the committed design loaded; click
+        outside it or press Esc to close. The extension's toolbar button does the same. The options page can limit the button to repositories with a design and your
+        profile repository.
+      </p>
+      <p>
+        Each repository keeps its own draft. Close the overlay, work on another repository, come back: your unsaved changes are still there. The top bar shows when the
+        design differs from the repository's, with <b>Discard</b> to load the committed design again.
       </p>
 
       <Heading id="install">Install</Heading>

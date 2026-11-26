@@ -24,7 +24,10 @@ export interface Auth {
   scopes: string[];
 }
 
-export const DEFAULT_SETTINGS: Settings = { saveMode: "commit", clientId: "", everyRepo: false };
+export const DEFAULT_SETTINGS: Settings = { saveMode: "commit", clientId: "", everyRepo: true };
+
+/** Raised when a default changes meaning; older stored values of those settings are dropped. */
+const SETTINGS_VERSION = 2;
 
 /** The client ID this build ships with, if any. */
 export const BUILT_IN_CLIENT_ID: string = (import.meta.env?.VITE_GITHUB_CLIENT_ID as string | undefined) ?? "";
@@ -33,15 +36,31 @@ export function clientIdOf(s: Settings): string {
   return s.clientId.trim() || BUILT_IN_CLIENT_ID;
 }
 
-export async function loadSettings(): Promise<Settings> {
-  const got = (await ext()?.storage.local.get("settings"))?.settings as Partial<Settings> | undefined;
-  return { ...DEFAULT_SETTINGS, ...(got ?? {}) };
+type Stored = Partial<Settings> & { v?: number };
+
+/**
+ * Stored settings, upgraded: before version 2 every setting was written whenever any changed,
+ * so a stored `everyRepo: false` was usually the old default rather than a choice.
+ */
+export function upgradeSettings(stored: Stored | undefined): Partial<Settings> {
+  if (!stored) return {};
+  const { v, ...rest } = stored;
+  if ((v ?? 1) < 2) delete rest.everyRepo;
+  return rest;
 }
 
+export async function loadSettings(): Promise<Settings> {
+  const got = (await ext()?.storage.local.get("settings"))?.settings as Stored | undefined;
+  return { ...DEFAULT_SETTINGS, ...upgradeSettings(got) };
+}
+
+/** Stores only what the user changed, so later defaults still reach them. */
 export async function saveSettings(patch: Partial<Settings>): Promise<Settings> {
-  const next = { ...(await loadSettings()), ...patch };
-  await ext()?.storage.local.set({ settings: next });
-  return next;
+  const api = ext();
+  const stored = upgradeSettings((await api?.storage.local.get("settings"))?.settings as Stored | undefined);
+  const next = { ...stored, ...patch };
+  await api?.storage.local.set({ settings: { ...next, v: SETTINGS_VERSION } });
+  return { ...DEFAULT_SETTINGS, ...next };
 }
 
 export async function loadAuth(): Promise<Auth | null> {

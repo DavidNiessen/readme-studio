@@ -19,7 +19,7 @@ Readme Studio has four parts:
 |---|---|---|
 | **Studio** | [`apps/web`](apps/web) | A web designer (hosted on GitHub Pages). Design a **profile** README or a **project** README: pick one of 18 presets or start blank, arrange 54 widgets, tune 17 palettes, 12 typefaces, radius, texture and motion, and preview in GitHub's dark and light themes at desktop or phone width. Exports a ready-to-commit project. |
 | **Action** | [`action.yml`](action.yml), [`packages/engine`](packages/engine) | Runs in your profile or project repository on a cron. Fetches your GitHub data (account or repository), renders every widget as an animated SVG (or GIF), force-pushes the images to an asset branch and updates `README.md` when the layout changed. |
-| **Browser extension** | [`apps/extension`](apps/extension) | Chrome and Firefox. On GitHub, **Edit README** opens the same studio over the repository page with its committed design, and **Save to GitHub** writes it back: as a commit, a pull request, or through GitHub's own editor. |
+| **Browser extension** | [`apps/extension`](apps/extension) | Chrome and Firefox. On GitHub, **Edit README** opens the same studio as an overlay on the repository page with its committed design, keeps a draft per repository, and **Save to GitHub** writes it back: as a commit, a pull request, or through GitHub's own editor. |
 | **Core** | [`packages/core`](packages/core) | The isomorphic renderer shared by both: themes, fonts with real text metrics, widgets, the config schema and the README composer. The studio preview and the action produce byte-identical SVGs. |
 
 Everything is static: no server, no database, no third-party image host. Your design lives in your browser and in your repository.
@@ -91,7 +91,9 @@ Outputs: `assets-dir`, `readme-changed`, `data-source`.
 
 ## Browser extension
 
-The extension puts the studio inside GitHub. On a repository with a `readme.config.json` (and on your profile repository) an **Edit README** button opens the studio over the page with that design loaded; the toolbar button does the same from anywhere on the repository. It is the same studio as the website, not a copy: [`apps/extension`](apps/extension) mounts `apps/web`'s studio and adds the GitHub side.
+The extension puts the studio inside GitHub. Every repository gets a button in the corner: **Edit README** when it has a `readme.config.json`, **Design README** when it has none (the options page can limit that to your profile repository). It opens the studio as an overlay on the page, with the committed design loaded; click outside it or press Esc to close. The toolbar button does the same. It is the same studio as the website, not a copy: [`apps/extension`](apps/extension) mounts `apps/web`'s studio and adds the GitHub side.
+
+Each repository keeps its own draft: close the overlay, open another repository, come back, and your unsaved changes are still there. The top bar says when the design differs from the repository's, with **Discard** to go back to the committed one.
 
 **Save to GitHub** writes `readme.config.json` (and the workflow, if the repository has none), and the readme workflow renders the rest:
 

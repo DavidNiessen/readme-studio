@@ -5,6 +5,7 @@ import { requestDeviceCode, waitForToken } from "../src/github/auth";
 import { CONFIG_PATH, defaultPrBranch, filesFor, openDesign, saveDesign, starterFor, WORKFLOW_PATH } from "../src/github/design";
 import { editorUrl, isFresh, PENDING_TTL } from "../src/github/editor";
 import { buildManifest, manifestVersion } from "../src/manifest";
+import { DEFAULT_SETTINGS, upgradeSettings } from "../src/settings";
 import { editorPage, isProfileRepo, repoFromUrl, repoRef } from "../src/repo";
 
 const json = (v: unknown, status = 200, headers: Record<string, string> = {}) => new Response(JSON.stringify(v), { status, headers: { "content-type": "application/json", ...headers } });
@@ -169,5 +170,15 @@ describe("sign in with GitHub (device flow)", () => {
     const denied = (async () => json({ error: "access_denied" })) as unknown as typeof fetch;
     const code = { deviceCode: "d", userCode: "u", verificationUri: "", interval: 1, expiresAt: 10_000 };
     await expect(waitForToken("cid", code, { http: denied, now: () => 0, sleep: async () => {} })).rejects.toThrow(/cancelled/);
+  });
+});
+
+describe("settings", () => {
+  it("offers Design README everywhere by default and forgets the old implicit opt-out", () => {
+    expect(DEFAULT_SETTINGS.everyRepo).toBe(true);
+    // version 1 stored every setting on any change: everyRepo false was the old default, not a choice
+    expect(upgradeSettings({ saveMode: "editor", everyRepo: false })).toEqual({ saveMode: "editor" });
+    expect(upgradeSettings({ everyRepo: false, v: 2 })).toEqual({ everyRepo: false });
+    expect(upgradeSettings(undefined)).toEqual({});
   });
 });

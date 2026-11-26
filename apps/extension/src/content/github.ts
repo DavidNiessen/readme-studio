@@ -7,7 +7,7 @@
 import { fillEditor, isFresh, pendingKey, type PendingEdit } from "../github/editor";
 import { ext } from "../platform";
 import { editorPage, isProfileRepo, repoFromDocument, type RepoRef } from "../repo";
-import type { Settings } from "../settings";
+import { loadSettings } from "../settings";
 
 const api = ext();
 const HOST_ID = "readme-studio-extension";
@@ -20,14 +20,21 @@ const STYLE = `
   box-shadow: 0 8px 24px rgba(0,0,0,.28); transition: transform .15s ease, box-shadow .15s ease; }
 .pill:hover { transform: translateY(-1px); box-shadow: 0 12px 28px rgba(0,0,0,.34); }
 .pill:focus-visible { outline: 2px solid #e5532d; outline-offset: 2px; }
+.overlay ~ .pill, .pill:has(~ .overlay) { visibility: hidden; }
 .mark { width: 18px; height: 18px; flex: none; }
-.overlay { position: fixed; inset: 0; z-index: 2147483001; background: rgba(10,10,10,.5); display: flex; }
-.overlay iframe { flex: 1; border: 0; background: #faf9f6; }
+.overlay { position: fixed; inset: 0; z-index: 2147483001; display: grid; place-items: center; padding: 28px;
+  background: rgba(1,4,9,.55); backdrop-filter: blur(3px); animation: rs-fade .16s ease-out; }
+.panel { width: min(1680px, 100%); height: min(1040px, 100%); border-radius: 14px; overflow: hidden; background: #faf9f6;
+  box-shadow: 0 24px 80px rgba(0,0,0,.45), 0 0 0 1px rgba(255,255,255,.08); animation: rs-rise .22s cubic-bezier(.2,.8,.2,1); }
+.panel iframe { display: block; width: 100%; height: 100%; border: 0; }
+@media (max-width: 720px) { .overlay { padding: 0; } .panel { border-radius: 0; } }
+@keyframes rs-fade { from { opacity: 0; } }
+@keyframes rs-rise { from { opacity: 0; transform: translateY(14px) scale(.985); } }
 .note { position: fixed; left: 50%; top: 16px; transform: translateX(-50%); z-index: 2147483002; max-width: 560px; padding: 12px 16px;
   border-radius: 10px; background: #1b1a17; color: #fbfaf7; font: 13px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
   box-shadow: 0 12px 32px rgba(0,0,0,.3); }
 .note button { margin-left: 10px; background: none; border: 0; color: #f26a45; font: inherit; cursor: pointer; }
-@media (prefers-reduced-motion: reduce) { .pill { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .pill { transition: none; } .overlay, .panel { animation: none; } }
 `;
 
 const MARK = `<svg xmlns="http://www.w3.org/2000/svg" class="mark" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#fbfaf7"/><rect x="7" y="8" width="18" height="3" rx="1.5" fill="#1b1a17"/><rect x="7" y="14.5" width="11" height="3" rx="1.5" fill="#1b1a17" opacity=".55"/><rect x="7" y="21" width="7" height="3" rx="1.5" fill="#e5532d"/></svg>`;
@@ -51,34 +58,61 @@ function shadow(): ShadowRoot {
 let overlay: HTMLElement | null = null;
 let restoreOverflow = "";
 
+/**
+ * The studio floats over the repository page in a panel; GitHub stays visible, dimmed, around it.
+ * Clicking outside the panel or Esc closes it. Unsaved work is kept as the repository's draft.
+ */
 function openStudio(repo: RepoRef): void {
   if (!api || overlay) return;
   const root = shadow();
   overlay = document.createElement("div");
   overlay.className = "overlay";
+  overlay.setAttribute("role", "dialog");
+  overlay.setAttribute("aria-modal", "true");
+  overlay.setAttribute("aria-label", `Readme Studio: ${repo.full}`);
+  const panel = document.createElement("div");
+  panel.className = "panel";
   const frame = document.createElement("iframe");
   frame.title = `Readme Studio: ${repo.full}`;
   frame.allow = "clipboard-write";
   frame.src = `${api.runtime.getURL("studio.html")}#repo=${encodeURIComponent(repo.full)}`;
-  overlay.appendChild(frame);
+  panel.appendChild(frame);
+  overlay.appendChild(panel);
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) closeStudio();
+  });
   root.appendChild(overlay);
   restoreOverflow = document.documentElement.style.overflow;
   document.documentElement.style.overflow = "hidden";
+  document.addEventListener("keydown", onPageKey, true);
   frame.focus();
+}
+
+function onPageKey(e: KeyboardEvent): void {
+  if (e.key === "Escape") closeStudio();
 }
 
 function closeStudio(): void {
   overlay?.remove();
   overlay = null;
   document.documentElement.style.overflow = restoreOverflow;
+  document.removeEventListener("keydown", onPageKey, true);
 }
 
 window.addEventListener("message", (e) => {
   if (!api || !overlay) return;
   // only the studio page of this extension may close the overlay
   if (e.origin !== new URL(api.runtime.getURL("")).origin) return;
-  const msg = e.data as { source?: string; type?: string };
-  if (msg?.source === "readme-studio" && msg.type === "close") closeStudio();
+  const msg = e.data as { source?: string; type?: string; kind?: string };
+  if (msg?.source !== "readme-studio") return;
+  if (msg.type === "close") closeStudio();
+  // a commit made the repository's design real: the button now edits it
+  if (msg.type === "saved" && msg.kind === "commit") {
+    const repo = repoFromDocument(document, location.href);
+    if (repo) designs.set(repo.full.toLowerCase(), Promise.resolve(true));
+    shownFor = "";
+    void updateButton();
+  }
 });
 
 // --------------------------------------------------------------- the button
@@ -99,10 +133,6 @@ function hasDesign(repo: RepoRef): Promise<boolean> {
   return designs.get(key)!;
 }
 
-async function settings(): Promise<Partial<Settings>> {
-  return ((await api?.storage.local.get("settings"))?.settings as Partial<Settings>) ?? {};
-}
-
 let shownFor = "";
 
 async function updateButton(): Promise<void> {
@@ -113,7 +143,7 @@ async function updateButton(): Promise<void> {
   shownFor = key;
   root.querySelector(".pill")?.remove();
   if (!repo || editorPage(location.href)) return;
-  const [has, s] = await Promise.all([hasDesign(repo), settings()]);
+  const [has, s] = await Promise.all([hasDesign(repo), loadSettings()]);
   if (shownFor !== key) return;
   if (!has && !isProfileRepo(repo) && !s.everyRepo) return;
   const pill = document.createElement("button");
