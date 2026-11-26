@@ -424,12 +424,19 @@ export interface MenuItem {
   label: string;
   icon?: ReactNode;
   shortcut?: string;
+  /** quiet text after the label (where something lives, when it changed) */
+  hint?: string;
   onSelect: () => void;
   danger?: boolean;
   disabled?: boolean;
 }
 
-export function Menu({ trigger, items, align = "end" }: { trigger: ReactElement<Record<string, unknown>>; items: (MenuItem | "sep")[]; align?: "start" | "end" }) {
+/** A section title inside a menu. */
+export type MenuHeading = { heading: string };
+type MenuEntry = MenuItem | MenuHeading | "sep";
+
+/** `items` may be a function, called only while the menu is open (for lists that cost something to read). */
+export function Menu({ trigger, items, align = "end", label }: { trigger: ReactElement<Record<string, unknown>>; items: MenuEntry[] | (() => MenuEntry[]); align?: "start" | "end"; label?: string }) {
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState<{ x: number; y: number; w: number }>({ x: 0, y: 0, w: 0 });
   const anchor = useRef<HTMLElement | null>(null);
@@ -482,10 +489,14 @@ export function Menu({ trigger, items, align = "end" }: { trigger: ReactElement<
       {t}
       {open &&
         createPortal(
-          <div ref={pop} className="popover" role="menu" style={{ top: pos.y, left: align === "end" ? undefined : pos.x, right: align === "end" ? window.innerWidth - pos.x : undefined }}>
-            {items.map((it, i) =>
+          <div ref={pop} className="popover" role="menu" aria-label={label} style={{ top: pos.y, left: align === "end" ? undefined : pos.x, right: align === "end" ? window.innerWidth - pos.x : undefined }}>
+            {(typeof items === "function" ? items() : items).map((it, i) =>
               it === "sep" ? (
                 <div key={i} className="menu-sep" />
+              ) : "heading" in it ? (
+                <div key={i} className="menu-heading">
+                  {it.heading}
+                </div>
               ) : (
                 <button
                   key={i}
@@ -499,7 +510,8 @@ export function Menu({ trigger, items, align = "end" }: { trigger: ReactElement<
                   }}
                 >
                   {it.icon}
-                  <span>{it.label}</span>
+                  <span className="menu-item__label">{it.label}</span>
+                  {it.hint && <span className="menu-item__hint">{it.hint}</span>}
                   {it.shortcut && <span className="kbd">{it.shortcut}</span>}
                 </button>
               ),

@@ -20,17 +20,21 @@ import {
   Upload,
   Layers,
   BookOpen,
+  Check,
+  ChevronDown,
+  FileText,
+  FolderGit2,
   RotateCcw,
   X,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { layoutPresets, parseConfig, type StudioConfig } from "@readme-studio/core";
 import { Logo, LogoMark } from "../components/Logo";
-import { Button, ContextMenuHost, IconButton, MOD, Menu, Segmented, cn, copyText, useToast } from "../components/ui";
+import { Button, ContextMenuHost, IconButton, MOD, Menu, Segmented, cn, copyText, useToast, type MenuHeading, type MenuItem } from "../components/ui";
 import { findBlock } from "../lib/layout";
 import { navigate } from "../lib/router";
 import { decodeShare, shareUrl } from "../lib/share";
-import { getPref, setPref } from "../lib/storage";
+import { getPref, loadDesigns, setPref, type SavedDesign } from "../lib/storage";
 import { useStudio } from "../state/store";
 import { Canvas } from "./Canvas";
 import { Dialogs } from "./Dialogs";
@@ -39,7 +43,7 @@ import { Rail } from "./Rail";
 import { DraftNotice, SaveButton, SaveDialog } from "./github/SaveToGitHub";
 import { openedMessage, openFailure, openRepository } from "./github/openRepo";
 import { getSession, setSession, useSession } from "./github/session";
-import { repoRef } from "../github/repo";
+import { parseRepo } from "../github/repo";
 import { OpenFailed } from "./github/OpenFailed";
 import { webPlatform } from "./github/webPlatform";
 import { StudioHostContext, useStudioHost, type StudioHost } from "./host";
@@ -94,6 +98,16 @@ function TopBar() {
       )}
       <div className="topbar__sep hide-sm" />
       <div className="design-name">
+        <Menu
+          align="start"
+          label="Recent projects"
+          trigger={
+            <button type="button" className="icon-btn icon-btn--sm design-switch" aria-label="Recent projects" title="Recent projects">
+              <ChevronDown />
+            </button>
+          }
+          items={() => recentProjects(s.designId, s.openDesign, () => s.openDialog("designs"))}
+        />
         <input aria-label="Design name" value={s.name} onChange={(e) => s.setName(e.target.value)} onBlur={(e) => !e.target.value.trim() && s.setName("Untitled design")} />
         <SavedIndicator />
         {host?.context && (
@@ -149,7 +163,7 @@ function TopBar() {
           }
           items={[
             { label: "Presets", icon: <LayoutTemplate />, onSelect: () => s.openDialog("presets") },
-            { label: "My designs", icon: <FolderOpen />, onSelect: () => s.openDialog("designs") },
+            { label: "All projects", icon: <FolderOpen />, onSelect: () => s.openDialog("designs") },
             { label: "Import design", icon: <Upload />, onSelect: () => s.openDialog("import") },
             { label: "Edit as JSON", icon: <FileJson />, onSelect: () => s.openDialog("json") },
             { label: "Export manually", icon: <Download />, shortcut: `${MOD} E`, onSelect: () => s.openDialog("export") },
@@ -182,6 +196,37 @@ function TopBar() {
       </div>
     </header>
   );
+}
+
+/** How long ago, in a few words. */
+function ago(t: number, now = Date.now()): string {
+  const m = Math.round((now - t) / 60000);
+  if (m < 1) return "just now";
+  if (m < 60) return `${m} min ago`;
+  const h = Math.round(m / 60);
+  if (h < 24) return `${h} h ago`;
+  const d = Math.round(h / 24);
+  return d < 30 ? `${d} d ago` : new Date(t).toLocaleDateString();
+}
+
+/** The switcher left of the design name: the latest projects, then all of them. */
+function recentProjects(current: string, open: (d: SavedDesign) => void, showAll: () => void): (MenuItem | MenuHeading | "sep")[] {
+  const designs = loadDesigns();
+  const recent = designs.slice(0, 7);
+  return [
+    { heading: "Recent projects" },
+    ...recent.map(
+      (d): MenuItem => ({
+        label: d.name,
+        icon: d.id === current ? <Check /> : d.source?.startsWith("github:") ? <FolderGit2 /> : <FileText />,
+        hint: d.id === current ? "open" : ago(d.updatedAt),
+        disabled: d.id === current,
+        onSelect: () => open(d),
+      }),
+    ),
+    ...(recent.length ? (["sep"] as const) : []),
+    { label: designs.length > recent.length ? `Show all ${designs.length} projects` : "Show all projects", icon: <FolderOpen />, onSelect: showAll },
+  ];
 }
 
 function isTyping(e: KeyboardEvent): boolean {
@@ -361,7 +406,7 @@ function StudioShell() {
     const cfgUrl = params.get("config");
     if (repoParam) {
       history.replaceState(null, "", "#/studio");
-      const repo = repoRef(repoParam);
+      const repo = parseRepo(repoParam);
       if (!repo) {
         toast("That link does not name a repository");
         return;
@@ -396,7 +441,7 @@ function StudioShell() {
     history.replaceState(null, "", "#/studio");
     if (c) {
       useStudio.getState().replace(c, "Shared design", true);
-      toast("Opened a shared design. Your previous design is in My designs.");
+      toast("Opened a shared design. Your previous design is in All projects.");
     } else toast("That share link is broken or incomplete");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

@@ -42,7 +42,7 @@ import { assetsZip, download, projectFiles, projectZip } from "../lib/export";
 import { shareUrl } from "../lib/share";
 import { deleteDesign, loadDesigns, type SavedDesign } from "../lib/storage";
 import { designFromReadme } from "../github/design";
-import { repoRef } from "../github/repo";
+import { parseRepo } from "../github/repo";
 import { useStudio } from "../state/store";
 import { openedMessage, openFailure, openRepository } from "./github/openRepo";
 import { suggestedRepo } from "./github/SaveToGitHub";
@@ -108,7 +108,7 @@ function ExportDialog() {
             </p>
             <div className="grid-2">
               <Field label="Repository" help={isProject ? "Leave empty for the project repository." : "Leave empty for your profile repository."}>
-                <TextInput mono aria-label="Repository" placeholder={isProject ? config.project.repo : `${config.profile.login}/${config.profile.login}`} value={out.repository} onChange={(v) => setOut({ repository: v.trim() })} />
+                <TextInput mono aria-label="Repository" placeholder={isProject ? config.project.repo : `${config.profile.login}/${config.profile.login}`} value={out.repository} onChange={(v) => setOut({ repository: parseRepo(v)?.full ?? v.trim() })} />
               </Field>
               <Field label="Asset branch">
                 <TextInput
@@ -331,16 +331,16 @@ function ImportDialog() {
   };
 
   const applyMarkdown = (md: string) => {
-    const repo = repoRef(repoText);
-    if (!repo) return setError("Enter the repository the README belongs to, as owner/name.");
+    const repo = parseRepo(repoText);
+    if (!repo) return setError("Enter the repository the README belongs to, as owner/name or a link to it.");
     if (!md.trim()) return setError("Paste some Markdown first.");
     replace(designFromReadme(repo, md), `${repo.full} README`, true);
     done("Started a design from your Markdown");
   };
 
   const applyGitHub = async () => {
-    const repo = repoRef(repoText);
-    if (!repo) return setError("Enter a repository as owner/name.");
+    const repo = parseRepo(repoText);
+    if (!repo) return setError("Enter a repository as owner/name or a link to it.");
     setBusy(true);
     setError(null);
     try {
@@ -368,7 +368,7 @@ function ImportDialog() {
 
   const repoField = (label: string, help: string) => (
     <Field label={label} help={help}>
-      <TextInput mono aria-label={label} placeholder="owner/name" value={repoText} onChange={(v) => setRepoText(v.trim())} />
+      <TextInput mono aria-label={label} placeholder="owner/name or https://github.com/owner/name" value={repoText} onChange={(v) => setRepoText(v.trim())} />
     </Field>
   );
 
@@ -393,7 +393,7 @@ function ImportDialog() {
             </Button>
           )}
           {from === "github" && (
-            <Button variant="primary" disabled={!repoRef(repoText) || busy} onClick={applyGitHub}>
+            <Button variant="primary" disabled={!parseRepo(repoText) || busy} onClick={applyGitHub}>
               <FolderGit2 /> {busy ? "Importing…" : "Import from GitHub"}
             </Button>
           )}
@@ -417,7 +417,7 @@ function ImportDialog() {
       </div>
       {from === "github" ? (
         <>
-          {repoField("Repository", "Its Readme Studio design when it has one, else its README, split into Markdown blocks under a header.")}
+          {repoField("Repository", "owner/name or a link to it. Opens its Readme Studio design when it has one, else its README, split into Markdown blocks under a header.")}
         </>
       ) : (
         <div
@@ -615,8 +615,8 @@ function DesignsDialog() {
     <Dialog
       open={dialog === "designs"}
       onClose={() => openDialog(null)}
-      title="Your designs"
-      subtitle="Saved automatically in this browser."
+      title="All projects"
+      subtitle="Every README design, saved automatically in this browser."
       width={560}
       footer={
         <>
