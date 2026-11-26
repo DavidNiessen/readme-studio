@@ -87,7 +87,7 @@ export interface WidgetDef<O extends Options = Options> {
   needs?: ("calendar" | "repos" | "events" | "weather" | "languages" | "hours" | "releases" | "feed")[];
   defaults: O;
   fields: Field[];
-  alt(ctx: Pick<Ctx, "profile">, o: O): string;
+  alt(ctx: Pick<Ctx, "profile" | "data">, o: O): string;
   /** default link target */
   href?(ctx: Pick<Ctx, "profile" | "data">, o: O): string | undefined;
   /** svg markup (kind svg), markdown (kind markdown), or a static preview frame (kind gif) */

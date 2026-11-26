@@ -6,8 +6,8 @@ import { luminance, mix } from "../lib/color";
  * Drawn as a lit half-disc plus an elliptical bulge whose width follows the phase.
  */
 export function moonGlyph(t: Theme, cx: number, cy: number, r: number, phase: number): string {
-  const lit = t.name === "dark" ? "#f4f4f5" : "#3f3f46";
-  const dark = t.name === "dark" ? "#27272a" : "#e4e4e7";
+  const lit = t.name === "dark" ? "#f4f4f5" : "#fbfbf9";
+  const dark = t.name === "dark" ? "#27272a" : "#c9c9cd";
   const waxing = phase < 0.5;
   const k = Math.cos(2 * Math.PI * phase); // 1 new, -1 full
   const rx = Math.abs(k) * r;
