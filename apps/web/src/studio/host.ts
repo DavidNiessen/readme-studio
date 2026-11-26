@@ -15,6 +15,12 @@ export interface StudioHost {
    * brings back unsaved changes instead of the committed design.
    */
   open?: () => Promise<{ config: StudioConfig; name: string; warnings?: string[]; source?: string; message?: string } | null>;
+  /**
+   * Shown instead of the editor when `open` fails (a private repository, a 404), so the studio
+   * never shows an unrelated design in its place. `retry` runs `open` again, e.g. after signing in.
+   * Without it the studio shows the error's message.
+   */
+  failed?: (error: unknown, retry: () => void) => ReactNode;
   /** Primary actions for the top bar, placed before Export (e.g. "Save to GitHub"). */
   actions?: ReactNode;
   /** Dialogs or panels the host renders next to the studio's own. */

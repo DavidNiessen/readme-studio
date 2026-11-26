@@ -279,14 +279,20 @@ function StudioShell() {
   const host = useStudioHost();
   useShortcuts();
   useUiTheme();
-  // a host (the browser extension) decides what opens; the website reads its URL
+  // a host (the browser extension) decides what opens; the website reads its URL. Until that
+  // design is in, the editor stays hidden: whatever design the store held is not this one.
+  const [opening, setOpening] = useState<{ state: "loading" } | { state: "ready" } | { state: "failed"; error: unknown }>({ state: host?.open ? "loading" : "ready" });
+  const [attempt, setAttempt] = useState(0);
   useEffect(() => {
     if (!host?.open) return;
     let cancelled = false;
+    setOpening({ state: "loading" });
     host
       .open()
       .then((r) => {
-        if (cancelled || !r) return;
+        if (cancelled) return;
+        setOpening({ state: "ready" });
+        if (!r) return;
         if (r.source) {
           const { restored } = useStudio.getState().openSource(r.source, r.config, r.name);
           if (restored) toast("Your unsaved changes are back");
@@ -297,12 +303,12 @@ function StudioShell() {
         }
         if (r.warnings?.length) toast(`Opened with ${r.warnings.length} repair(s)`);
       })
-      .catch((e) => !cancelled && toast((e as Error).message));
+      .catch((error) => !cancelled && setOpening({ state: "failed", error }));
     return () => {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [host]);
+  }, [host, attempt]);
   // shared design links: #/studio?design=<token>
   useEffect(() => {
     if (host) return;
@@ -347,6 +353,33 @@ function StudioShell() {
     } else toast("That share link is broken or incomplete");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+  if (opening.state !== "ready") {
+    return (
+      <div className="studio-gate">
+        {host?.onClose && (
+          <IconButton className="studio-gate__close" label="Close" onClick={host.onClose}>
+            <X />
+          </IconButton>
+        )}
+        <div className="studio-gate__body" aria-live="polite">
+          {opening.state === "loading" ? (
+            <p className="studio-gate__loading" role="status">
+              <span className="spinner" />
+              Opening {host?.context ?? "the design"}…
+            </p>
+          ) : (
+            (host?.failed?.(opening.error, () => setAttempt((n) => n + 1)) ?? (
+              <>
+                <h2>Could not open {host?.context ?? "the design"}</h2>
+                <p className="muted">{(opening.error as Error)?.message ?? String(opening.error)}</p>
+                <Button onClick={() => setAttempt((n) => n + 1)}>Try again</Button>
+              </>
+            ))
+          )}
+        </div>
+      </div>
+    );
+  }
   // selecting on the canvas on phones jumps to the inspector only on explicit request
   return (
     <div className="studio" data-pane={pane}>
