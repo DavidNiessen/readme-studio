@@ -1,11 +1,13 @@
 import { lazy, Suspense, useEffect } from "react";
 import { ToastProvider } from "./components/ui";
 import { useRoute } from "./lib/router";
+import { loadPage } from "./lib/staleBuild";
 import { Landing } from "./pages/Landing";
 
-const Studio = lazy(() => import("./studio/Studio"));
-const Presets = lazy(() => import("./pages/Presets"));
-const Docs = lazy(() => import("./pages/Docs"));
+// after a deploy an open page may ask for files that are gone; loadPage reloads onto the new build
+const Studio = lazy(loadPage(() => import("./studio/Studio")));
+const Presets = lazy(loadPage(() => import("./pages/Presets")));
+const Docs = lazy(loadPage(() => import("./pages/Docs")));
 
 const TITLES: Record<string, string> = {
   "/": "Readme Studio: animated GitHub profile READMEs",
