@@ -6,7 +6,7 @@ import { CONFIG_PATH, defaultPrBranch, filesFor, openDesign, saveDesign, starter
 import { editorUrl, isFresh, PENDING_TTL } from "../src/github/editor";
 import { buildManifest, manifestVersion } from "../src/manifest";
 import { DEFAULT_SETTINGS, upgradeSettings } from "../src/settings";
-import { editorPage, isProfileRepo, repoFromUrl, repoRef } from "../src/repo";
+import { editorPage, isProfileRepo, isReadmeSurface, repoFromUrl, repoRef } from "../src/repo";
 
 const json = (v: unknown, status = 200, headers: Record<string, string> = {}) => new Response(JSON.stringify(v), { status, headers: { "content-type": "application/json", ...headers } });
 
@@ -19,6 +19,31 @@ describe("where on GitHub", () => {
     expect(repoFromUrl("https://gitlab.com/mona/aurora")).toBeNull();
     expect(repoRef("mona/aurora/extra")).toBeNull();
     expect(isProfileRepo(repoRef("Mona/mona")!)).toBe(true);
+  });
+
+  it("shows the button only on overview and README pages", () => {
+    for (const yes of [
+      "https://github.com/DavidNiessen/soundwave",
+      "https://github.com/DavidNiessen/soundwave/",
+      "https://github.com/DavidNiessen/soundwave?tab=readme-ov-file#soundwave",
+      "https://github.com/DavidNiessen/soundwave/tree/main",
+      "https://github.com/DavidNiessen/soundwave/blob/main/README.md",
+      "https://github.com/DavidNiessen/soundwave/blob/main/docs/readme.rst",
+      "https://github.com/mona/mona/blob/dev/Readme",
+    ])
+      expect(isReadmeSurface(yes), yes).toBe(true);
+    for (const no of [
+      "https://github.com/DavidNiessen/soundwave/issues",
+      "https://github.com/DavidNiessen/soundwave/pulls/3",
+      "https://github.com/DavidNiessen/soundwave/actions",
+      "https://github.com/DavidNiessen/soundwave/tree/main/src",
+      "https://github.com/DavidNiessen/soundwave/blob/main/package.json",
+      "https://github.com/DavidNiessen/soundwave/blob/main/README.md.bak",
+      "https://github.com/DavidNiessen/soundwave/edit/main/README.md",
+      "https://github.com/settings/profile",
+      "https://github.com/DavidNiessen",
+    ])
+      expect(isReadmeSurface(no), no).toBe(false);
   });
 
   it("recognises GitHub's editor pages", () => {

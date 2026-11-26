@@ -46,6 +46,28 @@ export function repoFromDocument(doc: Document, url: string): RepoRef | null {
   return (nwo && repoRef(nwo)) || repoFromUrl(url);
 }
 
+const README_FILE = /^readme(\.(md|markdown|mdx|mkdn|rst|txt|adoc|asciidoc|org))?$/i;
+
+/**
+ * Pages where the README is what you are looking at: the repository's overview (`/owner/repo`,
+ * or a branch's root `/owner/repo/tree/<branch>`) and a README file's own page
+ * (`/owner/repo/blob/<branch>/…/README.md`). The corner button shows only there.
+ */
+export function isReadmeSurface(url: string): boolean {
+  let u: URL;
+  try {
+    u = new URL(url);
+  } catch {
+    return false;
+  }
+  if (u.hostname !== "github.com" || !repoFromUrl(url)) return false;
+  const rest = u.pathname.split("/").filter(Boolean).slice(2);
+  if (rest.length === 0) return true;
+  if (rest[0] === "tree") return rest.length === 2;
+  if (rest[0] === "blob") return rest.length >= 3 && README_FILE.test(decodeURIComponent(rest[rest.length - 1]));
+  return false;
+}
+
 /** A profile README lives in the repository named exactly like its owner. */
 export function isProfileRepo(r: RepoRef): boolean {
   return r.owner.toLowerCase() === r.name.toLowerCase();

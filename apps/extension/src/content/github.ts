@@ -6,7 +6,7 @@
  */
 import { fillEditor, isFresh, pendingKey, type PendingEdit } from "../github/editor";
 import { ext } from "../platform";
-import { editorPage, isProfileRepo, repoFromDocument, type RepoRef } from "../repo";
+import { editorPage, isProfileRepo, isReadmeSurface, repoFromDocument, type RepoRef } from "../repo";
 import { loadSettings } from "../settings";
 
 const api = ext();
@@ -142,7 +142,8 @@ async function updateButton(): Promise<void> {
   if (key === shownFor) return;
   shownFor = key;
   root.querySelector(".pill")?.remove();
-  if (!repo || editorPage(location.href)) return;
+  // only where the README is what you are looking at: the overview and README files
+  if (!repo || !isReadmeSurface(location.href)) return;
   const [has, s] = await Promise.all([hasDesign(repo), loadSettings()]);
   if (shownFor !== key) return;
   if (!has && !isProfileRepo(repo) && !s.everyRepo) return;
