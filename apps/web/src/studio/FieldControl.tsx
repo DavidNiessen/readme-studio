@@ -1,6 +1,7 @@
 import { glyphs, iconList, type Field } from "@readme-studio/core";
 import { ArrowDown, ArrowUp, ChevronRight, Plus, Search, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
+import { arrayMove, SortableItem, SortableList, SortHandle } from "../components/Sortable";
 import { Button, ColorInput, Dialog, Field as FieldWrap, IconButton, Segmented, Select, Slider, TagsInput, TextArea, TextInput, ToggleRow, cn } from "../components/ui";
 
 const GLYPHS = Object.keys(glyphs);
@@ -107,35 +108,44 @@ function ListControl({ field, value, onChange }: { field: Extract<Field, { type:
   };
   return (
     <div className="list-ed">
-      {value.map((item, i) => {
-        const title = String(item[field.titleKey] ?? "").trim() || `${field.itemLabel} ${i + 1}`;
-        return (
-          <div key={i} className={cn("list-ed__item", open === i && "is-open")}>
-            <div className="list-ed__head" onClick={() => setOpen(open === i ? null : i)}>
-              <ChevronRight className="chev" />
-              <span>{title}</span>
-              <div onClick={(e) => e.stopPropagation()} style={{ display: "flex" }}>
-                <IconButton size="sm" label="Move up" disabled={i === 0} onClick={() => move(i, -1)}>
-                  <ArrowUp />
-                </IconButton>
-                <IconButton size="sm" label="Move down" disabled={i === value.length - 1} onClick={() => move(i, 1)}>
-                  <ArrowDown />
-                </IconButton>
-                <IconButton size="sm" label={`Remove ${field.itemLabel.toLowerCase()}`} onClick={() => onChange(value.filter((_, j) => j !== i))}>
-                  <Trash2 />
-                </IconButton>
+      <SortableList
+        count={value.length}
+        onMove={(from, to) => {
+          onChange(arrayMove(value, from, to));
+          setOpen(open === from ? to : null);
+        }}
+      >
+        {value.map((item, i) => {
+          const title = String(item[field.titleKey] ?? "").trim() || `${field.itemLabel} ${i + 1}`;
+          return (
+            <SortableItem key={i} index={i} className={cn("list-ed__item", open === i && "is-open")}>
+              <div className="list-ed__head" onClick={() => setOpen(open === i ? null : i)}>
+                <SortHandle label={`Reorder ${title}`} />
+                <ChevronRight className="chev" />
+                <span>{title}</span>
+                <div onClick={(e) => e.stopPropagation()} style={{ display: "flex" }}>
+                  <IconButton size="sm" label="Move up" disabled={i === 0} onClick={() => move(i, -1)}>
+                    <ArrowUp />
+                  </IconButton>
+                  <IconButton size="sm" label="Move down" disabled={i === value.length - 1} onClick={() => move(i, 1)}>
+                    <ArrowDown />
+                  </IconButton>
+                  <IconButton size="sm" label={`Remove ${field.itemLabel.toLowerCase()}`} onClick={() => onChange(value.filter((_, j) => j !== i))}>
+                    <Trash2 />
+                  </IconButton>
+                </div>
               </div>
-            </div>
-            {open === i && (
-              <div className="list-ed__body">
-                {field.item.map((f) => (
-                  <FieldControl key={f.key} field={f} values={item} onChange={(patch) => set(i, patch)} />
-                ))}
-              </div>
-            )}
-          </div>
-        );
-      })}
+              {open === i && (
+                <div className="list-ed__body">
+                  {field.item.map((f) => (
+                    <FieldControl key={f.key} field={f} values={item} onChange={(patch) => set(i, patch)} />
+                  ))}
+                </div>
+              )}
+            </SortableItem>
+          );
+        })}
+      </SortableList>
       {value.length < max && (
         <Button
           size="sm"

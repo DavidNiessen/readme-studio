@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { getLayoutPreset, getWidget, hashSeed, mockData, mockWeeks, normalizeConfig, presetConfig, type Mode, type ProfileData, type StudioConfig } from "@readme-studio/core";
-import { addBlock, duplicateBlock, findBlock, flatten, moveBlock, removeBlock, renameBlock, updateBlock, updateOptions } from "../lib/layout";
+import { addBlock, duplicateBlock, findBlock, flatten, moveBlock, moveBlocksTo, removeBlock, renameBlock, updateBlock, updateOptions } from "../lib/layout";
 import { findDesignBySource, getCurrentId, getPref, loadDesigns, saveDesign, setCurrentId, setPref, type SavedDesign } from "../lib/storage";
 
 export type InspectorTab = "block" | "profile" | "project" | "theme" | "data";
@@ -76,6 +76,8 @@ interface StudioState {
   duplicateMany: (ids: string[]) => void;
   moveMany: (ids: string[], dir: -1 | 1) => void;
   setHidden: (ids: string[], hidden: boolean) => void;
+  /** Drops blocks before or after another block (dragging on the canvas). */
+  moveTo: (ids: string[], targetId: string, after: boolean) => void;
   setOptions: (id: string, patch: Record<string, unknown>, key?: string) => void;
   rename: (id: string, wanted: string) => void;
 
@@ -300,6 +302,9 @@ export const useStudio = create<StudioState>((set, get) => ({
     const edge = dir < 0 ? order[0] : order[order.length - 1];
     if (lead[0] === edge) return;
     get().commit((c) => lead.reduce((acc, id) => moveBlock(acc, id, dir), c));
+  },
+  moveTo(ids, targetId, after) {
+    get().commit((c) => moveBlocksTo(c, ids, targetId, after));
   },
   setHidden(ids, hidden) {
     get().commit((c) => ids.reduce((acc, id) => updateBlock(acc, id, { hidden: hidden || undefined }), c));

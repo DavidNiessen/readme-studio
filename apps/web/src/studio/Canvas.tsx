@@ -8,6 +8,9 @@ import { useRenderedLayout, type RenderedPart } from "../lib/render";
 import { resolveRepoLinks } from "../lib/repoLinks";
 import { useStudio } from "../state/store";
 import { clickBlock, onBlockContextMenu, onEmptyContextMenu } from "./blockActions";
+import { useCanvasDrag, type DropAt } from "./useCanvasDrag";
+
+type DragHandle = ReturnType<typeof useCanvasDrag>["handle"];
 
 marked.setOptions({ gfm: true, breaks: false });
 
@@ -38,14 +41,15 @@ function Tools({ id }: { id: string }) {
   );
 }
 
-function Markdown({ part, repo, selected, primary }: { part: RenderedPart; repo: string; selected: boolean; primary: boolean }) {
+function Markdown({ part, repo, selected, primary, drop, drag, dragged }: { part: RenderedPart; repo: string; selected: boolean; primary: boolean; drop: DropAt | null; drag: DragHandle; dragged: boolean }) {
   const id = part.meta.block.id;
   // relative images and links resolve against the design's repository, as they do on GitHub
   const html = useMemo(() => resolveRepoLinks(marked.parse(part.markdown ?? "", { async: false }) as string, repo), [part.markdown, repo]);
   return (
     <div
-      className={cn("cv-md", selected && "is-selected")}
+      className={cn("cv-md", selected && "is-selected", dragged && "is-dragged", drop?.id === id && (drop.after ? "is-drop-after" : "is-drop-before"))}
       data-block={id}
+      {...drag(id)}
       onContextMenu={(e) => onBlockContextMenu(e, id)}
       onClick={(e) => {
         // the canvas behind clears the selection on click, so the click stops here
@@ -74,6 +78,7 @@ export function Canvas() {
   const { config, data, mode, device, epoch, selected, selection, select, openDialog, setRailTab, setPane } = useStudio();
   const { rows } = useRenderedLayout(config, data, mode);
   const scroller = useRef<HTMLElement>(null);
+  const { drag: dragging, drop, handle } = useCanvasDrag(scroller);
   const pending = useRef<string | null>(null);
   // Bring the selected widget into view (it may render a moment later when just added).
   useEffect(() => {
@@ -144,7 +149,7 @@ export function Canvas() {
                 return (
                   <div key={row.rowId} className="cv-rowwrap">
                     {md.map((p) => (
-                      <Markdown key={p.meta.name} part={p} repo={repo} selected={selection.includes(p.meta.block.id)} primary={selected === p.meta.block.id} />
+                      <Markdown key={p.meta.name} part={p} repo={repo} selected={selection.includes(p.meta.block.id)} primary={selected === p.meta.block.id} drop={drop} drag={handle} dragged={!!dragging?.ids.includes(p.meta.block.id)} />
                     ))}
                     {images.length > 0 && (
                       <div className="cv-row" style={{ textAlign: row.align as "left" }}>
@@ -157,7 +162,15 @@ export function Canvas() {
                           return (
                             <span
                               key={p.meta.name}
-                              className={cn("cv-item", Boolean(p.meta.fixedHeight) && "cv-item--fixed", isSel && "is-selected", p.meta.block.hidden && "is-hidden")}
+                              className={cn(
+                                "cv-item",
+                                Boolean(p.meta.fixedHeight) && "cv-item--fixed",
+                                isSel && "is-selected",
+                                p.meta.block.hidden && "is-hidden",
+                                drop?.id === id && (drop.after ? "is-drop-after" : "is-drop-before"),
+                                dragging?.ids.includes(id) && "is-dragged",
+                              )}
+                              {...handle(id)}
                               data-block={id}
                               style={p.meta.fixedHeight ? { height: p.meta.fixedHeight * (device === "mobile" ? 0.85 : 1) } : { width: widthFor(fluid) }}
                               onClick={(e) => {
@@ -186,6 +199,11 @@ export function Canvas() {
           </div>
         </div>
       </div>
+      {dragging && (
+        <div className="cv-ghost" style={{ left: dragging.x + 14, top: dragging.y + 14 }} aria-hidden>
+          Moving {dragging.label}
+        </div>
+      )}
     </main>
   );
 }

@@ -572,6 +572,7 @@ function ShortcutsDialog() {
     ["Move selected up / down", <><Kbd>Alt</Kbd><Kbd>↑</Kbd><Kbd>↓</Kbd></>],
     ["Select previous / next", <><Kbd>↑</Kbd><Kbd>↓</Kbd></>],
     ["Extend the selection", <><Kbd>⇧</Kbd><Kbd>↑</Kbd><Kbd>↓</Kbd></>],
+    ["Reorder widgets", <>drag on the canvas or in the layers</>],
     ["More actions", <>right-click</>],
     ["Deselect", <Kbd>Esc</Kbd>],
     ["Add widget", <Kbd>A</Kbd>],

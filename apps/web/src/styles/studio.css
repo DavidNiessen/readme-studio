@@ -1564,3 +1564,39 @@
   padding: 12px 16px;
   border-top: 1px solid var(--line);
 }
+
+/* ------------------------------------------------------ dragging on the canvas */
+
+.cv-item,
+.cv-md {
+  /* the press-and-move that starts a drag must not select text or drag the image itself */
+  -webkit-user-drag: none;
+}
+.is-dragging-blocks,
+.is-dragging-blocks * {
+  cursor: grabbing !important;
+  user-select: none !important;
+}
+.cv-item.is-dragged,
+.cv-md.is-dragged {
+  opacity: 0.4;
+}
+.is-drop-before {
+  box-shadow: 0 -3px 0 0 var(--accent);
+}
+.is-drop-after {
+  box-shadow: 0 3px 0 0 var(--accent);
+}
+.cv-ghost {
+  position: fixed;
+  z-index: 95;
+  pointer-events: none;
+  padding: 4px 10px;
+  border-radius: 99px;
+  background: var(--accent);
+  color: #fff;
+  font-size: var(--t-xs);
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow: var(--shadow-2);
+}

@@ -850,3 +850,29 @@
   text-overflow: ellipsis;
   max-width: 260px;
 }
+
+/* drag grip of a sortable list entry */
+.sort-handle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 24px;
+  flex: none;
+  color: var(--faint, var(--muted));
+  cursor: grab;
+  touch-action: none;
+  border-radius: 4px;
+}
+.sort-handle:hover,
+.sort-handle:focus-visible {
+  color: var(--ink);
+  background: var(--sunken);
+}
+.sort-handle:active {
+  cursor: grabbing;
+}
+.sort-handle svg {
+  width: 14px;
+  height: 14px;
+}

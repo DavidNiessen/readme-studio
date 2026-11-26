@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { normalizeConfig, presetConfig } from "@readme-studio/core";
-import { addBlock, canJoin, duplicateBlock, findBlock, flatten, moveBlock, removeBlock, renameBlock, reorderFlat, setJoin, setRowAlign, shiftInRow, unflatten } from "../src/lib/layout";
+import { addBlock, canJoin, duplicateBlock, findBlock, flatten, moveBlock, moveBlocksTo, removeBlock, renameBlock, reorderFlat, setJoin, setRowAlign, shiftInRow, unflatten } from "../src/lib/layout";
 import { decodeShare, encodeShare } from "../src/lib/share";
 
 const base = () =>
@@ -15,6 +15,19 @@ const base = () =>
 const ids = (c: ReturnType<typeof base>) => c.layout.map((r) => r.blocks.map((b) => b.id));
 
 describe("layout operations", () => {
+  it("moves dragged blocks before or after a target, keeping rows whole", () => {
+    // after the footer
+    expect(ids(moveBlocksTo(base(), ["hero"], "footer", true))).toEqual([["langs", "rhythm"], ["footer"], ["hero"]]);
+    // dropped beside a block in a shared row: lands before or after that row
+    expect(ids(moveBlocksTo(base(), ["footer"], "rhythm", false))).toEqual([["hero"], ["footer"], ["langs", "rhythm"]]);
+    expect(ids(moveBlocksTo(base(), ["hero"], "langs", true))).toEqual([["langs", "rhythm"], ["hero"], ["footer"]]);
+    // a whole row moves together and stays a row; one block out of a row leaves its mate on its own
+    expect(ids(moveBlocksTo(base(), ["langs", "rhythm"], "hero", false))).toEqual([["langs", "rhythm"], ["hero"], ["footer"]]);
+    expect(ids(moveBlocksTo(base(), ["langs"], "footer", true))).toEqual([["hero"], ["rhythm"], ["footer"], ["langs"]]);
+    // onto itself: nothing changes
+    expect(moveBlocksTo(base(), ["hero"], "hero", true).layout.map((r) => r.blocks.map((b) => b.id))).toEqual(ids(base()));
+  });
+
   it("flatten/unflatten round-trips", () => {
     const c = base();
     expect(ids(unflatten(c, flatten(c)))).toEqual(ids(c));

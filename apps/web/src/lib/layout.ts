@@ -165,3 +165,29 @@ export function reorderFlat(c: StudioConfig, from: number, to: number): StudioCo
   if (items[0]) items[0].join = false;
   return unflatten(c, items);
 }
+
+/**
+ * Moves blocks (one, or a selection, in their layer order) to just before or after `targetId`,
+ * as a drag on the canvas does. Rows stay whole: dropping beside a block that shares a row puts
+ * the blocks before or after that row, and blocks that shared a row with each other still do.
+ */
+export function moveBlocksTo(c: StudioConfig, ids: string[], targetId: string, after: boolean): StudioConfig {
+  if (ids.includes(targetId)) return c;
+  const items = flatten(c);
+  const moving = items.filter((x) => ids.includes(x.block.id));
+  const rest = items.filter((x) => !ids.includes(x.block.id));
+  if (!moving.length) return c;
+  // a block only stays joined to the one before it if that one is still its row-mate
+  const rejoin = (list: FlatItem[]) => list.forEach((x, i) => (x.join = x.join && i > 0 && list[i - 1].rowId === x.rowId));
+  rejoin(rest);
+  rejoin(moving);
+  let at = rest.findIndex((x) => x.block.id === targetId);
+  if (at < 0) return c;
+  if (after) {
+    at += 1;
+    while (rest[at]?.join) at++;
+  } else while (at > 0 && rest[at].join) at--;
+  moving[0].join = false;
+  rest.splice(at, 0, ...moving);
+  return unflatten(c, rest);
+}

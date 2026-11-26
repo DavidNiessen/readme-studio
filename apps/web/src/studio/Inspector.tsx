@@ -37,6 +37,7 @@ import {
   X,
 } from "lucide-react";
 import { useMemo, useState } from "react";
+import { arrayMove, SortableItem, SortableList, SortHandle } from "../components/Sortable";
 import { Button, ColorInput, Field, IconButton, Segmented, Select, Slider, Tabs, TagsInput, TextArea, TextInput, ToggleRow, useToast } from "../components/ui";
 import { canJoin, findBlock, setJoin, setRowAlign, updateBlock } from "../lib/layout";
 import { fetchLive } from "../lib/live";
@@ -336,13 +337,18 @@ function ProfilePanel() {
           Shown by the social pills (one clickable image per link) and the contact card.
         </p>
         <div className="list-ed">
+          <SortableList count={p.links.length} onMove={(from, to) => setP({ links: arrayMove(p.links, from, to) })}>
           {p.links.map((l, i) => (
-            <div className="list-ed__item is-open" key={i} style={{ padding: 10, display: "grid", gap: 8 }}>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 6 }}>
+            <SortableItem className="list-ed__item is-open" key={i} index={i} style={{ padding: 10, display: "grid", gap: 8 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "auto 1fr auto", gap: 6, alignItems: "center" }}>
+                <SortHandle label={`Reorder ${l.label || l.icon}`} />
                 <IconPicker label="Link icon" value={l.icon} onChange={(v) => setLink(i, { icon: v })} allowGlyphs={false} />
                 <div style={{ display: "flex" }}>
                   <IconButton size="sm" label="Move up" disabled={i === 0} onClick={() => setP({ links: swap(p.links, i, i - 1) })}>
                     <ArrowUp />
+                  </IconButton>
+                  <IconButton size="sm" label="Move down" disabled={i === p.links.length - 1} onClick={() => setP({ links: swap(p.links, i, i + 1) })}>
+                    <ArrowDown />
                   </IconButton>
                   <IconButton size="sm" label="Remove link" onClick={() => setP({ links: p.links.filter((_, j) => j !== i) })}>
                     <Trash2 />
@@ -354,8 +360,9 @@ function ProfilePanel() {
                 <TextInput aria-label="Handle" placeholder="@handle" value={l.handle} onChange={(v) => setLink(i, { handle: v })} />
               </div>
               <TextInput mono aria-label="URL" placeholder="https://" value={l.url} onChange={(v) => setLink(i, { url: v })} />
-            </div>
+            </SortableItem>
           ))}
+          </SortableList>
         </div>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 10 }}>
           {LINK_ICONS.filter((ic) => !p.links.some((l) => l.icon === ic))
