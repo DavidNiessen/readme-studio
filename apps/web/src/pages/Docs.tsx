@@ -349,7 +349,7 @@ const INPUTS: [string, string, ReactNode][] = [
   ["readme-path", "README.md", "Where to write the README inside the repository."],
   ["output-dir", '""', "Keep the rendered files in this directory, for example to upload them as an artifact. Defaults to a temporary folder."],
   ["mock", "false", "Use deterministic sample data instead of calling GitHub. Useful for testing a design or a fork."],
-  ["dry-run", "false", "Render only and publish nothing. Pull request runs are always dry."],
+  ["dry-run", "false", "Render only and publish nothing. Pull requests and other branches always run dry."],
 ];
 
 const OUTPUTS: [string, string][] = [
@@ -431,8 +431,9 @@ function ActionReference() {
 
       <Heading id="pull-requests">Pull requests</Heading>
       <p>
-        On <code>pull_request</code> events the action always runs dry: it renders everything, writes the job summary and fails if a widget breaks, but pushes nothing. Add the trigger
-        if you want config changes checked before they land.
+        On <code>pull_request</code> events, and on pushes to any branch other than the default branch, the action always runs dry: it renders everything, writes the job summary
+        and fails if a widget breaks, but pushes nothing. Only the default branch publishes, so working on a branch never replaces the images your live README shows. Add the
+        pull request trigger if you want config changes checked before they land.
       </p>
       <CodeBlock code={PR_SNIPPET} />
 

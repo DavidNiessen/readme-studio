@@ -82,7 +82,7 @@ jobs:
 | `readme-path` | `README.md` | Where to write the README. |
 | `output-dir` | temp dir | Keep the rendered files here. |
 | `mock` | `false` | Deterministic sample data instead of the API (testing). |
-| `dry-run` | `false` | Render only. Pull requests always run dry. |
+| `dry-run` | `false` | Render only. Pull requests and branches other than the default branch always run dry. |
 
 Outputs: `assets-dir`, `readme-changed`, `data-source`.
 
