@@ -1,6 +1,6 @@
 {
   "name": "readme-studio",
-  "version": "1.0.2",
+  "version": "1.0.0",
   "private": true,
   "description": "Design animated, self-updating GitHub profile and project READMEs in the browser; a GitHub Action re-renders them on a schedule.",
   "keywords": [
@@ -21,7 +21,7 @@
   "bugs": {
     "url": "https://github.com/DavidNiessen/readme-studio/issues"
   },
-  "author": "David Nie\u00dfen (https://niessen.dev)",
+  "author": "David Nießen (https://niessen.dev)",
   "type": "module",
   "license": "MIT",
   "engines": {
