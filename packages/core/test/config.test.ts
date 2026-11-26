@@ -94,5 +94,13 @@ describe("workflow", () => {
     expect(setupGuide(c)).toContain("github.com/mona/mona");
     expect(describeCron("0 */6 * * *")).toBe("every 6 hours at minute 0");
     expect(describeCron("5 4 * * 1")).toBe("every Monday at 04:05 UTC");
+    expect(y).toContain("animated profile README");
+    expect(y).toContain("profile-token");
+  });
+
+  it("describes a project workflow without the profile token", () => {
+    const y = workflowYaml(presetConfig("oss-library", { login: "mona" }, { repo: "mona/aurora" }));
+    expect(y).toContain("animated project README");
+    expect(y).not.toContain("profile-token");
   });
 });
