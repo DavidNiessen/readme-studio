@@ -1,0 +1,2295 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://davidniessen.github.io/readme-studio/schema.json",
+  "title": "Readme Studio config",
+  "description": "Design of an animated GitHub profile README, rendered by the Readme Studio action.",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "version": {
+      "const": 1
+    },
+    "profile": {
+      "type": "object",
+      "properties": {
+        "login": {
+          "type": "string",
+          "description": "GitHub username the data is fetched for"
+        },
+        "name": {
+          "type": "string"
+        },
+        "roles": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "bio": {
+          "type": "string"
+        },
+        "company": {
+          "type": "string"
+        },
+        "pronouns": {
+          "type": "string"
+        },
+        "birthday": {
+          "type": "string",
+          "description": "YYYY-MM-DD or empty"
+        },
+        "location": {
+          "type": "object",
+          "properties": {
+            "city": {
+              "type": "string"
+            },
+            "latitude": {
+              "type": "number"
+            },
+            "longitude": {
+              "type": "number"
+            },
+            "timezone": {
+              "type": "string",
+              "description": "IANA time zone"
+            }
+          }
+        },
+        "links": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "icon": {
+                "type": "string"
+              },
+              "label": {
+                "type": "string"
+              },
+              "url": {
+                "type": "string"
+              },
+              "handle": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "theme": {
+      "type": "object",
+      "properties": {
+        "preset": {
+          "enum": [
+            "crimson",
+            "github",
+            "paper",
+            "mono",
+            "ember",
+            "amber",
+            "forest",
+            "ocean",
+            "nord",
+            "gruvbox",
+            "solarized",
+            "tokyo",
+            "dracula",
+            "mocha",
+            "rose",
+            "ultraviolet",
+            "sakura"
+          ]
+        },
+        "accent": {
+          "type": "string",
+          "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+        },
+        "overrides": {
+          "type": "object",
+          "properties": {
+            "dark": {
+              "type": "object"
+            },
+            "light": {
+              "type": "object"
+            }
+          }
+        },
+        "font": {
+          "enum": [
+            "jetbrains-mono",
+            "ibm-plex-mono",
+            "fira-code",
+            "geist-mono",
+            "space-mono",
+            "source-code-pro",
+            "inter",
+            "geist-sans",
+            "space-grotesk",
+            "manrope",
+            "fraunces",
+            "ibm-plex-serif"
+          ]
+        },
+        "headingFont": {
+          "enum": [
+            "jetbrains-mono",
+            "ibm-plex-mono",
+            "fira-code",
+            "geist-mono",
+            "space-mono",
+            "source-code-pro",
+            "inter",
+            "geist-sans",
+            "space-grotesk",
+            "manrope",
+            "fraunces",
+            "ibm-plex-serif"
+          ]
+        },
+        "radius": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 32
+        },
+        "border": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 4
+        },
+        "texture": {
+          "enum": [
+            "dots",
+            "grid",
+            "lines",
+            "none"
+          ]
+        },
+        "motion": {
+          "enum": [
+            "full",
+            "subtle",
+            "off"
+          ]
+        },
+        "surface": {
+          "type": "boolean"
+        }
+      }
+    },
+    "layout": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "align": {
+            "enum": [
+              "center",
+              "left",
+              "right"
+            ]
+          },
+          "blocks": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "type"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "Asset file name prefix"
+                },
+                "type": {
+                  "enum": [
+                    "hero",
+                    "banner",
+                    "socials",
+                    "terminal",
+                    "stack",
+                    "about",
+                    "facts",
+                    "badges",
+                    "skills",
+                    "timeline",
+                    "contact",
+                    "clock",
+                    "stats",
+                    "languages",
+                    "trophies",
+                    "streak",
+                    "donut",
+                    "year",
+                    "followers",
+                    "contrib",
+                    "pulse",
+                    "skyline",
+                    "rhythm",
+                    "journey",
+                    "board",
+                    "area",
+                    "weekdays",
+                    "harvest",
+                    "now",
+                    "project",
+                    "repos",
+                    "releases",
+                    "posts",
+                    "today",
+                    "quote",
+                    "markdown",
+                    "divider",
+                    "footer",
+                    "heading"
+                  ]
+                },
+                "options": {
+                  "type": "object"
+                },
+                "hidden": {
+                  "type": "boolean"
+                },
+                "link": {
+                  "type": "string"
+                }
+              },
+              "allOf": [
+                {
+                  "if": {
+                    "properties": {
+                      "type": {
+                        "const": "hero"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "options": {
+                        "type": "object",
+                        "description": "Your name drawn on stroke by stroke, a typewriter cycling through your roles and an orbiting emblem.",
+                        "properties": {
+                          "title": {
+                            "title": "Headline",
+                            "type": "string"
+                          },
+                          "typewriter": {
+                            "title": "Typewriter roles",
+                            "description": "Cycles through the roles from your profile.",
+                            "type": "boolean"
+                          },
+                          "greeting": {
+                            "title": "Greeting line",
+                            "description": "Time-of-day greeting, date and moon phase.",
+                            "type": "boolean"
+                          },
+                          "emblem": {
+                            "title": "Emblem",
+                            "type": "string"
+                          },
+                          "emblemStyle": {
+                            "title": "Emblem style",
+                            "enum": [
+                              "orbit",
+                              "plain",
+                              "none"
+                            ]
+                          },
+                          "glitch": {
+                            "title": "Glitch flicker",
+                            "type": "boolean"
+                          },
+                          "scanline": {
+                            "title": "Scanline sweep",
+                            "type": "boolean"
+                          },
+                          "glow": {
+                            "title": "Ambient glow",
+                            "type": "boolean"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "type": {
+                        "const": "banner"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "options": {
+                        "type": "object",
+                        "description": "A big typographic statement with a subline, brought to life by a gradient sweep, an outline draw-on, a letter-by-letter rise or a marquee.",
+                        "properties": {
+                          "headline": {
+                            "title": "Headline",
+                            "description": "Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions}",
+                            "type": "string"
+                          },
+                          "subline": {
+                            "title": "Subline",
+                            "type": "string"
+                          },
+                          "effect": {
+                            "title": "Effect",
+                            "enum": [
+                              "gradient",
+                              "outline",
+                              "rise",
+                              "marquee",
+                              "none"
+                            ]
+                          },
+                          "align": {
+                            "title": "Alignment",
+                            "enum": [
+                              "left",
+                              "center"
+                            ]
+                          },
+                          "height": {
+                            "title": "Height",
+                            "enum": [
+                              "compact",
+                              "regular",
+                              "tall"
+                            ]
+                          },
+                          "glow": {
+                            "title": "Ambient glow",
+                            "type": "boolean"
+                          },
+                          "corners": {
+                            "title": "Corner marks",
+                            "description": "Small registration ticks in the corners.",
+                            "type": "boolean"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "type": {
+                        "const": "socials"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "options": {
+                        "type": "object",
+                        "description": "One animated, clickable pill per profile link. Each is its own image so every link works.",
+                        "properties": {
+                          "style": {
+                            "title": "Style",
+                            "enum": [
+                              "pill",
+                              "compact",
+                              "icon"
+                            ]
+                          },
+                          "iconColor": {
+                            "title": "Icon colour",
+                            "enum": [
+                              "accent",
+                              "brand",
+                              "text"
+                            ]
+                          },
+                          "runner": {
+                            "title": "Running border light",
+                            "type": "boolean"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "type": {
+                        "const": "terminal"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "options": {
+                        "type": "object",
+                        "description": "A shell session that types out commands about you, with live placeholders, syntax colours and a tmux-style status bar.",
+                        "properties": {
+                          "title": {
+                            "title": "Window title",
+                            "type": "string"
+                          },
+                          "prompt": {
+                            "title": "Prompt",
+                            "enum": [
+                              "arrow",
+                              "chevron",
+                              "dollar",
+                              "percent",
+                              "gt"
+                            ]
+                          },
+                          "cwd": {
+                            "title": "Directory",
+                            "type": "string"
+                          },
+                          "commands": {
+                            "title": "Commands",
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "cmd": {
+                                  "title": "Command",
+                                  "type": "string"
+                                },
+                                "output": {
+                                  "title": "Output",
+                                  "description": "One line per row. Colours: {a}accent {m}muted {s}string {n}number {b}bold {/}reset. Placeholders: {name} {login} {city} {company} {role} {year} {age} {days_alive} {account_age} {followers} {stars} {repos} {streak} {year_pct} {stack}. Wrap text in {? … ?} to hide it when a placeholder is empty.",
+                                  "type": "string"
+                                }
+                              }
+                            }
+                          },
+                          "stack": {
+                            "title": "Stack ({stack})",
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "chrome": {
+                            "title": "Window chrome",
+                            "type": "boolean"
+                          },
+                          "statusBar": {
+                            "title": "Status bar",
+                            "type": "boolean"
+                          },
+                          "tab": {
+                            "title": "Status tab",
+                            "type": "string"
+                          },
+                          "status": {
+                            "title": "Status text",
+                            "description": "Supports the same placeholders, plus {clock}, {time}, {date} and {tz}.",
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "type": {
+                        "const": "stack"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "options": {
+                        "type": "object",
+                        "description": "Your tools as a little solar system: up to three rings of brand icons orbiting a centre emblem.",
+                        "properties": {
+                          "label": {
+                            "title": "Label",
+                            "type": "string"
+                          },
+                          "emblem": {
+                            "title": "Centre emblem",
+                            "type": "string"
+                          },
+                          "legend": {
+                            "title": "Ring legend",
+                            "description": "Lists each ring's tools beside the orbit.",
+                            "type": "boolean"
+                          },
+                          "rings": {
+                            "title": "Rings",
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "label": {
+                                  "title": "Ring name",
+                                  "type": "string"
+                                },
+                                "icons": {
+                                  "title": "Icons",
+                                  "description": "Icon ids such as typescript, react, docker. Inner rings hold fewer icons than outer ones.",
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "type": {
+                        "const": "about"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "options": {
+                        "type": "object",
+                        "description": "A typographic introduction: monogram, name and pronouns, your roles, a short bio and chips for where you work and live.",
+                        "properties": {
+                          "label": {
+                            "title": "Label",
+                            "type": "string"
+                          },
+                          "name": {
+                            "title": "Name",
+                            "type": "string"
+                          },
+                          "pronouns": {
+                            "title": "Pronouns",
+                            "type": "string"
+                          },
+                          "roles": {
+                            "title": "Roles",
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "bio": {
+                            "title": "Bio",
+                            "description": "Up to five lines; a blank line starts a new paragraph. Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions}",
+                            "type": "string"
+                          },
+                          "layout": {
+                            "title": "Layout",
+                            "enum": [
+                              "left",
+                              "center"
+                            ]
+                          },
+                          "monogram": {
+                            "title": "Monogram",
+                            "description": "Your initials in an accent disc.",
+                            "type": "boolean"
+                          },
+                          "chips": {
+                            "title": "Company & location chips",
+                            "type": "boolean"
+                          },
+                          "extraChips": {
+                            "title": "Extra chips",
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "type": {
+                        "const": "facts"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "options": {
+                        "type": "object",
+                        "description": "A tidy key-value list of things worth knowing about you, revealed row by row, in one or two columns.",
+                        "properties": {
+                          "label": {
+                            "title": "Title",
+                            "type": "string"
+                          },
+                          "columns": {
+                            "title": "Columns",
+                            "enum": [
+                              "1",
+                              "2"
+                            ]
+                          },
+                          "leaders": {
+                            "title": "Dotted leaders",
+                            "description": "A dotted line between each key and its value.",
+                            "type": "boolean"
+                          },
+                          "iconColor": {
+                            "title": "Icon colour",
+                            "enum": [
+                              "accent",
+                              "brand",
+                              "muted"
+                            ]
+                          },
+                          "items": {
+                            "title": "Facts",
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "icon": {
+                                  "title": "Icon",
+                                  "description": "A brand icon, or a line glyph such as pin, briefcase, code, book, heart, rocket, globe.",
+                                  "type": "string"
+                                },
+                                "key": {
+                                  "title": "Key",
+                                  "type": "string"
+                                },
+                                "value": {
+                                  "title": "Value",
+                                  "description": "Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions}",
+                                  "type": "string"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "type": {
+                        "const": "badges"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "options": {
+                        "type": "object",
+                        "description": "A row of shields-style badges drawn right in the image, no third-party service, wrapping neatly across lines.",
+                        "properties": {
+                          "style": {
+                            "title": "Style",
+                            "enum": [
+                              "flat",
+                              "pill",
+                              "outline"
+                            ]
+                          },
+                          "colors": {
+                            "title": "Value colour",
+                            "description": "Brand uses each icon's own colour; a per-badge colour always wins.",
+                            "enum": [
+                              "accent",
+                              "brand"
+                            ]
+                          },
+                          "caps": {
+                            "title": "Uppercase labels",
+                            "type": "boolean"
+                          },
+                          "align": {
+                            "title": "Alignment",
+                            "enum": [
+                              "left",
+                              "center"
+                            ]
+                          },
+                          "shine": {
+                            "title": "Shine sweep",
+                            "type": "boolean"
+                          },
+                          "items": {
+                            "title": "Badges",
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "icon": {
+                                  "title": "Icon",
+                                  "description": "Brand icon or line glyph; leave empty for none.",
+                                  "type": "string"
+                                },
+                                "label": {
+                                  "title": "Label",
+                                  "type": "string"
+                                },
+                                "value": {
+                                  "title": "Value",
+                                  "description": "Optional. Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions}",
+                                  "type": "string"
+                                },
+                                "color": {
+                                  "title": "Colour",
+                                  "description": "Empty uses the accent.",
+                                  "anyOf": [
+                                    {
+                                      "type": "string",
+                                      "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+                                    },
+                                    {
+                                      "const": ""
+                                    }
+                                  ]
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "type": {
+                        "const": "skills"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "options": {
+                        "type": "object",
+                        "description": "Your strongest tools as filling bars, segmented blocks or radial gauges, each with its icon and level.",
+                        "properties": {
+                          "label": {
+                            "title": "Title",
+                            "type": "string"
+                          },
+                          "style": {
+                            "title": "Style",
+                            "enum": [
+                              "bars",
+                              "blocks",
+                              "gauges"
+                            ]
+                          },
+                          "columns": {
+                            "title": "Columns",
+                            "enum": [
+                              "1",
+                              "2",
+                              "3"
+                            ]
+                          },
+                          "gauges": {
+                            "title": "Gauges per row",
+                            "enum": [
+                              "3",
+                              "4",
+                              "5",
+                              "6"
+                            ]
+                          },
+                          "values": {
+                            "title": "Show levels",
+                            "type": "boolean"
+                          },
+                          "iconColor": {
+                            "title": "Icon colour",
+                            "enum": [
+                              "brand",
+                              "accent",
+                              "text"
+                            ]
+                          },
+                          "items": {
+                            "title": "Skills",
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "title": "Name",
+                                  "type": "string"
+                                },
+                                "icon": {
+                                  "title": "Icon",
+                                  "type": "string"
+                                },
+                                "level": {
+                                  "title": "Level",
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 100
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "type": {
+                        "const": "timeline"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "options": {
+                        "type": "object",
+                        "description": "Experience and education on a vertical rail whose nodes light up one after another, with a live pulse on what you do now.",
+                        "properties": {
+                          "label": {
+                            "title": "Title",
+                            "type": "string"
+                          },
+                          "now": {
+                            "title": "Live pulse on the first entry",
+                            "description": "Marks the top entry as what you are doing now.",
+                            "type": "boolean"
+                          },
+                          "descriptions": {
+                            "title": "Descriptions",
+                            "type": "boolean"
+                          },
+                          "items": {
+                            "title": "Entries",
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "period": {
+                                  "title": "Period",
+                                  "type": "string"
+                                },
+                                "title": {
+                                  "title": "Title",
+                                  "type": "string"
+                                },
+                                "place": {
+                                  "title": "Place",
+                                  "type": "string"
+                                },
+                                "description": {
+                                  "title": "Description",
+                                  "type": "string"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "type": {
+                        "const": "contact"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "options": {
+                        "type": "object",
+                        "description": "A “let's work together” card with your availability, a short pitch and up to three call-to-action buttons.",
+                        "properties": {
+                          "status": {
+                            "title": "Availability",
+                            "enum": [
+                              "open",
+                              "busy",
+                              "away"
+                            ]
+                          },
+                          "statusText": {
+                            "title": "Status text",
+                            "type": "string"
+                          },
+                          "headline": {
+                            "title": "Headline",
+                            "description": "Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions}",
+                            "type": "string"
+                          },
+                          "text": {
+                            "title": "Text",
+                            "type": "string"
+                          },
+                          "ctas": {
+                            "title": "Buttons",
+                            "description": "Buttons are drawn into the image; the whole card links to the URL below.",
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "label": {
+                                  "title": "Label",
+                                  "type": "string"
+                                },
+                                "icon": {
+                                  "title": "Icon",
+                                  "type": "string"
+                                }
+                              }
+                            }
+                          },
+                          "url": {
+                            "title": "Link",
+                            "description": "mailto:, a booking page or any URL.",
+                            "type": "string"
+                          },
+                          "emblem": {
+                            "title": "Emblem",
+                            "description": "Shown inside the signal on the right.",
+                            "type": "string"
+                          },
+                          "signal": {
+                            "title": "Signal emblem",
+                            "type": "boolean"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "type": {
+                        "const": "clock"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "options": {
+                        "type": "object",
+                        "description": "A live clock for your time zone that keeps ticking after the build, with your city, UTC offset and today's daylight band.",
+                        "properties": {
+                          "label": {
+                            "title": "Label",
+                            "type": "string"
+                          },
+                          "style": {
+                            "title": "Style",
+                            "enum": [
+                              "analogue",
+                              "digital"
+                            ]
+                          },
+                          "seconds": {
+                            "title": "Seconds",
+                            "type": "boolean"
+                          },
+                          "hour12": {
+                            "title": "12-hour clock",
+                            "type": "boolean"
+                          },
+                          "daylight": {
+                            "title": "Daylight band",
+                            "description": "Approximate sunrise and sunset from your profile location.",
+                            "type": "boolean"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "type": {
+                        "const": "stats"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "options": {
+                        "type": "object",
+                        "description": "Rolling odometer counters for your key numbers, with an optional year-progress ring.",
+                        "properties": {
+                          "label": {
+                            "title": "Label",
+                            "type": "string"
+                          },
+                          "tiles": {
+                            "title": "Tiles",
+                            "description": "Up to 6 with the ring, 8 without.",
+                            "type": "array",
+                            "items": {
+                              "enum": [
+                                "year",
+                                "allTime",
+                                "lastYear",
+                                "current",
+                                "longest",
+                                "prs",
+                                "stars",
+                                "reviews",
+                                "issues",
+                                "commits",
+                                "followers",
+                                "repos",
+                                "active",
+                                "best"
+                              ]
+                            }
+                          },
+                          "ring": {
+                            "title": "Year-progress ring",
+                            "type": "boolean"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "type": {
+                        "const": "languages"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "options": {
+                        "type": "object",
+                        "description": "Your most used languages by bytes of code, as an animated donut, bar list or stacked bar.",
+                        "properties": {
+                          "label": {
+                            "title": "Label",
+                            "type": "string"
+                          },
+                          "style": {
+                            "title": "Style",
+                            "enum": [
+                              "donut",
+                              "bars",
+                              "stacked"
+                            ]
+                          },
+                          "max": {
+                            "title": "Languages shown",
+                            "description": "The rest are grouped as Other.",
+                            "type": "number",
+                            "minimum": 3,
+                            "maximum": 10
+                          },
+                          "hide": {
+                            "title": "Hide languages",
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "type": {
+                        "const": "trophies"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "options": {
+                        "type": "object",
+                        "description": "Hexagonal trophies that unlock in three tiers as your streaks, stars and years on GitHub grow.",
+                        "properties": {
+                          "label": {
+                            "title": "Label",
+                            "type": "string"
+                          },
+                          "trophies": {
+                            "title": "Trophies",
+                            "type": "array",
+                            "items": {
+                              "enum": [
+                                "streak",
+                                "month",
+                                "polyglot",
+                                "veteran",
+                                "shipper",
+                                "stars",
+                                "chronotype",
+                                "consistent",
+                                "reviewer",
+                                "collaborator",
+                                "popular",
+                                "bughunter"
+                              ]
+                            }
+                          },
+                          "columns": {
+                            "title": "Columns",
+                            "enum": [
+                              "3",
+                              "4"
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "type": {
+                        "const": "streak"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "options": {
+                        "type": "object",
+                        "description": "Current streak in a burning ring, flanked by your longest run and total contributions, each with its date range.",
+                        "properties": {
+                          "label": {
+                            "title": "Label",
+                            "type": "string"
+                          },
+                          "total": {
+                            "title": "Total contributions",
+                            "enum": [
+                              "lastYear",
+                              "year",
+                              "allTime"
+                            ]
+                          },
+                          "ranges": {
+                            "title": "Date ranges",
+                            "description": "Show when each streak started and ended.",
+                            "type": "boolean"
+                          },
+                          "ring": {
+                            "title": "Record ring",
+                            "description": "The ring fills as your current streak approaches your longest.",
+                            "type": "boolean"
+                          },
+                          "embers": {
+                            "title": "Rising embers",
+                            "type": "boolean"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "type": {
+                        "const": "donut"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "options": {
+                        "type": "object",
+                        "description": "Your languages as a donut that draws itself in, with the top language in the centre and a percentage legend.",
+                        "properties": {
+                          "label": {
+                            "title": "Label",
+                            "type": "string"
+                          },
+                          "slices": {
+                            "title": "Max slices",
+                            "description": "Smaller languages are grouped as Other.",
+                            "type": "number",
+                            "minimum": 3,
+                            "maximum": 8
+                          },
+                          "percentages": {
+                            "title": "Show percentages",
+                            "type": "boolean"
+                          },
+                          "centre": {
+                            "title": "Centre",
+                            "enum": [
+                              "top",
+                              "count",
+                              "none"
+                            ]
+                          },
+                          "hide": {
+                            "title": "Hide languages",
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "type": {
+                        "const": "year"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "options": {
+                        "type": "object",
+                        "description": "Your year, wrapped: total contributions, busiest month, best day, favourite weekday and more, over a monthly bar chart.",
+                        "properties": {
+                          "label": {
+                            "title": "Label",
+                            "type": "string"
+                          },
+                          "period": {
+                            "title": "Period",
+                            "enum": [
+                              "year",
+                              "rolling"
+                            ]
+                          },
+                          "facts": {
+                            "title": "Highlights",
+                            "description": "Up to six, shown in a 3 × 2 grid.",
+                            "type": "array",
+                            "items": {
+                              "enum": [
+                                "month",
+                                "day",
+                                "weekday",
+                                "language",
+                                "repos",
+                                "active",
+                                "streak",
+                                "stars"
+                              ]
+                            }
+                          },
+                          "chart": {
+                            "title": "Monthly chart",
+                            "type": "boolean"
+                          },
+                          "pace": {
+                            "title": "Pace & comparison",
+                            "description": "Projected total and change against last year.",
+                            "type": "boolean"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "type": {
+                        "const": "followers"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "options": {
+                        "type": "object",
+                        "description": "Your follower count on a rolling counter with a progress bar towards the next milestone.",
+                        "properties": {
+                          "label": {
+                            "title": "Label",
+                            "type": "string"
+                          },
+                          "target": {
+                            "title": "Next milestone",
+                            "enum": [
+                              "auto",
+                              "manual"
+                            ]
+                          },
+                          "goal": {
+                            "title": "Goal",
+                            "type": "number",
+                            "minimum": 1,
+                            "maximum": 1000000
+                          },
+                          "following": {
+                            "title": "Following count",
+                            "type": "boolean"
+                          },
+                          "ladder": {
+                            "title": "Milestone ladder",
+                            "description": "Small markers for the milestones around you.",
+                            "type": "boolean"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "type": {
+                        "const": "contrib"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "options": {
+                        "type": "object",
+                        "description": "Your last 12 months as an animated heatmap with a scanning beam, best-day callout and weekly totals.",
+                        "properties": {
+                          "label": {
+                            "title": "Label",
+                            "type": "string"
+                          },
+                          "shape": {
+                            "title": "Cell shape",
+                            "enum": [
+                              "rounded",
+                              "square",
+                              "circle"
+                            ]
+                          },
+                          "weekly": {
+                            "title": "Weekly totals",
+                            "type": "boolean"
+                          },
+                          "callout": {
+                            "title": "Best-day callout",
+                            "type": "boolean"
+                          },
+                          "beam": {
+                            "title": "Scanning beam",
+                            "type": "boolean"
+                          },
+                          "legend": {
+                            "title": "Legend",
+                            "type": "boolean"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "type": {
+                        "const": "pulse"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "options": {
+                        "type": "object",
+                        "description": "Your recent contributions drawn as an ECG trace, one heartbeat per day, with a glowing pulse running along it.",
+                        "properties": {
+                          "days": {
+                            "title": "Window",
+                            "enum": [
+                              "30",
+                              "60",
+                              "90",
+                              "180"
+                            ]
+                          },
+                          "label": {
+                            "title": "Label",
+                            "description": "{days} is replaced with the window length.",
+                            "type": "string"
+                          },
+                          "bpm": {
+                            "title": "BPM tile",
+                            "description": "Average contributions per week, shown as a heart rate.",
+                            "type": "boolean"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "type": {
+                        "const": "skyline"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "options": {
+                        "type": "object",
+                        "description": "Your last 12 months as an isometric city of contribution towers, slowly turning in an animated GIF.",
+                        "properties": {
+                          "label": {
+                            "title": "Label",
+                            "type": "string"
+                          },
+                          "rotation": {
+                            "title": "Motion",
+                            "enum": [
+                              "spin",
+                              "sway"
+                            ]
+                          },
+                          "color": {
+                            "title": "Tower colours",
+                            "enum": [
+                              "heat",
+                              "accent"
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "type": {
+                        "const": "rhythm"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "options": {
+                        "type": "object",
+                        "description": "A 24-hour radial clock of when you commit, with your chronotype and busiest weekday.",
+                        "properties": {
+                          "label": {
+                            "title": "Label",
+                            "type": "string"
+                          },
+                          "weekdays": {
+                            "title": "Weekday strip",
+                            "description": "Contributions per weekday next to the clock.",
+                            "type": "boolean"
+                          },
+                          "summary": {
+                            "title": "Summary line",
+                            "description": "Chronotype, peak hour and daily average.",
+                            "type": "boolean"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "type": {
+                        "const": "journey"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "options": {
+                        "type": "object",
+                        "description": "Your years on GitHub as a timeline: contributions per year above the axis, repositories you started below.",
+                        "properties": {
+                          "label": {
+                            "title": "Label",
+                            "description": "“since <first year>” is appended automatically.",
+                            "type": "string"
+                          },
+                          "mode": {
+                            "title": "Show",
+                            "enum": [
+                              "both",
+                              "contributions",
+                              "repos"
+                            ]
+                          },
+                          "years": {
+                            "title": "Years",
+                            "description": "Most recent years to show; older ones are left out.",
+                            "type": "number",
+                            "minimum": 2,
+                            "maximum": 15
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "type": {
+                        "const": "board"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "options": {
+                        "type": "object",
+                        "description": "Your latest public GitHub activity on a split-flap departure board that clatters into place.",
+                        "properties": {
+                          "title": {
+                            "title": "Title",
+                            "type": "string"
+                          },
+                          "rows": {
+                            "title": "Rows",
+                            "description": "Empty slots stay blank when there is less activity.",
+                            "type": "number",
+                            "minimum": 3,
+                            "maximum": 8
+                          },
+                          "clock": {
+                            "title": "Clock and handle",
+                            "description": "Build time and your GitHub handle in the corner.",
+                            "type": "boolean"
+                          },
+                          "flaps": {
+                            "title": "Flap animation",
+                            "description": "Letters scramble and flip into place.",
+                            "type": "boolean"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "type": {
+                        "const": "area"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "options": {
+                        "type": "object",
+                        "description": "Weekly contributions as a smooth area chart that draws itself on, with your average and peak week marked.",
+                        "properties": {
+                          "label": {
+                            "title": "Label",
+                            "type": "string"
+                          },
+                          "weeks": {
+                            "title": "Range",
+                            "enum": [
+                              "12",
+                              "26",
+                              "52"
+                            ]
+                          },
+                          "smooth": {
+                            "title": "Smooth curve",
+                            "type": "boolean"
+                          },
+                          "average": {
+                            "title": "Average line",
+                            "type": "boolean"
+                          },
+                          "peak": {
+                            "title": "Peak marker",
+                            "type": "boolean"
+                          },
+                          "points": {
+                            "title": "Week dots",
+                            "description": "Dots on each week (12 and 26 week ranges).",
+                            "type": "boolean"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "type": {
+                        "const": "weekdays"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "options": {
+                        "type": "object",
+                        "description": "Contributions per day of the week as rising bars, with your busiest day lit up.",
+                        "properties": {
+                          "label": {
+                            "title": "Label",
+                            "type": "string"
+                          },
+                          "metric": {
+                            "title": "Show",
+                            "enum": [
+                              "total",
+                              "average"
+                            ]
+                          },
+                          "start": {
+                            "title": "Week starts on",
+                            "enum": [
+                              "mon",
+                              "sun"
+                            ]
+                          },
+                          "colour": {
+                            "title": "Bar colours",
+                            "enum": [
+                              "highlight",
+                              "heat"
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "type": {
+                        "const": "harvest"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "options": {
+                        "type": "object",
+                        "description": "A scanner drone glides over your contribution graph, harvesting every lit cell into a running tally before the grid regrows.",
+                        "properties": {
+                          "label": {
+                            "title": "Label",
+                            "type": "string"
+                          },
+                          "speed": {
+                            "title": "Drone speed",
+                            "enum": [
+                              "calm",
+                              "brisk"
+                            ]
+                          },
+                          "beam": {
+                            "title": "Scanner beam",
+                            "type": "boolean"
+                          },
+                          "legend": {
+                            "title": "Legend & summary",
+                            "type": "boolean"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "type": {
+                        "const": "now"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "options": {
+                        "type": "object",
+                        "description": "Spotlights the project you are pushing to right now, with an animated git graph and the last 30 days of activity.",
+                        "properties": {
+                          "repo": {
+                            "title": "Repository",
+                            "description": "Leave empty to always show the repository you pushed to most recently.",
+                            "type": "string"
+                          },
+                          "label": {
+                            "title": "Headline label",
+                            "type": "string"
+                          },
+                          "sparkline": {
+                            "title": "Activity sparkline",
+                            "description": "Your contributions over the last 30 days.",
+                            "type": "boolean"
+                          },
+                          "progress": {
+                            "title": "Lifetime bar",
+                            "description": "How long the repository has existed, from first commit to now.",
+                            "type": "boolean"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "type": {
+                        "const": "project"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "options": {
+                        "type": "object",
+                        "description": "One repository as a polished card with its description, language and stars, framed by a running accent light.",
+                        "properties": {
+                          "source": {
+                            "title": "Repository",
+                            "enum": [
+                              "pinned",
+                              "starred",
+                              "named"
+                            ]
+                          },
+                          "index": {
+                            "title": "Position",
+                            "description": "Which pinned repository, or rank by stars.",
+                            "type": "number",
+                            "minimum": 1,
+                            "maximum": 6
+                          },
+                          "repo": {
+                            "title": "Repository name",
+                            "type": "string"
+                          },
+                          "stats": {
+                            "title": "Language and stars",
+                            "type": "boolean"
+                          },
+                          "accent": {
+                            "title": "Accent",
+                            "enum": [
+                              "runner",
+                              "bar",
+                              "none"
+                            ]
+                          },
+                          "number": {
+                            "title": "Big number",
+                            "description": "Watermark with the slot number.",
+                            "type": "boolean"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "type": {
+                        "const": "repos"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "options": {
+                        "type": "object",
+                        "description": "Your best or most recently pushed repositories with descriptions, languages and rolling star counters.",
+                        "properties": {
+                          "label": {
+                            "title": "Label",
+                            "type": "string"
+                          },
+                          "source": {
+                            "title": "Source",
+                            "enum": [
+                              "repos",
+                              "pinned"
+                            ]
+                          },
+                          "sort": {
+                            "title": "Sort by",
+                            "enum": [
+                              "stars",
+                              "pushed"
+                            ]
+                          },
+                          "count": {
+                            "title": "Repositories",
+                            "type": "number",
+                            "minimum": 1,
+                            "maximum": 8
+                          },
+                          "layout": {
+                            "title": "Layout",
+                            "enum": [
+                              "list",
+                              "grid"
+                            ]
+                          },
+                          "descriptions": {
+                            "title": "Descriptions",
+                            "type": "boolean"
+                          },
+                          "exclude": {
+                            "title": "Hide repositories",
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "hideProfile": {
+                            "title": "Hide profile README repo",
+                            "description": "Skips the repository named after your username.",
+                            "type": "boolean"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "type": {
+                        "const": "releases"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "options": {
+                        "type": "object",
+                        "description": "A timeline of the versions you shipped most recently, with tag pills, repositories and how long ago each landed.",
+                        "properties": {
+                          "label": {
+                            "title": "Label",
+                            "type": "string"
+                          },
+                          "count": {
+                            "title": "Releases",
+                            "type": "number",
+                            "minimum": 1,
+                            "maximum": 8
+                          },
+                          "names": {
+                            "title": "Release titles",
+                            "description": "Show the release title under the repository when it differs from the tag.",
+                            "type": "boolean"
+                          },
+                          "time": {
+                            "title": "Dates",
+                            "enum": [
+                              "relative",
+                              "absolute"
+                            ]
+                          },
+                          "repos": {
+                            "title": "Only these repositories",
+                            "description": "Leave empty to include every repository.",
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "type": {
+                        "const": "posts"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "options": {
+                        "type": "object",
+                        "description": "The newest articles from your blog's RSS or Atom feed, with dates and short summaries, refreshed on every build.",
+                        "properties": {
+                          "label": {
+                            "title": "Label",
+                            "type": "string"
+                          },
+                          "feed": {
+                            "title": "Feed URL",
+                            "description": "RSS or Atom; fetched by the GitHub Action on every build.",
+                            "type": "string"
+                          },
+                          "link": {
+                            "title": "Card link",
+                            "description": "Images can only link as a whole, so the card opens this page.",
+                            "type": "string"
+                          },
+                          "count": {
+                            "title": "Posts",
+                            "type": "number",
+                            "minimum": 1,
+                            "maximum": 8
+                          },
+                          "dates": {
+                            "title": "Dates",
+                            "enum": [
+                              "badge",
+                              "relative",
+                              "off"
+                            ]
+                          },
+                          "summaries": {
+                            "title": "Summaries",
+                            "type": "boolean"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "type": {
+                        "const": "today"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "options": {
+                        "type": "object",
+                        "description": "Today at a glance: the date, the moon phase, local weather, the year so far and a quote of the day.",
+                        "properties": {
+                          "label": {
+                            "title": "Label",
+                            "description": "Your city from the profile is appended.",
+                            "type": "string"
+                          },
+                          "weather": {
+                            "title": "Weather",
+                            "description": "Current conditions for the location in your profile.",
+                            "type": "boolean"
+                          },
+                          "unit": {
+                            "title": "Temperature",
+                            "enum": [
+                              "c",
+                              "f"
+                            ]
+                          },
+                          "moon": {
+                            "title": "Moon phase",
+                            "type": "boolean"
+                          },
+                          "quote": {
+                            "title": "Quote of the day",
+                            "description": "A different quote from the list each day.",
+                            "type": "boolean"
+                          },
+                          "quotes": {
+                            "title": "Quotes",
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "text": {
+                                  "title": "Quote",
+                                  "type": "string"
+                                },
+                                "author": {
+                                  "title": "Author",
+                                  "type": "string"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "type": {
+                        "const": "quote"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "options": {
+                        "type": "object",
+                        "description": "A large typographic quote with attribution; add several and it cross-fades through them on a loop.",
+                        "properties": {
+                          "label": {
+                            "title": "Label",
+                            "type": "string"
+                          },
+                          "marks": {
+                            "title": "Quote mark",
+                            "enum": [
+                              "serif",
+                              "bar",
+                              "none"
+                            ]
+                          },
+                          "rotate": {
+                            "title": "Rotate through quotes",
+                            "description": "Cross-fades through every quote in the list; off shows only the first.",
+                            "type": "boolean"
+                          },
+                          "seconds": {
+                            "title": "Time per quote",
+                            "type": "number",
+                            "minimum": 3,
+                            "maximum": 20
+                          },
+                          "progress": {
+                            "title": "Progress ticks",
+                            "type": "boolean"
+                          },
+                          "quotes": {
+                            "title": "Quotes",
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "text": {
+                                  "title": "Quote",
+                                  "description": "Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions}",
+                                  "type": "string"
+                                },
+                                "author": {
+                                  "title": "Author",
+                                  "type": "string"
+                                },
+                                "source": {
+                                  "title": "Source",
+                                  "type": "string"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "type": {
+                        "const": "markdown"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "options": {
+                        "type": "object",
+                        "description": "Free-form Markdown or HTML written straight into your README, with live placeholders like {name} and {followers}.",
+                        "properties": {
+                          "text": {
+                            "title": "Markdown",
+                            "description": "Emitted verbatim into the README; the row's alignment applies. Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions}",
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "type": {
+                        "const": "divider"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "options": {
+                        "type": "object",
+                        "description": "A thin animated separator between sections: comet, pulse, wave, dashes or a fading line.",
+                        "properties": {
+                          "style": {
+                            "title": "Style",
+                            "enum": [
+                              "comet",
+                              "pulse",
+                              "wave",
+                              "dashes",
+                              "line"
+                            ]
+                          },
+                          "ornament": {
+                            "title": "Centre ornament",
+                            "type": "boolean"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "type": {
+                        "const": "footer"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "options": {
+                        "type": "object",
+                        "description": "Rolling waves, a date barcode and a build stamp that proves the profile is alive.",
+                        "properties": {
+                          "message": {
+                            "title": "Message",
+                            "type": "string"
+                          },
+                          "stamp": {
+                            "title": "Build stamp",
+                            "description": "Date, time, run number and data source.",
+                            "type": "boolean"
+                          },
+                          "barcode": {
+                            "title": "Date barcode",
+                            "type": "boolean"
+                          },
+                          "waves": {
+                            "title": "Waves",
+                            "type": "boolean"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "type": {
+                        "const": "heading"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "options": {
+                        "type": "object",
+                        "description": "A slim section title with an eyebrow label and an animated hairline, for giving your README a clear structure.",
+                        "properties": {
+                          "eyebrow": {
+                            "title": "Eyebrow",
+                            "type": "string"
+                          },
+                          "title": {
+                            "title": "Title",
+                            "description": "Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions}",
+                            "type": "string"
+                          },
+                          "icon": {
+                            "title": "Icon",
+                            "description": "Optional; a brand icon or a line glyph (rocket, code, book, star…).",
+                            "type": "string"
+                          },
+                          "align": {
+                            "title": "Alignment",
+                            "enum": [
+                              "left",
+                              "center"
+                            ]
+                          },
+                          "line": {
+                            "title": "Hairline",
+                            "type": "boolean"
+                          },
+                          "card": {
+                            "title": "Card background",
+                            "description": "Off blends the heading into the page.",
+                            "type": "boolean"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "output": {
+      "type": "object",
+      "properties": {
+        "branch": {
+          "type": "string"
+        },
+        "modes": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "dark",
+              "light"
+            ]
+          }
+        },
+        "repository": {
+          "type": "string",
+          "description": "owner/repo hosting the assets (default: login/login)"
+        },
+        "schedule": {
+          "type": "string",
+          "description": "5-field cron expression"
+        }
+      }
+    }
+  }
+}
