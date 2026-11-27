@@ -940,7 +940,7 @@ text{font-family:${fontStack(t.font)};}
 ${motionCss(t)}
 @media (prefers-reduced-motion: reduce){
   *{animation-delay:0s!important;animation-duration:1ms!important;animation-iteration-count:1!important}
-  .loop{animation:none!important}
+  .loop{animation:none!important}.loop-only{display:none}
 }`;
 }
 function svg(o) {
