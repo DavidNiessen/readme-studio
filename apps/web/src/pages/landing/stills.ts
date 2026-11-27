@@ -53,11 +53,14 @@ export function useStills(blocks: { type: string; options?: Record<string, unkno
   const [parts, setParts] = useState<RenderedPart[][]>([]);
   useEffect(() => {
     if (!ready) return;
-    const t = window.setTimeout(
-      () => setParts(renderLayout(config, sampleData(config.kind), o.mode ?? "dark", DATE).map((r) => r.parts)),
-      0,
-    );
-    return () => window.clearTimeout(t);
+    const mode = o.mode ?? "dark";
+    const t = window.setTimeout(() => setParts(renderLayout(config, sampleData(config.kind), mode, DATE).map((r) => r.parts)), 0);
+    // the other colour scheme too, later and into the cache, so switching the site's theme is instant
+    const warm = window.setTimeout(() => renderLayout(config, sampleData(config.kind), mode === "dark" ? "light" : "dark", DATE), 2500);
+    return () => {
+      window.clearTimeout(t);
+      window.clearTimeout(warm);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready, config, o.mode]);
   return parts;

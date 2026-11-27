@@ -59,6 +59,8 @@ import { Welcome } from "./Welcome";
 import { DataRefreshButton, useDataSummary } from "./DataStatus";
 import { extensionStore, InstallExtensionButton } from "../components/InstallExtension";
 import { useLiveData } from "../lib/liveData";
+import { flushSync } from "react-dom";
+import { switchTheme } from "../lib/themeTransition";
 
 export function useUiTheme(): ["light" | "dark" | "system", (t: "light" | "dark" | "system") => void] {
   const [t, setT] = useState<"light" | "dark" | "system">(() => getPref("ui-theme-choice", "system"));
@@ -74,7 +76,14 @@ export function useUiTheme(): ["light" | "dark" | "system", (t: "light" | "dark"
     }
     setPref("ui-theme-choice", t);
   }, [t]);
-  return [t, setT];
+  // a change of theme glides rather than cuts: the attribute is set inside the transition
+  const set = (next: "light" | "dark" | "system") =>
+    switchTheme(() => {
+      if (next === "system") delete document.documentElement.dataset.theme;
+      else document.documentElement.dataset.theme = next;
+      flushSync(() => setT(next));
+    });
+  return [t, set];
 }
 
 /** What a crowded top bar gives up, in order. All of it stays reachable from the ⋯ menu. */

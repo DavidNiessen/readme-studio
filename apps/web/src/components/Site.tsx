@@ -1,5 +1,7 @@
 import { ArrowUpRight, Moon, Sun } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
+import { flushSync } from "react-dom";
+import { originOf, switchTheme } from "../lib/themeTransition";
 import { href } from "../lib/router";
 import { InstallExtensionButton } from "./InstallExtension";
 import { Logo } from "./Logo";
@@ -8,16 +10,20 @@ export const REPO_URL = "https://github.com/DavidNiessen/readme-studio";
 
 function ThemeToggle() {
   const [dark, setDark] = useState(() => (document.documentElement.dataset.theme ?? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")) === "dark");
-  useEffect(() => {
-    document.documentElement.dataset.theme = dark ? "dark" : "light";
-    try {
-      localStorage.setItem("rs:ui-theme", dark ? "dark" : "light");
-    } catch {
-      /* ignore */
-    }
-  }, [dark]);
+  const toggle = (e: React.MouseEvent) =>
+    // the page changes inside the transition, all at once, so the browser can animate between the two
+    switchTheme(() => {
+      const next = !dark;
+      document.documentElement.dataset.theme = next ? "dark" : "light";
+      try {
+        localStorage.setItem("rs:ui-theme", next ? "dark" : "light");
+      } catch {
+        /* ignore */
+      }
+      flushSync(() => setDark(next));
+    }, originOf(e));
   return (
-    <button type="button" className="icon-btn" aria-label={dark ? "Use light theme" : "Use dark theme"} onClick={() => setDark(!dark)}>
+    <button type="button" className="icon-btn" aria-label={dark ? "Use light theme" : "Use dark theme"} onClick={toggle}>
       {dark ? <Sun /> : <Moon />}
     </button>
   );

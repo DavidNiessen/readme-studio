@@ -1,23 +1,22 @@
 import { palettePresets } from "@readme-studio/core";
-import { BookOpen, Check, ChevronDown, UploadCloud } from "lucide-react";
+import { BookOpen, Check, ChevronDown, GitCommitHorizontal, GitPullRequest, UploadCloud } from "lucide-react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { WidgetImage } from "../../components/WidgetImage";
 import { cn } from "../../components/ui";
 import type { RenderedPart } from "../../lib/render";
-import { clamp, ease, lerp, reducedMotion, useScrollProgress } from "./scroll";
+import { reducedMotion, useScrollProgress } from "./scroll";
 import { useSiteMode, useStillVariants } from "./stills";
 
 /** The widgets the cursor drags in, in order. */
 const LIBRARY = [
   { type: "hero", title: "Hero banner" },
-  { type: "socials", title: "Social pills" },
   { type: "stats", title: "Stats board" },
   { type: "contrib", title: "Contribution graph", options: { weekly: false } },
 ];
 const BLOCKS = LIBRARY.map(({ type, options }) => ({ type, options }));
 const SWATCHES = ["crimson", "ocean", "amber", "github", "nord", "sakura"];
 
-/** Every look the demo passes through, rendered ahead while the page is idle, in the site's colour scheme. */
+/** Every look the demo shows, rendered ahead while the page is idle, in the site's colour scheme. */
 const VARIANTS = {
   crimson: { palette: "crimson" },
   ocean: { palette: "ocean" },
@@ -25,331 +24,350 @@ const VARIANTS = {
   "amber-grotesk": { palette: "amber", headingFont: "space-grotesk" },
 };
 
-const STEPS = [
-  { title: "Drag widgets in", text: "Pick from 54 widgets and drop each one where it belongs." },
-  { title: "Make it yours", text: "17 palettes and 12 typefaces, previewed live as you choose." },
-  { title: "Save to GitHub", text: "One commit. Your repository's workflow does the rest, every night." },
+const CHAPTERS = [
+  {
+    title: "Drag widgets in",
+    text: "Banners, stats, graphs, clocks and cards: 54 widgets, each fed by real GitHub data. Drop one between any two others, full width or side by side.",
+    facts: ["54 widgets", "Profile and project READMEs"],
+  },
+  {
+    title: "Make it yours",
+    text: "Pick one of 17 palettes or generate one from a single colour, choose from 12 typefaces, and tune radius, texture and motion. Every change shows at once.",
+    facts: ["17 palettes", "12 typefaces", "Dark and light"],
+  },
+  {
+    title: "Save to GitHub",
+    text: "Commit straight to your repository or open a pull request. The workflow renders every image there and keeps them current, every night.",
+    facts: ["Commit or pull request", "Rebuilt nightly"],
+  },
 ];
 
-// ---------------------------------------------------------------- the script
-
-/** Where the cursor is at a moment of the scroll: aimed at a named element, the button up or down. */
-interface Key {
-  t: number;
-  at: string;
-  down?: boolean;
+/** What the window shows: where each chapter's animation starts, and where it ends. */
+interface View {
+  placed: number;
+  palette: number;
+  grotesk: boolean;
+  dialog: boolean;
+  saved: boolean;
+  dragging: number;
 }
+const START: View[] = [
+  { placed: 0, palette: 0, grotesk: false, dialog: false, saved: false, dragging: -1 },
+  { placed: 3, palette: 0, grotesk: false, dialog: false, saved: false, dragging: -1 },
+  { placed: 3, palette: 2, grotesk: true, dialog: false, saved: false, dragging: -1 },
+];
+const END: View[] = [
+  { ...START[0], placed: 3 },
+  { ...START[1], palette: 2, grotesk: true },
+  { ...START[2], saved: true },
+];
 
-const DROP_START = 0.06;
-const DROP_EACH = 0.125;
-const KEYS: Key[] = (() => {
-  const k: Key[] = [
-    { t: 0, at: "rest" },
-    { t: DROP_START - 0.01, at: "rest" },
-  ];
-  LIBRARY.forEach((_, i) => {
-    const t0 = DROP_START + i * DROP_EACH;
-    k.push(
-      { t: t0 + 0.035, at: `card-${i}` },
-      { t: t0 + 0.045, at: `card-${i}`, down: true },
-      { t: t0 + 0.1, at: "drop", down: true },
-      { t: t0 + 0.108, at: "drop" },
-    );
-  });
-  const click = (t: number, at: string) => k.push({ t, at }, { t: t + 0.01, at, down: true }, { t: t + 0.022, at });
-  click(0.61, "swatch-1");
-  click(0.67, "swatch-2");
-  click(0.73, "font");
-  click(0.85, "save");
-  k.push({ t: 1, at: "save" });
-  return k;
-})();
-
-/** What the demo shows at a point of the scroll. */
-function stateAt(p: number) {
-  const placed = LIBRARY.filter((_, i) => p >= DROP_START + i * DROP_EACH + 0.1).length;
-  const dragging = LIBRARY.findIndex((_, i) => {
-    const t0 = DROP_START + i * DROP_EACH;
-    return p >= t0 + 0.045 && p < t0 + 0.1;
-  });
-  const palette = p >= 0.68 ? 2 : p >= 0.62 ? 1 : 0;
-  const grotesk = p >= 0.74;
-  const saved = p >= 0.86;
-  const step = p < 0.58 ? 0 : p < 0.81 ? 1 : 2;
-  const stepProgress = step === 0 ? p / 0.58 : step === 1 ? (p - 0.58) / 0.23 : (p - 0.81) / 0.19;
-  return { placed, dragging, palette, grotesk, saved, step, stepProgress: clamp(stepProgress) };
-}
-
-/** A smooth bump: 0 outside [a, b], 1 in the middle. */
-const bump = (p: number, a: number, b: number) => (p <= a || p >= b ? 0 : Math.sin(((p - a) / (b - a)) * Math.PI));
+class Stopped extends Error {}
 
 /**
- * The camera: the window starts tilted back and settles, leans a little towards what the cursor
- * works on, turns towards the theme panel while it is used, swells on save and tilts away at the end.
- */
-function cameraAt(p: number, cx: number, cy: number, w: number, h: number): string {
-  const intro = ease(clamp(p / 0.06));
-  const outro = ease(clamp((p - 0.93) / 0.07));
-  const follow = clamp((p - 0.05) / 0.05) * (1 - outro);
-  const rx = lerp(22, 0, intro) - outro * 8 + ((cy - h / 2) / h) * -3 * follow;
-  const ry = ((cx - w / 2) / w) * 4 * follow - bump(p, 0.58, 0.8) * 4;
-  const scale = lerp(0.82, 1, intro) - outro * 0.05 + bump(p, 0.85, 0.93) * 0.03;
-  const ty = lerp(80, 0, intro) - outro * 24;
-  return `perspective(2000px) translateY(${ty.toFixed(1)}px) rotateX(${rx.toFixed(2)}deg) rotateY(${ry.toFixed(2)}deg) scale(${scale.toFixed(4)})`;
-}
-
-// ---------------------------------------------------------------- the stage
-
-/**
- * The studio, played by scrolling: a cursor drags four widgets from the library into a README,
- * tries two palettes and a heading typeface, and saves to GitHub. The scroll position is eased
- * each frame, so the cursor glides along curved paths even when the wheel jumps. The stage is a
- * fixed-size mock, scaled to fit, and the cursor aims at its elements by their layout positions,
- * so the same script plays on the wide layout and the compact one phones get. It keeps the site's
- * colour scheme throughout.
+ * How a README is made, told in three chapters. The text scrolls as usual; the studio window
+ * beside it stays in view and, when a chapter reaches the middle of the screen, plays that
+ * chapter on its own clock: a cursor drags widgets in, picks a palette and a typeface, and saves.
+ * Each chapter loops while it is the one being read. The window keeps the site's colour scheme.
  */
 export function Demo() {
-  const section = useRef<HTMLElement>(null);
-  const stage = useRef<HTMLDivElement>(null);
-  const cam = useRef<HTMLDivElement>(null);
-  const frame = useRef<HTMLDivElement>(null);
-  const cursor = useRef<HTMLDivElement>(null);
-  const ripple = useRef<HTMLDivElement>(null);
-  const ghost = useRef<HTMLDivElement>(null);
-  const inner = useRef<HTMLDivElement>(null);
-  const scrollBox = useRef<HTMLDivElement>(null);
-  const bars = useRef<(HTMLSpanElement | null)[]>([]);
-  const [compact, setCompact] = useState(false);
   const still = reducedMotion();
-  const [state, setState] = useState(() => stateAt(still ? 1 : 0));
+  const [chapter, setChapter] = useState(0);
+  const [view, setView] = useState<View>(still ? END[0] : START[0]);
+  const [visible, setVisible] = useState(false);
   const mode = useSiteMode();
   const renders = useStillVariants(VARIANTS, BLOCKS, mode);
-  const variant = state.grotesk ? "amber-grotesk" : (["crimson", "ocean", "amber"] as const)[state.palette];
-  const rows = renders[variant] ?? renders.amber ?? renders.crimson ?? [];
+  const variant = view.grotesk ? "amber-grotesk" : (["crimson", "ocean", "amber"] as const)[view.palette];
+  const rows = renders[variant] ?? renders.crimson ?? [];
   const thumbs = renders.crimson ?? [];
+  const ready = !!renders.crimson;
 
-  // the stage is designed at a fixed size and scaled to the space it has
+  const section = useRef<HTMLElement>(null);
+  const rail = useRef<HTMLDivElement>(null);
+  const texts = useRef<(HTMLElement | null)[]>([]);
+  const stage = useRef<HTMLDivElement>(null);
+  const frame = useRef<HTMLDivElement>(null);
+  const cursor = useRef<HTMLDivElement>(null);
+  const ghost = useRef<HTMLDivElement>(null);
+  const ripple = useRef<HTMLDivElement>(null);
+  const scrollBox = useRef<HTMLDivElement>(null);
+  const inner = useRef<HTMLDivElement>(null);
+
+  // the chapter whose text crosses the middle of the screen is the one being read
+  useEffect(() => {
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) if (e.isIntersecting) setChapter(Number((e.target as HTMLElement).dataset.chapter));
+      },
+      // on narrow screens the window sits at the top, so the chapter being read is lower down
+      { rootMargin: window.innerWidth <= 1000 ? "-62% 0px -30% 0px" : "-45% 0px -50% 0px" },
+    );
+    texts.current.forEach((t) => t && io.observe(t));
+    const seen = new IntersectionObserver(([e]) => setVisible(e.isIntersecting));
+    if (section.current) seen.observe(section.current);
+    return () => {
+      io.disconnect();
+      seen.disconnect();
+    };
+  }, []);
+  // the rail beside the chapters fills as the section scrolls by
+  useScrollProgress(section, (p) => rail.current?.style.setProperty("--p", p.toFixed(3)), "sticky");
+
+  // the window is designed at a fixed size and scaled to the column it sits in
   useLayoutEffect(() => {
     const el = stage.current;
     if (!el) return;
-    const fit = () => {
-      const narrow = el.clientWidth < 760;
-      setCompact(narrow);
-      const w = narrow ? 640 : 1160;
-      const h = narrow ? 900 : 720;
-      const room = window.innerHeight - 250;
-      const s = Math.min(1, el.clientWidth / w, room / h);
-      el.style.setProperty("--s", String(s));
-      el.style.setProperty("--w", `${w}px`);
-      el.style.setProperty("--h", `${h}px`);
-    };
+    const fit = () => el.style.setProperty("--s", String(Math.min(1, el.clientWidth / 900)));
     const ro = new ResizeObserver(fit);
     ro.observe(el);
     fit();
     return () => ro.disconnect();
   }, []);
 
-  /** A point of the stage, in the frame's own coordinates (unaffected by scaling and the camera). */
-  const point = (name: string): [number, number] => {
-    const f = frame.current!;
-    const el = f.querySelector<HTMLElement>(`[data-demo="${name}"]`);
-    if (!el) return [f.offsetWidth * 0.55, f.offsetHeight * 0.45];
-    let x = 0;
-    let y = 0;
-    for (let n: HTMLElement | null = el; n && n !== f; n = n.offsetParent as HTMLElement | null) {
-      x += n.offsetLeft;
-      y += n.offsetTop;
-    }
-    // the README scrolls inside its canvas
-    if (inner.current && scrollBox.current?.contains(el)) y += new DOMMatrixReadOnly(getComputedStyle(inner.current).transform).m42;
-    return [x + el.offsetWidth / 2, y + (name === "drop" ? Math.min(el.offsetHeight / 2, 40) : el.offsetHeight / 2)];
-  };
-
-  const wasDown = useRef(false);
-  /** Puts the cursor, the widget it drags and the camera where the script says. */
-  const place = (p: number, s: ReturnType<typeof stateAt>) => {
-    const f = frame.current;
-    const c = cursor.current;
-    if (!f || !c) return;
-    // the README grows past the canvas: keep its newest widget in view
+  // the README grows past its canvas: keep the newest widget in view
+  useLayoutEffect(() => {
     const v = scrollBox.current;
-    const content = inner.current;
-    if (v && content) content.style.transform = `translateY(${-Math.max(0, content.scrollHeight - v.clientHeight + 24)}px)`;
-    let i = KEYS.findIndex((k) => k.t > p);
-    if (i < 0) i = KEYS.length - 1;
-    const a = KEYS[Math.max(0, i - 1)];
-    const b = KEYS[i];
-    const t = b.t === a.t ? 1 : ease(clamp((p - a.t) / (b.t - a.t)));
-    const [ax, ay] = point(a.at);
-    const [bx, by] = point(b.at);
-    // a gentle arc rather than a straight line, like a hand moving a mouse
-    const dx = bx - ax;
-    const dy = by - ay;
-    const len = Math.hypot(dx, dy) || 1;
-    const bend = Math.min(90, len * 0.22) * (i % 2 ? 1 : -1);
-    const mx = (ax + bx) / 2 - (dy / len) * bend;
-    const my = (ay + by) / 2 + (dx / len) * bend;
-    const x = (1 - t) * (1 - t) * ax + 2 * (1 - t) * t * mx + t * t * bx;
-    const y = (1 - t) * (1 - t) * ay + 2 * (1 - t) * t * my + t * t * by;
-    const down = !!(t < 0.5 ? a.down : b.down);
-    c.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
-    c.classList.toggle("is-down", down);
-    const r = ripple.current;
-    if (down && !wasDown.current && r) {
-      // a ring where the button goes down
-      r.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
-      r.classList.remove("is-on");
-      void r.offsetWidth;
-      r.classList.add("is-on");
-    }
-    wasDown.current = down;
-    const g = ghost.current;
-    if (g) {
-      // the dragged widget trails the cursor, tilting with the direction it moves in
-      const tilt = s.dragging >= 0 ? clamp(dx / 500, -1, 1) * 5 * Math.sin(t * Math.PI) : 0;
-      g.style.transform = `translate(${(x + 16).toFixed(1)}px, ${(y + 14).toFixed(1)}px) rotate(${(tilt - 2).toFixed(2)}deg)`;
-      g.style.opacity = s.dragging >= 0 ? "1" : "0";
-    }
-    if (cam.current && !still) cam.current.style.transform = cameraAt(p, x, y, f.offsetWidth, f.offsetHeight);
-  };
+    const c = inner.current;
+    if (v && c) c.style.transform = `translateY(${-Math.max(0, c.scrollHeight - v.clientHeight + 16)}px)`;
+  }, [view.placed, rows]);
 
-  const last = useRef(state);
-  const render = (p: number) => {
-    const next = stateAt(p);
-    const prev = last.current;
-    if (
-      next.placed !== prev.placed ||
-      next.dragging !== prev.dragging ||
-      next.palette !== prev.palette ||
-      next.grotesk !== prev.grotesk ||
-      next.saved !== prev.saved ||
-      next.step !== prev.step
-    ) {
-      last.current = next;
-      setState(next);
-    }
-    bars.current.forEach((b, i) => b?.style.setProperty("--fill", String(i < next.step ? 1 : i === next.step ? next.stepProgress : 0)));
-    place(p, next);
-  };
+  // ---------------------------------------------------------------- playing a chapter
 
-  // the scroll sets a target; each frame the shown progress eases towards it
-  const target = useRef(still ? 1 : 0);
-  const shown = useRef(still ? 1 : 0);
-  const raf = useRef(0);
-  const tick = () => {
-    raf.current = 0;
-    const gap = target.current - shown.current;
-    // eased, and never faster than a watchable pace: a big jump of the scroll replays the steps
-    // in between rather than skipping through them
-    shown.current = Math.abs(gap) < 0.0003 ? target.current : shown.current + Math.sign(gap) * Math.min(Math.abs(gap) * 0.1, 0.006);
-    render(shown.current);
-    if (shown.current !== target.current) raf.current = requestAnimationFrame(tick);
-  };
-  useScrollProgress(
-    section,
-    (p) => {
-      target.current = p;
-      if (!raf.current) raf.current = requestAnimationFrame(tick);
-    },
-    "sticky",
-  );
-  useEffect(() => () => cancelAnimationFrame(raf.current), []);
-
-  // keep everything in place when the layout changes under it (a widget lands, the stage resizes)
   useEffect(() => {
-    const id = requestAnimationFrame(() => render(shown.current));
-    return () => cancelAnimationFrame(id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state, compact, rows]);
+    if (still) {
+      setView(END[chapter]);
+      return;
+    }
+    if (!visible || !ready) return;
+    const run = { live: true };
+    const anims: Animation[] = [];
+    // from wherever the cursor is now: a new chapter carries on from the last one, without a jump
+    const now = cursor.current ? new DOMMatrixReadOnly(getComputedStyle(cursor.current).transform) : null;
+    const at = { x: now?.m41 ?? 450, y: now?.m42 ?? 330 };
+    const check = () => {
+      if (!run.live) throw new Stopped();
+    };
+    const wait = async (ms: number) => {
+      await new Promise((r) => setTimeout(r, ms));
+      check();
+    };
+    /** The centre of an element of the window, in the window's own coordinates. */
+    const point = (name: string) => {
+      const f = frame.current!;
+      const el = f.querySelector<HTMLElement>(`[data-demo="${name}"]`);
+      if (!el) return { x: 450, y: 330 };
+      let x = 0;
+      let y = 0;
+      for (let n: HTMLElement | null = el; n && n !== f; n = n.offsetParent as HTMLElement | null) {
+        x += n.offsetLeft;
+        y += n.offsetTop;
+      }
+      if (inner.current && scrollBox.current?.contains(el)) y += new DOMMatrixReadOnly(getComputedStyle(inner.current).transform).m42;
+      return { x: x + el.offsetWidth / 2, y: y + Math.min(el.offsetHeight / 2, 46) };
+    };
+    /** Glides the cursor (and the widget it carries) along a gentle arc. */
+    const move = async (name: string, ms: number) => {
+      const to = point(name);
+      const dx = to.x - at.x;
+      const dy = to.y - at.y;
+      const len = Math.hypot(dx, dy) || 1;
+      const bend = Math.min(70, len * 0.18);
+      const mid = { x: (at.x + to.x) / 2 - (dy / len) * bend, y: (at.y + to.y) / 2 + (dx / len) * bend };
+      const path = (o: number, r = 0) => [
+        { transform: `translate(${at.x + o}px, ${at.y + o}px) rotate(${r}deg)`, easing: "cubic-bezier(.45,.05,.55,.95)" },
+        {
+          transform: `translate(${mid.x + o}px, ${mid.y + o}px) rotate(${r + Math.sign(dx) * 3}deg)`,
+          offset: 0.5,
+          easing: "cubic-bezier(.45,.05,.55,.95)",
+        },
+        { transform: `translate(${to.x + o}px, ${to.y + o}px) rotate(${r}deg)` },
+      ];
+      const opts: KeyframeAnimationOptions = { duration: ms, fill: "forwards" };
+      const a = cursor.current!.animate(path(0), opts);
+      anims.push(a);
+      if (ghost.current?.classList.contains("is-on")) anims.push(ghost.current.animate(path(14, -2), opts));
+      await a.finished.catch(() => undefined);
+      check();
+      at.x = to.x;
+      at.y = to.y;
+    };
+    /** A click: the cursor presses, a ring spreads from it. */
+    const press = async (down: boolean) => {
+      cursor.current!.classList.toggle("is-down", down);
+      if (down && ripple.current) {
+        ripple.current.style.transform = `translate(${at.x}px, ${at.y}px)`;
+        ripple.current.classList.remove("is-on");
+        void ripple.current.offsetWidth;
+        ripple.current.classList.add("is-on");
+      }
+      await wait(down ? 140 : 90);
+    };
+    const click = async (name: string, ms = 650) => {
+      await move(name, ms);
+      await press(true);
+      await press(false);
+    };
+    const carry = (show: boolean) => {
+      const g = ghost.current;
+      if (!g) return;
+      g.classList.toggle("is-on", show);
+      g.style.transform = `translate(${at.x + 14}px, ${at.y + 14}px) rotate(-2deg)`;
+    };
 
-  const dragged = state.dragging >= 0 ? thumbs[state.dragging]?.[0] : undefined;
+    const scripts: (() => Promise<void>)[] = [
+      async () => {
+        for (let i = 0; i < LIBRARY.length; i++) {
+          await move(`card-${i}`, i ? 700 : 900);
+          await press(true);
+          setView((v) => ({ ...v, dragging: i }));
+          carry(true);
+          await wait(120);
+          await move("drop", 850);
+          await press(false);
+          carry(false);
+          setView((v) => ({ ...v, dragging: -1, placed: i + 1 }));
+          await wait(380);
+        }
+      },
+      async () => {
+        await click("swatch-1", 900);
+        setView((v) => ({ ...v, palette: 1 }));
+        await wait(900);
+        await click("swatch-2");
+        setView((v) => ({ ...v, palette: 2 }));
+        await wait(800);
+        await click("font", 700);
+        setView((v) => ({ ...v, grotesk: true }));
+      },
+      async () => {
+        await click("save", 900);
+        setView((v) => ({ ...v, dialog: true }));
+        await wait(700);
+        await click("commit", 650);
+        setView((v) => ({ ...v, dialog: false, saved: true }));
+        await wait(400);
+        await move("rest", 900);
+      },
+    ];
+
+    (async () => {
+      try {
+        // each chapter loops while it is being read, from its own starting point
+        for (;;) {
+          setView(START[chapter]);
+          await wait(450);
+          await scripts[chapter]();
+          await wait(2600);
+        }
+      } catch (e) {
+        if (!(e instanceof Stopped)) throw e;
+      }
+    })();
+    return () => {
+      run.live = false;
+      for (const a of anims) a.cancel();
+      // the cursor stays where it was rather than jumping back to its start
+      if (cursor.current) cursor.current.style.transform = `translate(${at.x}px, ${at.y}px)`;
+      ghost.current?.classList.remove("is-on");
+    };
+  }, [chapter, visible, ready, still]);
+
+  const dragged = view.dragging >= 0 ? thumbs[view.dragging]?.[0] : undefined;
   return (
-    <section ref={section} className={cn("lp-demo", still && "is-still")} aria-label="How a README is made in the studio">
-      <div className="lp-demo__sticky">
-        <div className="wrap lp-demo__head">
-          <div className="lp-demo__caption" aria-live="polite">
-            {STEPS.map((st, i) => (
-              <div
-                key={st.title}
-                className={cn("lp-demo__say", i === state.step ? "is-on" : i < state.step ? "is-past" : "is-next")}
-                aria-hidden={i !== state.step}
-              >
-                <span className="mono">0{i + 1} / 03</span>
-                <h3 className="serif">{st.title}</h3>
-                <p>{st.text}</p>
-              </div>
-            ))}
-          </div>
-          <ol className="lp-steps" aria-hidden>
-            {STEPS.map((st, i) => (
-              <li key={st.title} className={cn(i === state.step && "is-on", i < state.step && "is-done")}>
-                <span className="lp-steps__bar">
-                  <span ref={(el) => void (bars.current[i] = el)} />
-                </span>
-                <span className="lp-steps__name">{st.title}</span>
-              </li>
-            ))}
-          </ol>
+    <section ref={section} className={cn("lp-how", still && "is-still")} aria-label="How a README is made in the studio">
+      <div className="wrap lp-how__grid">
+        <div ref={rail} className="lp-how__chapters">
+          <div className="lp-how__rail" aria-hidden />
+          {CHAPTERS.map((c, i) => (
+            <article
+              key={c.title}
+              ref={(el) => void (texts.current[i] = el)}
+              data-chapter={i}
+              className={cn("lp-how__chapter", i === chapter && "is-on")}
+            >
+              <span className="lp-how__n mono">0{i + 1}</span>
+              <h3 className="serif">{c.title}</h3>
+              <p>{c.text}</p>
+              <ul>
+                {c.facts.map((f) => (
+                  <li key={f}>
+                    <Check /> {f}
+                  </li>
+                ))}
+              </ul>
+            </article>
+          ))}
         </div>
-        <div ref={stage} className="lp-stage">
-          <div ref={cam} className="lp-cam">
-            <div ref={frame} className={cn("lp-studio", compact && "is-compact", state.saved && "is-saved")} aria-hidden>
-              <div className="lp-studio__top">
+        <div className="lp-how__visual">
+          <div ref={stage} className="lp-how__stage">
+            <div ref={frame} className={cn("lp-studio", `is-chapter-${chapter}`, view.saved && "is-saved")} aria-hidden>
+              <div className="lp-studio__top" data-part="top">
                 <span className="lp-studio__logo" />
                 <span className="lp-studio__name">Untitled design</span>
                 <span className="lp-studio__tabs">
-                  <span className="is-on">Layers · {state.placed}</span>
+                  <span className="is-on">Layers · {view.placed}</span>
                   <span>Theme</span>
                 </span>
-                <span className={cn("lp-studio__save", state.saved && "is-done")} data-demo="save">
-                  {state.saved ? <Check /> : <UploadCloud />} {state.saved ? "Saved" : "Save to GitHub"}
+                <span className={cn("lp-studio__save", view.saved && "is-done")} data-demo="save">
+                  {view.saved ? <Check /> : <UploadCloud />} {view.saved ? "Saved" : "Save to GitHub"}
                 </span>
               </div>
               <div className="lp-studio__body">
-                <div className="lp-studio__rail">
+                <div className="lp-studio__rail" data-part="rail">
                   <div className="lp-studio__label">Add widget</div>
                   <div className="lp-studio__cards">
                     {LIBRARY.map((w, i) => (
                       <div
                         key={w.type}
-                        className={cn("lp-card", state.dragging === i && "is-lifted", i < state.placed && "is-used")}
+                        className={cn("lp-card", view.dragging === i && "is-lifted", i < view.placed && "is-used")}
                         data-demo={`card-${i}`}
                       >
                         <div className="lp-card__thumb">{thumbs[i]?.[0] && <WidgetImage part={thumbs[i][0]} />}</div>
                         <span>
                           {w.title}
-                          {i < state.placed && <Check />}
+                          {i < view.placed && <Check />}
                         </span>
                       </div>
                     ))}
                   </div>
                 </div>
-                <div className="lp-studio__canvas">
+                <div className="lp-studio__canvas" data-part="canvas" data-demo="rest">
                   <div className="lp-studio__file">
                     <BookOpen /> octocat / README.md
                   </div>
                   <div ref={scrollBox} className="lp-studio__scroll">
                     <div ref={inner} className="lp-studio__readme">
-                      {rows.slice(0, state.placed).map((parts, i) => (
-                        <div key={i} className={cn("lp-studio__row", i === state.placed - 1 && "is-new")}>
+                      {rows.slice(0, view.placed).map((parts, i) => (
+                        <div
+                          key={i}
+                          className={cn("lp-studio__row", i === view.placed - 1 && view.placed > START[chapter].placed && "is-new")}
+                        >
                           {parts.map((p: RenderedPart) => (
-                            <WidgetImage
-                              key={p.meta.name}
-                              part={p}
-                              style={p.meta.fixedHeight ? { height: 24, width: "auto" } : undefined}
-                            />
+                            <WidgetImage key={p.meta.name} part={p} />
                           ))}
                         </div>
                       ))}
                       <div
-                        className={cn("lp-drop", state.dragging >= 0 && "is-active", state.placed >= LIBRARY.length && "is-gone")}
+                        className={cn("lp-drop", view.dragging >= 0 && "is-active", view.placed >= LIBRARY.length && "is-gone")}
                         data-demo="drop"
                       >
-                        {state.dragging >= 0 ? `Drop ${LIBRARY[state.dragging].title}` : "Drag widgets here"}
+                        {view.dragging >= 0 ? `Drop ${LIBRARY[view.dragging].title}` : "Drag widgets here"}
                       </div>
                     </div>
                   </div>
-                  <div className={cn("lp-toast", state.saved && "is-on")}>
+                  <div className={cn("lp-dialog", view.dialog && "is-on")}>
+                    <b>Save to GitHub</b>
+                    <span className="lp-dialog__opt is-on">
+                      <GitCommitHorizontal /> Commit to <code>main</code>
+                    </span>
+                    <span className="lp-dialog__opt">
+                      <GitPullRequest /> Open a pull request
+                    </span>
+                    <span className="lp-dialog__go" data-demo="commit">
+                      Commit
+                    </span>
+                  </div>
+                  <div className={cn("lp-toast", view.saved && "is-on")}>
                     <Check />
                     <span className="lp-toast__t">
                       Committed to <b>octocat/octocat</b>
@@ -357,7 +375,7 @@ export function Demo() {
                     <span>The workflow renders it tonight.</span>
                   </div>
                 </div>
-                <div className="lp-studio__inspector">
+                <div className="lp-studio__inspector" data-part="inspector">
                   <div className="lp-studio__label">Palette</div>
                   <div className="lp-studio__swatches">
                     {SWATCHES.map((id, i) => {
@@ -365,7 +383,7 @@ export function Demo() {
                       return (
                         <span
                           key={id}
-                          className={cn("lp-swatch", i === state.palette && "is-on")}
+                          className={cn("lp-swatch", i === view.palette && "is-on")}
                           data-demo={`swatch-${i}`}
                           style={{ background: `linear-gradient(135deg, ${pal[mode].card} 0 50%, ${pal[mode].accent} 50% 100%)` }}
                         >
@@ -375,15 +393,10 @@ export function Demo() {
                     })}
                   </div>
                   <div className="lp-studio__label">Heading typeface</div>
-                  <div className={cn("lp-studio__fake", state.grotesk && "is-changed")} data-demo="font">
-                    <span style={{ fontFamily: state.grotesk ? "'Space Grotesk', var(--font-sans)" : "var(--font-mono)" }}>
-                      {state.grotesk ? "Space Grotesk" : "JetBrains Mono"}
+                  <div className={cn("lp-studio__fake", view.grotesk && "is-changed")} data-demo="font">
+                    <span style={{ fontFamily: view.grotesk ? "'Space Grotesk', var(--font-sans)" : "var(--font-mono)" }}>
+                      {view.grotesk ? "Space Grotesk" : "JetBrains Mono"}
                     </span>
-                    <ChevronDown />
-                  </div>
-                  <div className="lp-studio__label">Motion</div>
-                  <div className="lp-studio__fake">
-                    <span>Full</span>
                     <ChevronDown />
                   </div>
                 </div>
@@ -392,7 +405,7 @@ export function Demo() {
                 {dragged && <WidgetImage part={dragged} />}
               </div>
               <div ref={ripple} className="lp-ripple" />
-              <div ref={cursor} className="lp-cursor">
+              <div ref={cursor} className="lp-cursor" style={{ transform: "translate(450px, 330px)" }}>
                 <svg viewBox="0 0 24 24" width="26" height="26">
                   <path
                     d="M4 2.5 19.5 13l-7 1.2 4 7.3-2.9 1.5-4-7.3L4.5 21z"

@@ -172,7 +172,7 @@ export function Landing() {
                 Drag, tune, <em>save.</em>
               </>
             }
-            text="Scroll to watch a README come together in the studio."
+            text="Three steps in the studio. Then the workflow in your repository takes over."
           />
         </div>
         <Demo />
