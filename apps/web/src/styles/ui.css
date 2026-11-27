@@ -1247,3 +1247,16 @@ a.btn {
     clip: rect(0 0 0 0);
   }
 }
+
+/* lists that reorder by dragging an item anywhere (see components/Sortable.tsx) */
+.is-draggable,
+.layer {
+  cursor: grab;
+}
+.is-draggable :is(input, textarea, select, [contenteditable="true"]) {
+  cursor: auto;
+}
+.is-draggable :is(button, a, label),
+.layer :is(button, a) {
+  cursor: pointer;
+}

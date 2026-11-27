@@ -12,6 +12,7 @@ import { useStudio } from "../state/store";
 import { blockActions, clickBlock, onBlockContextMenu, onEmptyContextMenu, targetsOf } from "./blockActions";
 import { WidgetIcon } from "./icons";
 import { pressLibraryWidget } from "./useCanvasDrag";
+import { wholeElementDrag } from "../components/Sortable";
 
 /**
  * One layer. It reads only what it shows from the store, and is memoised, so typing in the
@@ -31,6 +32,8 @@ const LayerRow = memo(function LayerRow({ block, joined, overlay }: { block: Blo
     <li
       ref={overlay ? undefined : setNodeRef}
       style={overlay ? undefined : style}
+      // the whole row drags (the grip too, and the grip alone by touch and keyboard)
+      {...(overlay ? {} : wholeElementDrag(listeners))}
       className={cn("layer", joined && "layer--joined", isSelected && "is-selected", isDragging && "is-dragging", overlay && "is-overlay", block.hidden && "is-hidden")}
       onClick={(e) => {
         clickBlock(e, block.id);

@@ -14,8 +14,25 @@ import { GripVertical } from "lucide-react";
 import { createContext, useContext, type CSSProperties, type ReactNode } from "react";
 
 /**
- * A vertical list that reorders by dragging a grip (or with the keyboard: focus the grip, Space,
- * arrows, Space). Up/down buttons next to it stay for touch and for anyone who prefers them.
+ * Pointer listeners for dragging by the whole element, not only its grip: mouse and pen only (a
+ * finger on a list scrolls it, so touch drags by the grip), and not from a field, where dragging
+ * selects text, or from the grip itself, which has its own listeners.
+ */
+export function wholeElementDrag(listeners: Record<string, unknown> | undefined): { onPointerDown?: (e: React.PointerEvent) => void } {
+  const down = listeners?.onPointerDown as ((e: React.PointerEvent) => void) | undefined;
+  if (!down) return {};
+  return {
+    onPointerDown: (e) => {
+      if (e.pointerType === "touch") return;
+      if ((e.target as HTMLElement).closest("input, textarea, select, [contenteditable='true'], .sort-handle, .layer__grip")) return;
+      down(e);
+    },
+  };
+}
+
+/**
+ * A vertical list that reorders by dragging an item anywhere (or its grip, or with the keyboard:
+ * focus the grip, Space, arrows, Space). Up/down buttons stay for anyone who prefers them.
  */
 export function SortableList({
   count,
@@ -67,7 +84,7 @@ export function SortableItem({
     ...(sortable.isDragging ? { zIndex: 2, position: "relative", opacity: 0.85 } : {}),
   };
   return (
-    <div ref={sortable.setNodeRef} className={className} style={{ ...style, ...own }}>
+    <div ref={sortable.setNodeRef} className={className ? `${className} is-draggable` : "is-draggable"} style={{ ...style, ...own }} {...wholeElementDrag(sortable.listeners)}>
       <HandleCtx.Provider value={sortable}>{children}</HandleCtx.Provider>
     </div>
   );
