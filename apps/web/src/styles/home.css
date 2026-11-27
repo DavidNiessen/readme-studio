@@ -338,8 +338,8 @@
   position: absolute;
   top: 0;
   left: 0;
-  width: 900px;
-  height: 620px;
+  width: var(--fw, 900px);
+  height: var(--fh, 620px);
   transform: perspective(2400px) scale(var(--s, 1)) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
   transform-origin: top left;
   display: flex;
@@ -1808,7 +1808,7 @@
 .lp-how__stage {
   position: relative;
   width: 100%;
-  height: calc(620px * var(--s, 1));
+  height: calc(var(--fh, 620px) * var(--s, 1));
   animation: lp-float 7s ease-in-out infinite;
 }
 @keyframes lp-float {
@@ -1903,6 +1903,68 @@
 }
 .lp-ghost.is-on {
   opacity: 1;
+}
+/* phones: a taller, narrower window. The library becomes a row of three cards, the palette and
+   typeface a strip under it, and the README fills the rest, so nothing has to shrink to a speck */
+.lp-studio.is-compact .lp-studio__body {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto auto minmax(0, 1fr);
+}
+.lp-studio.is-compact .lp-studio__tabs {
+  display: none;
+}
+.lp-studio.is-compact .lp-studio__name {
+  margin-right: auto;
+}
+.lp-studio.is-compact .lp-studio__rail {
+  padding: 0 14px 12px;
+  border-right: 0;
+  border-bottom: 1px solid var(--line);
+}
+.lp-studio.is-compact .lp-studio__label {
+  margin: 10px 0 6px;
+}
+.lp-studio.is-compact .lp-studio__cards {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.lp-studio.is-compact .lp-card {
+  padding: 6px;
+  font-size: 12px;
+}
+.lp-studio.is-compact .lp-card__thumb {
+  height: 54px;
+}
+.lp-studio.is-compact .lp-card__thumb img {
+  max-height: 48px;
+}
+.lp-studio.is-compact .lp-studio__inspector {
+  grid-row: 2;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-left: 0;
+  border-bottom: 1px solid var(--line);
+}
+.lp-studio.is-compact .lp-studio__inspector .lp-studio__label {
+  display: none;
+}
+.lp-studio.is-compact .lp-studio__swatches {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 6px;
+}
+.lp-studio.is-compact .lp-swatch {
+  height: 30px;
+}
+.lp-studio.is-compact .lp-swatch i {
+  display: none;
+}
+.lp-studio.is-compact .lp-studio__fake {
+  min-width: 170px;
+}
+.lp-studio.is-compact .lp-studio__canvas {
+  grid-row: 3;
 }
 @media (max-width: 1000px) {
   .lp-how__grid {
