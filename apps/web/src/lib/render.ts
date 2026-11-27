@@ -51,9 +51,36 @@ function sizeOf(svg: string): { width: number; height: number } {
   return m ? { width: +m[1], height: +m[2] } : { width: 840, height: 200 };
 }
 
-function cacheKey(block: Block, part: PartMeta, config: StudioConfig, data: ProfileData, mode: Mode, minute: number): string {
+/** The parts of a config every widget's render depends on, serialised once per config and data. */
+const shared = new WeakMap<StudioConfig, WeakMap<ProfileData, string>>();
+function sharedKey(config: StudioConfig, data: ProfileData): string {
+  let byData = shared.get(config);
+  if (!byData) shared.set(config, (byData = new WeakMap()));
+  let k = byData.get(data);
   // views: a widget falls back to names and roles other widgets set, so those count too
-  return JSON.stringify([block.type, block.options, part.key, config.theme, views(config, data), mode, dataId(data), minute]);
+  if (k === undefined) byData.set(data, (k = JSON.stringify([config.theme, views(config, data)])));
+  return k;
+}
+
+function cacheKey(block: Block, part: PartMeta, config: StudioConfig, data: ProfileData, mode: Mode, minute: number): string {
+  return JSON.stringify([block.type, block.options, part.key, mode, dataId(data), minute]) + sharedKey(config, data);
+}
+
+/** A part's render when it is cached already, without rendering it. */
+function cachedPart(part: PartMeta, ctx: Ctx, config: StudioConfig, data: ProfileData, mode: Mode): RenderedPart | null {
+  const hit = svgCache.get(cacheKey(part.block, part, config, data, mode, Math.floor(ctx.date.getTime() / 60000)));
+  return hit ? { ...hit, meta: part } : null;
+}
+
+/** A GIF widget's single preview frame, while its full set of frames is still to come. */
+function stillGif(part: PartMeta, ctx: Ctx, config: StudioConfig, data: ProfileData, mode: Mode): RenderedPart {
+  const key = `${cacheKey(part.block, part, config, data, mode, Math.floor(ctx.date.getTime() / 60000))}#still`;
+  const hit = svgCache.get(key);
+  if (hit) return { ...hit, meta: part };
+  const svg = renderPart(part, ctx);
+  const out: RenderedPart = { meta: part, key, svg, ...sizeOf(svg) };
+  svgCache.set(key, out);
+  return out;
 }
 
 /** Render (or fetch from cache) one part for a mode. */
@@ -65,6 +92,10 @@ export function renderPartCached(part: PartMeta, ctx: Ctx, config: StudioConfig,
   let out: RenderedPart;
   if (part.kind === "markdown") {
     out = { meta: part, key, markdown: renderPart(part, ctx), width: 0, height: 0 };
+  } else if (part.kind === "gif" && ctx.theme.motion === "off") {
+    // a still design (or a paused canvas) shows one frame: rendering them all is wasted work
+    const svg = renderPart(part, ctx);
+    out = { meta: part, key, svg, ...sizeOf(svg) };
   } else if (part.kind === "gif") {
     const frames = renderFrames(part, ctx);
     out = { meta: part, key, frames, svg: frames.frames[Math.floor(frames.frames.length / 3)]?.svg ?? renderPart(part, ctx), width: frames.width, height: frames.height };
@@ -148,23 +179,67 @@ export function useFontsReady(fonts: string[]): boolean {
   return ready;
 }
 
-/** Render the layout, debounced so typing stays responsive. */
+/** Longest stretch of rendering before the page gets to handle input and paint. */
+const SLICE_MS = 12;
+
+/**
+ * Render the layout, debounced so typing stays responsive. Parts already cached show at once. The
+ * rest render in short slices, top first, so a change that touches every widget (a palette, the
+ * colour scheme) never freezes the page: until its new render is ready, a part keeps showing its
+ * previous one. A part with nothing to show yet (a widget just added) renders straight away.
+ */
 export function useRenderedLayout(config: StudioConfig, data: ProfileData, mode: Mode, delay = 90): { rows: RenderedRow[]; ready: boolean } {
   const fontsReady = useFontsReady([config.theme.font, config.theme.headingFont]);
   const [rows, setRows] = useState<RenderedRow[]>([]);
+  const shown = useRef<RenderedRow[]>([]);
+  shown.current = rows;
   const first = useRef(true);
   useEffect(() => {
     if (!fontsReady) return;
-    // the time is read when something changes, not on a timer: re-rendering every minute gave every
-    // image a new URL, and each one reloaded and replayed its entrance animation
-    const run = () => setRows(renderLayout(config, data, mode, new Date(), true));
+    let timer = 0;
+    const run = () => {
+      const ctx = createCtx(config, data, mode, { date: new Date(), run: "1" });
+      const before = new Map(shown.current.flatMap((r) => r.parts.map((p) => [p.meta.name, p] as const)));
+      const pending: { row: number; index: number; part: PartMeta }[] = [];
+      // a GIF's frames take long to render (the 3D skyline draws its city once per frame): its
+      // still frame shows first, and the frames come after everything else
+      const frames: typeof pending = [];
+      const out: RenderedRow[] = config.layout.map((row, ri) => ({
+        rowId: row.id,
+        align: row.align,
+        parts: row.blocks
+          .flatMap((b) => blockParts(b, ctx))
+          .map((part, pi) => {
+            const hit = cachedPart(part, ctx, config, data, mode);
+            if (hit) return hit;
+            if (part.kind === "gif" && ctx.theme.motion !== "off") {
+              frames.push({ row: ri, index: pi, part });
+              return stillGif(part, ctx, config, data, mode);
+            }
+            const old = before.get(part.name);
+            if (!old || old.meta.kind !== part.kind) return renderPartCached(part, ctx, config, data, mode);
+            pending.push({ row: ri, index: pi, part });
+            return { ...old, meta: part };
+          }),
+      }));
+      pending.push(...frames);
+      setRows(out);
+      const slice = () => {
+        const t0 = performance.now();
+        while (pending.length && performance.now() - t0 < SLICE_MS) {
+          const { row, index, part } = pending.shift()!;
+          out[row] = { ...out[row], parts: out[row].parts.map((p, i) => (i === index ? renderPartCached(part, ctx, config, data, mode) : p)) };
+        }
+        setRows([...out]);
+        if (pending.length) timer = window.setTimeout(slice, 0);
+      };
+      if (pending.length) timer = window.setTimeout(slice, 0);
+    };
     if (first.current) {
       first.current = false;
       run();
-      return;
-    }
-    const t = window.setTimeout(run, delay);
-    return () => window.clearTimeout(t);
+    } else timer = window.setTimeout(run, delay);
+    return () => window.clearTimeout(timer);
   }, [config, data, mode, fontsReady, delay]);
   return { rows, ready: fontsReady && rows.length >= 0 };
 }

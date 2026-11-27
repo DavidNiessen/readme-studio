@@ -17,8 +17,8 @@ export function IconPicker({ value, onChange, label, allowGlyphs = true }: { val
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
   const all = useMemo(() => iconList(), []);
-  const brand = all.filter((i) => !q || i.id.includes(q.toLowerCase()) || i.title.toLowerCase().includes(q.toLowerCase()));
-  const glyphHits = allowGlyphs ? GLYPHS.filter((g) => !q || g.includes(q.toLowerCase())) : [];
+  const brand = open ? all.filter((i) => !q || i.id.includes(q.toLowerCase()) || i.title.toLowerCase().includes(q.toLowerCase())) : [];
+  const glyphHits = open && allowGlyphs ? GLYPHS.filter((g) => !q || g.includes(q.toLowerCase())) : [];
   const title = all.find((i) => i.id === value)?.title ?? (value || "None");
   return (
     <>
@@ -29,7 +29,9 @@ export function IconPicker({ value, onChange, label, allowGlyphs = true }: { val
           {value}
         </span>
       </button>
-      <Dialog open={open} onClose={() => setOpen(false)} title={label} subtitle="Brand icons from Simple Icons, plus line glyphs." width={460}>
+      {/* built only while open: the grid is 150+ buttons, and the inspector re-renders on every keystroke */}
+      {open && (
+      <Dialog open onClose={() => setOpen(false)} title={label} subtitle="Brand icons from Simple Icons, plus line glyphs." width={460}>
         <input className="input" placeholder="Search 150+ icons" value={q} onChange={(e) => setQ(e.target.value)} data-autofocus style={{ marginBottom: 12 }} />
         {glyphHits.length > 0 && (
           <>
@@ -71,6 +73,7 @@ export function IconPicker({ value, onChange, label, allowGlyphs = true }: { val
         </div>
         {!brand.length && !glyphHits.length && <div className="empty">No icon matches “{q}”.</div>}
       </Dialog>
+      )}
     </>
   );
 }

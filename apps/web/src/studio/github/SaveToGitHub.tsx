@@ -88,7 +88,13 @@ export function suggestedRepo(c: StudioConfig): string {
 
 type Check = { state: "idle" } | { state: "checking" } | { state: "ok"; target: SaveTarget } | { state: "error"; error: unknown };
 
+/** Mounted only while open: it reads the design, so it would re-render on every edit. */
 export function SaveDialog({ platform }: { platform: GitHubPlatform }) {
+  const open = useStudio((s) => s.dialog === "save");
+  return open ? <SaveDialogBody platform={platform} /> : null;
+}
+
+function SaveDialogBody({ platform }: { platform: GitHubPlatform }) {
   const toast = useToast();
   const config = useStudio((s) => s.config);
   const open = useStudio((s) => s.dialog === "save");

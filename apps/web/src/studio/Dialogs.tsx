@@ -34,6 +34,8 @@ import {
   Trash2,
   Undo2,
   Upload,
+  Pause,
+  Play,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { PresetThumb } from "../components/PresetThumb";
@@ -599,6 +601,7 @@ function ShortcutsDialog() {
     ["Add widget", <Kbd>A</Kbd>],
     ["Toggle dark / light preview", <Kbd>T</Kbd>],
     ["Replay animations", <Kbd>R</Kbd>],
+    ["Pause or play animations", <Kbd>P</Kbd>],
     ["Save to GitHub", <><Kbd>{MOD}</Kbd><Kbd>S</Kbd></>],
     ["Export manually", <><Kbd>{MOD}</Kbd><Kbd>E</Kbd></>],
     ["Shortcuts", <Kbd>?</Kbd>],
@@ -740,6 +743,7 @@ function CommandPalette() {
       },
       { group: "Actions", label: "Undo", icon: <Undo2 />, run: s.undo },
       { group: "Actions", label: "Redo", icon: <Redo2 />, run: s.redo },
+      { group: "Actions", label: s.animate ? "Pause animations" : "Play animations", icon: s.animate ? <Pause /> : <Play />, run: () => s.setAnimate(!s.animate) },
       { group: "Actions", label: s.mode === "dark" ? "Preview light mode" : "Preview dark mode", icon: s.mode === "dark" ? <Sun /> : <Moon />, run: () => s.setMode(s.mode === "dark" ? "light" : "dark") },
       ...widgetList.map((w) => ({ group: "Add widget", label: w.title, hint: w.category, icon: <Plus />, run: () => s.add(w.type) })),
       ...palettePresets.map((p) => ({
@@ -812,16 +816,28 @@ function CommandPalette() {
   );
 }
 
+/**
+ * Only the open dialog is mounted: each reads much of the store, and mounted while closed they
+ * re-rendered (presets, the command list) on every keystroke in the editor.
+ */
 export function Dialogs() {
-  return (
-    <>
-      <ExportDialog />
-      <PresetsDialog />
-      <ImportDialog />
-      <JsonDialog />
-      <ShortcutsDialog />
-      <DesignsDialog />
-      <CommandPalette />
-    </>
-  );
+  const dialog = useStudio((s) => s.dialog);
+  switch (dialog) {
+    case "export":
+      return <ExportDialog />;
+    case "presets":
+      return <PresetsDialog />;
+    case "import":
+      return <ImportDialog />;
+    case "json":
+      return <JsonDialog />;
+    case "shortcuts":
+      return <ShortcutsDialog />;
+    case "designs":
+      return <DesignsDialog />;
+    case "palette":
+      return <CommandPalette />;
+    default:
+      return null;
+  }
 }
