@@ -225,7 +225,8 @@ export const layoutPresets: LayoutPreset[] = [
     theme: { preset: "paper", font: "ibm-plex-serif", headingFont: "fraunces", texture: "none", motion: "subtle", radius: 8 },
     rows: [
       [{ type: "banner", options: { effect: "none", height: "compact", corners: false } }],
-      [{ type: "markdown" }],
+      // a short intro under the banner reads best centred, like the rest of the page
+      [{ type: "markdown", options: { align: "center" } }],
       [{ type: "posts", options: { count: 5 } }],
       [{ type: "socials", options: { style: "compact" } }],
       [{ type: "quote", options: { rotate: false } }],

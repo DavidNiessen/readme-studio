@@ -5465,6 +5465,17 @@ ${titleMarkup}`;
 });
 
 // ../core/src/widgets/markdown.ts
+var TEXT_ALIGN = {
+  key: "align",
+  label: "Text alignment",
+  type: "segmented",
+  options: [
+    { value: "left", label: "Left" },
+    { value: "center", label: "Centre" },
+    { value: "right", label: "Right" }
+  ],
+  help: "Centre or right wraps the text in an aligned <div>, which GitHub honours."
+};
 var markdown = defineWidget({
   type: "markdown",
   title: "Markdown text",
@@ -5473,7 +5484,8 @@ var markdown = defineWidget({
   kind: "markdown",
   width: "full",
   defaults: {
-    text: "Hi, I'm **{name}**. I build calm, fast software and the tools around it.\nCurrently exploring local-first apps and typed APIs. Say hello any time!"
+    text: "Hi, I'm **{name}**. I build calm, fast software and the tools around it.\nCurrently exploring local-first apps and typed APIs. Say hello any time!",
+    align: "left"
   },
   fields: [
     {
@@ -5484,8 +5496,9 @@ var markdown = defineWidget({
       max: 2e4,
       rows: 12,
       placeholder: "**Bold**, _italic_, [links](https://example.com), lists, tables and HTML all work.",
-      help: `Emitted verbatim into the README; the row's alignment applies. ${PLACEHOLDER_HELP}`
-    }
+      help: `Emitted verbatim into the README. ${PLACEHOLDER_HELP}`
+    },
+    TEXT_ALIGN
   ],
   alt: () => "Markdown text",
   render(ctx, o) {
@@ -11320,11 +11333,13 @@ var pfToc = defineWidget({
   defaults: {
     title: "## Contents",
     numbered: false,
-    entries: DEFAULT_ENTRIES
+    entries: DEFAULT_ENTRIES,
+    align: "left"
   },
   fields: [
     { key: "title", label: "Heading", type: "text", placeholder: "## Contents", max: 80, help: "Markdown, e.g. `## Contents` or `**On this page**`. Leave empty for just the list." },
     { key: "numbered", label: "Numbered", type: "toggle" },
+    TEXT_ALIGN,
     {
       key: "entries",
       label: "Entries",
@@ -11791,7 +11806,8 @@ ${items2.join("\n")}
         flush();
         mdCtx ??= createCtx(config, data13, modes[0], { date: o.date });
         const md = renderPart(p, mdCtx).trim();
-        if (md) out.push(align === "left" ? md : `<div align="${align}">
+        const textAlign = markdownAlign(p);
+        if (md) out.push(textAlign === "left" ? md : `<div align="${textAlign}">
 
 ${md}
 
@@ -11802,6 +11818,10 @@ ${md}
   });
   return `${out.join("\n\n")}
 `;
+}
+function markdownAlign(p) {
+  const a = p.block.options.align ?? p.def.defaults.align;
+  return a === "center" || a === "right" ? a : "left";
 }
 
 // ../core/src/lib/gif.ts
@@ -12213,7 +12233,8 @@ var layoutPresets = [
     theme: { preset: "paper", font: "ibm-plex-serif", headingFont: "fraunces", texture: "none", motion: "subtle", radius: 8 },
     rows: [
       [{ type: "banner", options: { effect: "none", height: "compact", corners: false } }],
-      [{ type: "markdown" }],
+      // a short intro under the banner reads best centred, like the rest of the page
+      [{ type: "markdown", options: { align: "center" } }],
       [{ type: "posts", options: { count: 5 } }],
       [{ type: "socials", options: { style: "compact" } }],
       [{ type: "quote", options: { rotate: false } }]

@@ -1,4 +1,4 @@
-import { assetRepository, getWidget } from "@readme-studio/core";
+import { assetRepository, getWidget, markdownAlign } from "@readme-studio/core";
 import { ArrowDown, ArrowUp, BookOpen, Copy, LayoutTemplate, Plus, Trash2 } from "lucide-react";
 import { marked } from "marked";
 import { useEffect, useMemo, useRef } from "react";
@@ -53,6 +53,8 @@ function Markdown({ part, repo, selected, primary, drop, drag, dragged }: { part
     <div
       className={cn("cv-md", selected && "is-selected", dragged && "is-dragged", drop?.id === id && (drop.after ? "is-drop-after" : "is-drop-before"))}
       data-block={id}
+      // the same alignment the README gives the text
+      style={{ textAlign: markdownAlign(part.meta) }}
       {...drag(id)}
       onDoubleClick={(e) => {
         // only Markdown text blocks hold text to edit; others (a table of contents) render Markdown

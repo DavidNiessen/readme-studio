@@ -63,10 +63,18 @@ export function renderReadme(config: StudioConfig, data: ProfileData, o: ReadmeO
         flush();
         mdCtx ??= createCtx(config, data, modes[0], { date: o.date });
         const md = renderPart(p, mdCtx).trim();
-        if (md) out.push(align === "left" ? md : `<div align="${align}">\n\n${md}\n\n</div>`);
+        // text keeps its own alignment, left unless the block asks: the row's alignment places images
+        const textAlign = markdownAlign(p);
+        if (md) out.push(textAlign === "left" ? md : `<div align="${textAlign}">\n\n${md}\n\n</div>`);
       } else run.push(p);
     }
     flush();
   });
   return `${out.join("\n\n")}\n`;
+}
+
+/** Where a Markdown block's text sits: its own `align` option, else left. */
+export function markdownAlign(p: Pick<PartMeta, "block" | "def">): "left" | "center" | "right" {
+  const a = p.block.options.align ?? p.def.defaults.align;
+  return a === "center" || a === "right" ? a : "left";
 }

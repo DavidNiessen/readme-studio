@@ -4052,8 +4052,29 @@
           "label": "Markdown",
           "type": "text",
           "default": "Hi, I'm **{name}**. I build calm, fast software and the tools around it.\nCurrently exploring local-first apps and typed APIs. Say hello any time!",
-          "help": "Emitted verbatim into the README; the row's alignment applies. Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions} {project} {repo} {tagline} {version} {license} {forks} {contributors} {npm} {pypi} {crate} {owner}",
+          "help": "Emitted verbatim into the README. Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions} {project} {repo} {tagline} {version} {license} {forks} {contributors} {npm} {pypi} {crate} {owner}",
           "max": 20000
+        },
+        {
+          "key": "align",
+          "label": "Text alignment",
+          "type": "segmented",
+          "default": "left",
+          "help": "Centre or right wraps the text in an aligned <div>, which GitHub honours.",
+          "choices": [
+            {
+              "value": "left",
+              "label": "Left"
+            },
+            {
+              "value": "center",
+              "label": "Centre"
+            },
+            {
+              "value": "right",
+              "label": "Right"
+            }
+          ]
         }
       ]
     },
@@ -4438,6 +4459,27 @@
           "label": "Numbered",
           "type": "toggle",
           "default": false
+        },
+        {
+          "key": "align",
+          "label": "Text alignment",
+          "type": "segmented",
+          "default": "left",
+          "help": "Centre or right wraps the text in an aligned <div>, which GitHub honours.",
+          "choices": [
+            {
+              "value": "left",
+              "label": "Left"
+            },
+            {
+              "value": "center",
+              "label": "Centre"
+            },
+            {
+              "value": "right",
+              "label": "Right"
+            }
+          ]
         },
         {
           "key": "entries",

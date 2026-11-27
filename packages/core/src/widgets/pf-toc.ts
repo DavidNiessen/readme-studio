@@ -1,6 +1,7 @@
 import { items, str } from "./kit-c";
 import { ghSlug } from "./kit-f";
 import { fillPlaceholders, PLACEHOLDER_HELP } from "./placeholders";
+import { TEXT_ALIGN } from "./markdown";
 import { defineWidget } from "./types";
 
 const DEFAULT_ENTRIES = [
@@ -29,10 +30,12 @@ export const pfToc = defineWidget({
     title: "## Contents",
     numbered: false,
     entries: DEFAULT_ENTRIES,
+    align: "left",
   },
   fields: [
     { key: "title", label: "Heading", type: "text", placeholder: "## Contents", max: 80, help: "Markdown, e.g. `## Contents` or `**On this page**`. Leave empty for just the list." },
     { key: "numbered", label: "Numbered", type: "toggle" },
+    TEXT_ALIGN,
     {
       key: "entries",
       label: "Entries",

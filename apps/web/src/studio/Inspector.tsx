@@ -120,18 +120,21 @@ function BlockPanel() {
             onChange={(v) => (v && !joinable ? undefined : commit((c) => setJoin(c, b.id, v)))}
           />
         )}
-        <Field label="Row alignment">
-          <Segmented
-            label="Row alignment"
-            value={at.row.align}
-            onChange={(a) => commit((c) => setRowAlign(c, b.id, a))}
-            options={[
-              { value: "left", label: "Left", icon: <AlignLeft /> },
-              { value: "center", label: "Center", icon: <AlignCenter /> },
-              { value: "right", label: "Right", icon: <AlignRight /> },
-            ]}
-          />
-        </Field>
+        {/* a Markdown block aligns its own text (an option above); a row's alignment places images */}
+        {def.kind !== "markdown" && (
+          <Field label="Row alignment">
+            <Segmented
+              label="Row alignment"
+              value={at.row.align}
+              onChange={(a) => commit((c) => setRowAlign(c, b.id, a))}
+              options={[
+                { value: "left", label: "Left", icon: <AlignLeft /> },
+                { value: "center", label: "Center", icon: <AlignCenter /> },
+                { value: "right", label: "Right", icon: <AlignRight /> },
+              ]}
+            />
+          </Field>
+        )}
         {def.kind !== "markdown" && !def.parts && (
           <Field label="Link" help="Where a click on the image goes. Leave empty for the widget's default, or type none.">
             <TextInput

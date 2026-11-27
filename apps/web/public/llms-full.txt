@@ -697,7 +697,8 @@ Category Content · output svg · width full · for profile and project READMEs
 Markdown text: Free-form Markdown or HTML written straight into your README, with live placeholders like {name} and {followers}.
 Category Content · output markdown · width full · for profile and project READMEs
 
-- `text` (text) · default "Hi, I'm **{name}**. I build calm, fast software and the tools around it.\nCurrently exploring local-first apps and typed APIs. Say hello any time!" · Emitted verbatim into the README; the row's alignment applies. Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions} {project} {repo} {tagline} {version} {license} {forks} {contributors} {npm} {pypi} {crate} {owner}
+- `text` (text) · default "Hi, I'm **{name}**. I build calm, fast software and the tools around it.\nCurrently exploring local-first apps and typed APIs. Say hello any time!" · Emitted verbatim into the README. Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions} {project} {repo} {tagline} {version} {license} {forks} {contributors} {npm} {pypi} {crate} {owner}
+- `align` (segmented: left | center | right) · default "left" · Centre or right wraps the text in an aligned <div>, which GitHub honours.
 
 ### install
 
@@ -747,6 +748,7 @@ Category Content · output markdown · width full · for profile and project REA
 
 - `title` (text) · default "## Contents" · Markdown, e.g. `## Contents` or `**On this page**`. Leave empty for just the list.
 - `numbered` (toggle) · default false
+- `align` (segmented: left | center | right) · default "left" · Centre or right wraps the text in an aligned <div>, which GitHub honours.
 - `entries` (list) · default [{"title":"Installation","anchor":"","level":"1"},{"title":"Usage","anchor":"","level":"1"},{"title":"Features","anchor":"","level":"1"},{"title":"Roadmap","anchor":"","level":"1"},{"title":"Contributing","anchor":"","level":"1"},{"title":"License","anchor":"","level":"1"}] · Anchors default to GitHub's heading slug, so `## Getting started` becomes #getting-started.
   - `title` (text) · default "New section" · Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions} {project} {repo} {tagline} {version} {license} {forks} {contributors} {npm} {pypi} {crate} {owner}
   - `anchor` (text) · default ""

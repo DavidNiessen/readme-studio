@@ -121,6 +121,18 @@ describe("readme composer", () => {
     expect(md).toContain('alt="footer · made with Readme Studio"');
   });
 
+  it("leaves Markdown text left-aligned in a centred row, as the studio shows it", () => {
+    const layout = (options: Record<string, unknown>) =>
+      normalizeConfig({ ...c, layout: [{ align: "center", blocks: [{ type: "markdown", id: "intro", options: { text: "- one\n- two", ...options } }] }] }).config;
+    // rows default to centre for their images; a list centred on GitHub reads badly and the canvas shows it left
+    const plain = renderReadme(layout({}), data);
+    expect(plain).toContain("- one\n- two");
+    expect(plain).not.toContain('<div align="center">');
+    // a block that asks for it is centred
+    expect(renderReadme(layout({ align: "center" }), data)).toContain('<div align="center">\n\n- one\n- two\n\n</div>');
+    expect(renderReadme(layout({ align: "right" }), data)).toContain('<div align="right">');
+  });
+
   it("single-mode output skips <picture>", () => {
     const md = renderReadme({ ...c, output: { ...c.output, modes: ["light"] } }, data);
     expect(md).not.toContain("<picture>");
