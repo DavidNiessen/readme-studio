@@ -33,7 +33,7 @@ Readme Studio has four parts:
 |---|---|---|
 | **Studio** | [`apps/web`](apps/web) | A web designer (hosted on GitHub Pages). Design a **profile** README or a **project** README: pick one of 18 presets or start blank, arrange 54 widgets, tune 17 palettes, 12 typefaces, radius, texture and motion, and preview in GitHub's dark and light themes at desktop or phone width. Exports a ready-to-commit project. |
 | **Action** | [`action.yml`](action.yml), [`packages/engine`](packages/engine) | Runs in your profile or project repository on a cron. Fetches your GitHub data (account or repository), renders every widget as an animated SVG (or GIF), force-pushes the images to an asset branch and updates `README.md` when the layout changed. |
-| **Browser extension** | [`apps/extension`](apps/extension) | Chrome and Firefox. On GitHub, **Edit README** opens the same studio as an overlay on the repository page with its committed design, keeps a draft per repository, and **Save to GitHub** writes it back: as a commit, a pull request, or through GitHub's own editor. |
+| **Browser extension** | [`apps/extension`](apps/extension) | [Chrome Web Store](https://chromewebstore.google.com/detail/readme-studio/khjacbeebimgffcjldkojaflahigfhko); Firefox is in review. On GitHub, **Edit README** opens the same studio as an overlay on the repository page with its committed design, keeps a draft per repository, and **Save to GitHub** writes it back: as a commit, a pull request, or through GitHub's own editor. |
 | **Core** | [`packages/core`](packages/core) | The isomorphic renderer shared by both: themes, fonts with real text metrics, widgets, the config schema and the README composer. The studio preview and the action produce byte-identical SVGs. |
 
 Everything is static: no server, no database, no third-party image host. Your design lives in your browser and in your repository.
@@ -116,7 +116,7 @@ Each repository keeps its own draft: close the overlay, open another repository,
 - **Commit** straight to the branch, or **Pull request** from a new branch. Both need a GitHub account: **Sign in with GitHub** (OAuth device flow; the build or the options page supplies an OAuth App client ID with *Enable Device Flow* ticked) or a personal access token (fine-grained: Contents and Workflows read & write; classic: `public_repo`, or `repo` for private repositories, and `workflow`). The website's studio has the same **Save to GitHub** with a token, since GitHub's device flow does not answer web pages.
 - **GitHub editor** needs no sign-in: GitHub's editor opens with the new file filled in, and you review the diff and commit there.
 
-Install it from the latest [release](https://github.com/DavidNiessen/readme-studio/releases/latest): unzip `readme-studio-chrome-*.zip` and load it unpacked (`chrome://extensions`, Developer mode), or open `readme-studio-firefox-*.zip` from `about:debugging`. Store listings follow once they are published.
+Install it from the [Chrome Web Store](https://chromewebstore.google.com/detail/readme-studio/khjacbeebimgffcjldkojaflahigfhko). The Firefox version is in review at Firefox Add-ons; until it is listed, open `readme-studio-firefox-*.zip` from the latest [release](https://github.com/DavidNiessen/readme-studio/releases/latest) in `about:debugging`. Every release also carries `readme-studio-chrome-*.zip`, to load unpacked (`chrome://extensions`, Developer mode).
 
 ## Project READMEs
 
