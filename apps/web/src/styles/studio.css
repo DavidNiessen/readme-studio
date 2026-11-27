@@ -1311,6 +1311,18 @@
 }
 .gh-device p {
   margin: 0;
+  line-height: 1.55;
+}
+/* the link and its icon stay one unit on one line, wherever the sentence wraps */
+.gh-device__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  white-space: nowrap;
+  vertical-align: bottom;
+}
+.gh-device__link svg {
+  flex: none;
 }
 .gh-device__code {
   display: flex;

@@ -85,11 +85,12 @@ export function AuthPanel({ platform, auth, onChange }: { platform: GitHubPlatfo
         (code ? (
           <div className="gh-device">
             <p>
-              Enter this code on{" "}
-              <a href={code.verificationUri} target="_blank" rel="noopener">
-                github.com/login/device <ExternalLink size={12} />
-              </a>
-              , then come back:
+              Open{" "}
+              <a className="gh-device__link" href={code.verificationUri} target="_blank" rel="noopener">
+                github.com/login/device
+                <ExternalLink size={12} aria-hidden />
+              </a>{" "}
+              and enter this code. This window signs in once you have.
             </p>
             <div className="gh-device__code">
               <code>{code.userCode}</code>
