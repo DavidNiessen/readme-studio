@@ -1,6 +1,7 @@
 import { ArrowUpRight, Moon, Sun } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import { href } from "../lib/router";
+import { InstallExtensionButton } from "./InstallExtension";
 import { Logo } from "./Logo";
 
 export const REPO_URL = "https://github.com/DavidNiessen/readme-studio";
@@ -46,6 +47,7 @@ export function SiteHeader({ current }: { current?: "presets" | "docs" | "home" 
           </a>
         </nav>
         <div className="site-header__end">
+          <InstallExtensionButton />
           <ThemeToggle />
           <a className="btn btn--primary" href={href("/studio")}>
             Open studio

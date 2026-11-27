@@ -30,6 +30,7 @@ import {
   X,
   RefreshCw,
   Pause,
+  Puzzle,
   RotateCw,
 } from "lucide-react";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
@@ -56,6 +57,7 @@ import { webPlatform } from "./github/webPlatform";
 import { StudioHostContext, useStudioHost, type StudioHost } from "./host";
 import { Welcome } from "./Welcome";
 import { DataRefreshButton, useDataSummary } from "./DataStatus";
+import { extensionStore, InstallExtensionButton } from "../components/InstallExtension";
 import { useLiveData } from "../lib/liveData";
 
 export function useUiTheme(): ["light" | "dark" | "system", (t: "light" | "dark" | "system") => void] {
@@ -119,13 +121,41 @@ function useTopbarFit(ref: React.RefObject<HTMLElement | null>): number {
   return level;
 }
 
+/** How much of the install button fits between the design name and the centred controls. */
+function useInstallFits(ref: React.RefObject<HTMLElement | null>): "full" | "icon" | "none" {
+  const [fits, setFits] = useState<"full" | "icon" | "none">("none");
+  const width = useRef(170);
+  useLayoutEffect(() => {
+    const bar = ref.current;
+    const name = bar?.querySelector<HTMLElement>(".design-name");
+    const center = bar?.querySelector<HTMLElement>(".topbar__center");
+    if (!bar || !name || !center) return;
+    const measure = () => {
+      const btn = bar.querySelector<HTMLElement>(".install-ext:not(.install-ext--icon)");
+      if (btn?.offsetWidth) width.current = btn.offsetWidth;
+      // the name's end does not move when the button shows, so this cannot flicker
+      const room = center.getBoundingClientRect().left - name.getBoundingClientRect().right;
+      if (getComputedStyle(center).position !== "absolute") setFits("none");
+      else setFits(room >= width.current + 2 * 12 ? "full" : room >= 32 + 2 * 12 ? "icon" : "none");
+    };
+    const ro = new ResizeObserver(measure);
+    ro.observe(bar);
+    ro.observe(name);
+    measure();
+    return () => ro.disconnect();
+  }, [ref]);
+  return fits;
+}
+
 function TopBar() {
   const s = useStudio();
   const bar = useRef<HTMLElement>(null);
   const tight = useTopbarFit(bar);
+  const installFits = useInstallFits(bar);
   const draft = useDraftChanges();
   const resetDraft = useResetDraft();
   const data = useDataSummary();
+  const store = useMemo(extensionStore, []);
   const toast = useToast();
   const host = useStudioHost();
   const [ui, setUi] = useUiTheme();
@@ -179,6 +209,9 @@ function TopBar() {
           </span>
         )}
       </div>
+      {/* the website only: inside the extension the studio has a host. It sits in the free space
+          left of the centre, and shows only while it fits there (see useInstallFits) */}
+      {!host && <InstallExtensionButton className={installFits === "full" ? undefined : installFits === "icon" ? "install-ext--icon" : "is-hidden"} />}
       <div className="topbar__center">
         <div className="topbar__group hide-sm">
           <IconButton label="Undo" shortcut={`${MOD} Z`} disabled={!s.past.length} onClick={s.undo}>
@@ -253,6 +286,7 @@ function TopBar() {
             "sep",
             { label: "Keyboard shortcuts", icon: <Keyboard />, shortcut: "?", onSelect: () => s.openDialog("shortcuts") },
             { label: "Documentation", icon: <BookOpen />, onSelect: docs },
+            ...(!host && store ? [{ label: "Install the extension", icon: <Puzzle />, hint: store.browser, onSelect: () => window.open(store.url, "_blank", "noopener") }] : []),
           ]}
         />
         <DraftNotice />

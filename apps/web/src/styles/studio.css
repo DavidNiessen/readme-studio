@@ -1954,3 +1954,9 @@
 .topbar[data-tight="4"] .draft-notice {
   display: none;
 }
+.topbar .install-ext {
+  margin-left: 4px;
+}
+.topbar .install-ext.is-hidden {
+  display: none;
+}

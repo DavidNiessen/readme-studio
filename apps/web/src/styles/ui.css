@@ -1123,3 +1123,127 @@ a.btn {
     animation: none;
   }
 }
+
+/* ---------------------------------------------------------------- install the extension (website only) */
+
+.install-ext {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 32px;
+  padding: 0 12px 0 6px;
+  border-radius: var(--r-pill);
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--line));
+  background: color-mix(in srgb, var(--accent) 9%, var(--surface, transparent));
+  color: var(--ink);
+  font-size: var(--t-sm);
+  font-weight: 600;
+  white-space: nowrap;
+  text-decoration: none;
+  overflow: hidden;
+  isolation: isolate;
+  flex: none;
+  transition: border-color var(--dur-1), background var(--dur-1), transform var(--dur-1);
+}
+.install-ext:hover {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 16%, var(--surface, transparent));
+  transform: translateY(-1px);
+}
+.install-ext:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+/* a light sweep every few seconds draws the eye without moving the layout */
+.install-ext::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(105deg, transparent 35%, color-mix(in srgb, var(--accent) 28%, transparent) 50%, transparent 65%);
+  transform: translateX(-120%);
+  animation: install-sweep 4.5s ease-in-out 1.2s infinite;
+}
+.install-ext__icon {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--on-accent);
+  flex: none;
+}
+.install-ext__icon svg {
+  width: 13px;
+  height: 13px;
+  animation: install-nudge 4.5s ease-in-out 1.2s infinite;
+}
+.install-ext__arrow {
+  width: 13px;
+  height: 13px;
+  color: var(--muted);
+  flex: none;
+}
+@keyframes install-sweep {
+  0%,
+  55% {
+    transform: translateX(-120%);
+  }
+  85%,
+  100% {
+    transform: translateX(120%);
+  }
+}
+@keyframes install-nudge {
+  0%,
+  60%,
+  100% {
+    transform: none;
+  }
+  68% {
+    transform: rotate(-14deg) scale(1.1);
+  }
+  76% {
+    transform: rotate(10deg) scale(1.1);
+  }
+  84% {
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .install-ext::after,
+  .install-ext__icon svg {
+    animation: none;
+  }
+}
+/* narrow windows (or a crowded studio top bar): the icon alone, with the label as its tooltip and accessible name */
+.install-ext--icon {
+  width: 32px;
+  padding: 0;
+  justify-content: center;
+}
+.install-ext--icon .install-ext__label,
+.install-ext--icon .install-ext__arrow {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+@media (max-width: 720px) {
+  .install-ext {
+    width: 32px;
+    padding: 0;
+    justify-content: center;
+  }
+  .install-ext__label,
+  .install-ext__arrow {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+}
