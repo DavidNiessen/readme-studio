@@ -915,7 +915,7 @@ text{font-family:${fontStack(t.font)};}
 ${motionCss(t)}
 @media (prefers-reduced-motion: reduce){
   *{animation-delay:0s!important;animation-duration:1ms!important;animation-iteration-count:1!important}
-  .loop{animation:none!important}
+  .loop{animation:none!important}.loop-only{display:none}
 }`;
 }
 function svg(o) {
@@ -1259,7 +1259,7 @@ var divider = defineWidget({
         let d = `M0 ${mid}`;
         for (let x = 0; x < W2; x += 140) d += ` H${x + 50} l8 -12 l10 24 l8 -18 l6 6 H${x + 140}`;
         css += `.ekg{stroke-dasharray:240 ${W2 * 2};animation:ekg 3.2s linear infinite}@keyframes ekg{from{stroke-dashoffset:240}to{stroke-dashoffset:-${W2 * 1.6}}}`;
-        line = `<path d="${d}" stroke="${t.border}" stroke-width="1.2" fill="none"/><path class="ekg loop" d="${d}" stroke="${t.glow}" stroke-width="2" fill="none" filter="url(#glow)" stroke-linecap="round" stroke-linejoin="round"/>`;
+        line = `<path d="${d}" stroke="${t.border}" stroke-width="1.2" fill="none"/><path class="ekg loop loop-only" d="${d}" stroke="${t.glow}" stroke-width="2" fill="none" filter="url(#glow)" stroke-linecap="round" stroke-linejoin="round"/>`;
         break;
       }
       case "wave": {

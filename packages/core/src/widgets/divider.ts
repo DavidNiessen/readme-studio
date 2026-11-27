@@ -41,7 +41,7 @@ export const divider = defineWidget({
         let d = `M0 ${mid}`;
         for (let x = 0; x < W; x += 140) d += ` H${x + 50} l8 -12 l10 24 l8 -18 l6 6 H${x + 140}`;
         css += `.ekg{stroke-dasharray:240 ${W * 2};animation:ekg 3.2s linear infinite}@keyframes ekg{from{stroke-dashoffset:240}to{stroke-dashoffset:-${W * 1.6}}}`;
-        line = `<path d="${d}" stroke="${t.border}" stroke-width="1.2" fill="none"/><path class="ekg loop" d="${d}" stroke="${t.glow}" stroke-width="2" fill="none" filter="url(#glow)" stroke-linecap="round" stroke-linejoin="round"/>`;
+        line = `<path d="${d}" stroke="${t.border}" stroke-width="1.2" fill="none"/><path class="ekg loop loop-only" d="${d}" stroke="${t.glow}" stroke-width="2" fill="none" filter="url(#glow)" stroke-linecap="round" stroke-linejoin="round"/>`;
         break;
       }
       case "wave": {
