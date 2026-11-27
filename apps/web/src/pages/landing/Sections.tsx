@@ -133,8 +133,13 @@ function Strip({
         const def = getWidget(part.meta.block.type);
         return (
           <a key={part.meta.name} className="lp-strip__item" href={href("/docs/widgets")} title={def?.description}>
-            <WidgetImage part={part} />
-            <span>{def?.title}</span>
+            <span className="lp-strip__img">
+              <WidgetImage part={part} />
+            </span>
+            <span className="lp-strip__meta">
+              <b>{def?.title}</b>
+              <span>{def?.category}</span>
+            </span>
           </a>
         );
       })}

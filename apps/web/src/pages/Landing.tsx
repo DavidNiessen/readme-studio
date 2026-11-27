@@ -2,14 +2,13 @@ import { FONTS, layoutPresets, palettePresets, widgetList } from "@readme-studio
 import { ArrowDown, ArrowRight, Check } from "lucide-react";
 import { useRef } from "react";
 import { extensionStore } from "../components/InstallExtension";
-import { PresetThumb } from "../components/PresetThumb";
 import { REPO_URL, SitePage } from "../components/Site";
 import { href } from "../lib/router";
 import { Demo } from "./landing/Demo";
 import { HeroFan } from "./landing/HeroFan";
 import { Playground } from "./landing/Playground";
+import { PresetShowcase } from "./landing/Presets";
 import { ease, reducedMotion, Reveal, useScrollProgress } from "./landing/scroll";
-import { useSiteMode } from "./landing/stills";
 import { ExtensionScene, RunsItself, WidgetRows } from "./landing/Sections";
 
 const RULES: [string, string][] = [
@@ -133,30 +132,6 @@ function Numbers() {
   );
 }
 
-/** Four presets, their thumbnails in the site's colour scheme. */
-function PresetRow() {
-  const mode = useSiteMode();
-  const list = [
-    ...layoutPresets.filter((p) => (p.kind ?? "profile") === "profile").slice(0, 2),
-    ...layoutPresets.filter((p) => p.kind === "project").slice(0, 2),
-  ];
-  return (
-    <div className="preset-row">
-      {list.map((p, i) => (
-        <Reveal key={p.id} delay={i * 90}>
-          <a className="preset-card lp-tilt" href={href(`/studio?preset=${p.id}`)}>
-            <PresetThumb id={p.id} height={260} mode={mode} />
-            <div className="preset-meta">
-              <h4>{p.name}</h4>
-              <p>{p.description}</p>
-            </div>
-          </a>
-        </Reveal>
-      ))}
-    </div>
-  );
-}
-
 export function Landing() {
   return (
     <SitePage current="home">
@@ -242,7 +217,7 @@ export function Landing() {
             }
             text="Complete designs for profiles and projects, from a maximal command center to a single quiet card."
           />
-          <PresetRow />
+          <PresetShowcase />
           <div className="center-link">
             <a href={href("/presets")}>
               All {layoutPresets.length} presets <ArrowRight />
