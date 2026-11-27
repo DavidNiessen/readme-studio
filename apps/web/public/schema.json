@@ -301,7 +301,8 @@
                         "properties": {
                           "title": {
                             "title": "Name",
-                            "type": "string"
+                            "type": "string",
+                            "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                           },
                           "roles": {
                             "title": "Roles",
@@ -323,7 +324,8 @@
                           },
                           "emblem": {
                             "title": "Emblem",
-                            "type": "string"
+                            "type": "string",
+                            "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                           },
                           "emblemStyle": {
                             "title": "Emblem style",
@@ -366,12 +368,13 @@
                         "properties": {
                           "headline": {
                             "title": "Headline",
-                            "description": "Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions} {project} {repo} {tagline} {version} {license} {forks} {contributors} {npm} {pypi} {crate} {owner}",
+                            "description": "Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions} {project} {repo} {tagline} {version} {license} {forks} {contributors} {npm} {pypi} {crate} {owner} A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI.",
                             "type": "string"
                           },
                           "subline": {
                             "title": "Subline",
-                            "type": "string"
+                            "type": "string",
+                            "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                           },
                           "effect": {
                             "title": "Effect",
@@ -428,15 +431,17 @@
                         "properties": {
                           "title": {
                             "title": "Name",
-                            "type": "string"
+                            "type": "string",
+                            "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                           },
                           "tagline": {
                             "title": "Tagline",
-                            "type": "string"
+                            "type": "string",
+                            "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                           },
                           "emblem": {
                             "title": "Logo",
-                            "description": "The project's logo. Without one a monogram tile is drawn.",
+                            "description": "The project's logo. Without one a monogram tile is drawn. A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI.",
                             "type": "string"
                           },
                           "align": {
@@ -453,7 +458,7 @@
                           },
                           "install": {
                             "title": "Install command",
-                            "description": "Shown in a code pill under the tagline. Leave empty to hide. It also stays hidden while a placeholder it uses has no value, such as {npm} without an npm package in the Data tab. Placeholders: {npm} {repo} {project} {version}",
+                            "description": "Shown in a code pill under the tagline. Leave empty to hide. It also stays hidden while a placeholder it uses has no value, such as {npm} without an npm package in the Data tab. Placeholders: {npm} {repo} {project} {version} A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI.",
                             "type": "string"
                           },
                           "stats": {
@@ -544,7 +549,8 @@
                         "properties": {
                           "title": {
                             "title": "Window title",
-                            "type": "string"
+                            "type": "string",
+                            "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                           },
                           "prompt": {
                             "title": "Prompt",
@@ -558,7 +564,8 @@
                           },
                           "cwd": {
                             "title": "Directory",
-                            "type": "string"
+                            "type": "string",
+                            "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                           },
                           "commands": {
                             "title": "Commands",
@@ -568,11 +575,12 @@
                               "properties": {
                                 "cmd": {
                                   "title": "Command",
-                                  "type": "string"
+                                  "type": "string",
+                                  "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                                 },
                                 "output": {
                                   "title": "Output",
-                                  "description": "One line per row. Colours: {a}accent {m}muted {s}string {n}number {b}bold {/}reset. Placeholders: {name} {login} {city} {company} {role} {year} {age} {days_alive} {account_age} {followers} {stars} {repos} {streak} {year_pct} {stack}. Wrap text in {? … ?} to hide it when a placeholder is empty.",
+                                  "description": "One line per row. Colours: {a}accent {m}muted {s}string {n}number {b}bold {/}reset. Placeholders: {name} {login} {city} {company} {role} {year} {age} {days_alive} {account_age} {followers} {stars} {repos} {streak} {year_pct} {stack}. Wrap text in {? … ?} to hide it when a placeholder is empty. A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI.",
                                   "type": "string"
                                 }
                               }
@@ -587,23 +595,27 @@
                           },
                           "name": {
                             "title": "Name ({name})",
-                            "type": "string"
+                            "type": "string",
+                            "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                           },
                           "role": {
                             "title": "Role ({role})",
-                            "type": "string"
+                            "type": "string",
+                            "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                           },
                           "company": {
                             "title": "Company ({company})",
-                            "type": "string"
+                            "type": "string",
+                            "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                           },
                           "pronouns": {
                             "title": "Pronouns ({pronouns})",
-                            "type": "string"
+                            "type": "string",
+                            "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                           },
                           "birthday": {
                             "title": "Birthday ({age})",
-                            "description": "Optional. Gives {age}, {days_alive} and the uptime line.",
+                            "description": "Optional. Gives {age}, {days_alive} and the uptime line. A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI.",
                             "type": "string"
                           },
                           "chrome": {
@@ -616,11 +628,12 @@
                           },
                           "tab": {
                             "title": "Status tab",
-                            "type": "string"
+                            "type": "string",
+                            "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                           },
                           "status": {
                             "title": "Status text",
-                            "description": "Supports the same placeholders, plus {clock}, {time}, {date} and {tz}.",
+                            "description": "Supports the same placeholders, plus {clock}, {time}, {date} and {tz}. A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI.",
                             "type": "string"
                           }
                         }
@@ -644,11 +657,13 @@
                         "properties": {
                           "label": {
                             "title": "Label",
-                            "type": "string"
+                            "type": "string",
+                            "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                           },
                           "emblem": {
                             "title": "Centre emblem",
-                            "type": "string"
+                            "type": "string",
+                            "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                           },
                           "legend": {
                             "title": "Ring legend",
@@ -663,7 +678,8 @@
                               "properties": {
                                 "label": {
                                   "title": "Ring name",
-                                  "type": "string"
+                                  "type": "string",
+                                  "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                                 },
                                 "icons": {
                                   "title": "Icons",
@@ -697,15 +713,18 @@
                         "properties": {
                           "label": {
                             "title": "Label",
-                            "type": "string"
+                            "type": "string",
+                            "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                           },
                           "name": {
                             "title": "Name",
-                            "type": "string"
+                            "type": "string",
+                            "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                           },
                           "pronouns": {
                             "title": "Pronouns",
-                            "type": "string"
+                            "type": "string",
+                            "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                           },
                           "roles": {
                             "title": "Roles",
@@ -716,7 +735,7 @@
                           },
                           "bio": {
                             "title": "Bio",
-                            "description": "Up to five lines; a blank line starts a new paragraph. Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions} {project} {repo} {tagline} {version} {license} {forks} {contributors} {npm} {pypi} {crate} {owner}",
+                            "description": "Up to five lines; a blank line starts a new paragraph. Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions} {project} {repo} {tagline} {version} {license} {forks} {contributors} {npm} {pypi} {crate} {owner} A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI.",
                             "type": "string"
                           },
                           "layout": {
@@ -738,7 +757,8 @@
                           },
                           "company": {
                             "title": "Company",
-                            "type": "string"
+                            "type": "string",
+                            "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                           },
                           "extraChips": {
                             "title": "Extra chips",
@@ -768,7 +788,8 @@
                         "properties": {
                           "label": {
                             "title": "Title",
-                            "type": "string"
+                            "type": "string",
+                            "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                           },
                           "columns": {
                             "title": "Columns",
@@ -798,16 +819,17 @@
                               "properties": {
                                 "icon": {
                                   "title": "Icon",
-                                  "description": "A brand icon, or a line glyph such as pin, briefcase, code, book, heart, rocket, globe.",
+                                  "description": "A brand icon, or a line glyph such as pin, briefcase, code, book, heart, rocket, globe. A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI.",
                                   "type": "string"
                                 },
                                 "key": {
                                   "title": "Key",
-                                  "type": "string"
+                                  "type": "string",
+                                  "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                                 },
                                 "value": {
                                   "title": "Value",
-                                  "description": "Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions} {project} {repo} {tagline} {version} {license} {forks} {contributors} {npm} {pypi} {crate} {owner}",
+                                  "description": "Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions} {project} {repo} {tagline} {version} {license} {forks} {contributors} {npm} {pypi} {crate} {owner} A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI.",
                                   "type": "string"
                                 }
                               }
@@ -871,16 +893,17 @@
                               "properties": {
                                 "icon": {
                                   "title": "Icon",
-                                  "description": "Brand icon or line glyph; leave empty for none.",
+                                  "description": "Brand icon or line glyph; leave empty for none. A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI.",
                                   "type": "string"
                                 },
                                 "label": {
                                   "title": "Label",
-                                  "type": "string"
+                                  "type": "string",
+                                  "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                                 },
                                 "value": {
                                   "title": "Value",
-                                  "description": "Optional. Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions} {project} {repo} {tagline} {version} {license} {forks} {contributors} {npm} {pypi} {crate} {owner}",
+                                  "description": "Optional. Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions} {project} {repo} {tagline} {version} {license} {forks} {contributors} {npm} {pypi} {crate} {owner} A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI.",
                                   "type": "string"
                                 },
                                 "color": {
@@ -920,7 +943,8 @@
                         "properties": {
                           "label": {
                             "title": "Title",
-                            "type": "string"
+                            "type": "string",
+                            "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                           },
                           "style": {
                             "title": "Style",
@@ -967,11 +991,13 @@
                               "properties": {
                                 "name": {
                                   "title": "Name",
-                                  "type": "string"
+                                  "type": "string",
+                                  "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                                 },
                                 "icon": {
                                   "title": "Icon",
-                                  "type": "string"
+                                  "type": "string",
+                                  "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                                 },
                                 "level": {
                                   "title": "Level",
@@ -1003,7 +1029,8 @@
                         "properties": {
                           "label": {
                             "title": "Title",
-                            "type": "string"
+                            "type": "string",
+                            "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                           },
                           "now": {
                             "title": "Live pulse on the first entry",
@@ -1022,19 +1049,23 @@
                               "properties": {
                                 "period": {
                                   "title": "Period",
-                                  "type": "string"
+                                  "type": "string",
+                                  "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                                 },
                                 "title": {
                                   "title": "Title",
-                                  "type": "string"
+                                  "type": "string",
+                                  "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                                 },
                                 "place": {
                                   "title": "Place",
-                                  "type": "string"
+                                  "type": "string",
+                                  "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                                 },
                                 "description": {
                                   "title": "Description",
-                                  "type": "string"
+                                  "type": "string",
+                                  "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                                 }
                               }
                             }
@@ -1068,16 +1099,18 @@
                           },
                           "statusText": {
                             "title": "Status text",
-                            "type": "string"
+                            "type": "string",
+                            "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                           },
                           "headline": {
                             "title": "Headline",
-                            "description": "Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions} {project} {repo} {tagline} {version} {license} {forks} {contributors} {npm} {pypi} {crate} {owner}",
+                            "description": "Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions} {project} {repo} {tagline} {version} {license} {forks} {contributors} {npm} {pypi} {crate} {owner} A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI.",
                             "type": "string"
                           },
                           "text": {
                             "title": "Text",
-                            "type": "string"
+                            "type": "string",
+                            "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                           },
                           "ctas": {
                             "title": "Buttons",
@@ -1088,23 +1121,25 @@
                               "properties": {
                                 "label": {
                                   "title": "Label",
-                                  "type": "string"
+                                  "type": "string",
+                                  "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                                 },
                                 "icon": {
                                   "title": "Icon",
-                                  "type": "string"
+                                  "type": "string",
+                                  "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                                 }
                               }
                             }
                           },
                           "url": {
                             "title": "Link",
-                            "description": "mailto:, a booking page or any URL.",
+                            "description": "mailto:, a booking page or any URL. A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI.",
                             "type": "string"
                           },
                           "emblem": {
                             "title": "Emblem",
-                            "description": "Shown inside the signal on the right.",
+                            "description": "Shown inside the signal on the right. A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI.",
                             "type": "string"
                           },
                           "signal": {
@@ -1132,7 +1167,8 @@
                         "properties": {
                           "label": {
                             "title": "Label",
-                            "type": "string"
+                            "type": "string",
+                            "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                           },
                           "style": {
                             "title": "Style",
@@ -1223,12 +1259,13 @@
                               "properties": {
                                 "label": {
                                   "title": "Label",
-                                  "description": "Placeholders like {version} work here.",
+                                  "description": "Placeholders like {version} work here. A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI.",
                                   "type": "string"
                                 },
                                 "value": {
                                   "title": "Value",
-                                  "type": "string"
+                                  "type": "string",
+                                  "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                                 },
                                 "color": {
                                   "title": "Colour",
@@ -1244,11 +1281,13 @@
                                 },
                                 "icon": {
                                   "title": "Icon",
-                                  "type": "string"
+                                  "type": "string",
+                                  "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                                 },
                                 "link": {
                                   "title": "Link",
-                                  "type": "string"
+                                  "type": "string",
+                                  "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                                 }
                               }
                             }
@@ -1274,7 +1313,8 @@
                         "properties": {
                           "label": {
                             "title": "Label",
-                            "type": "string"
+                            "type": "string",
+                            "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                           },
                           "max": {
                             "title": "Avatars",
@@ -1330,16 +1370,18 @@
                         "properties": {
                           "label": {
                             "title": "Label",
-                            "type": "string"
+                            "type": "string",
+                            "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                           },
                           "headline": {
                             "title": "Headline",
-                            "description": "Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions} {project} {repo} {tagline} {version} {license} {forks} {contributors} {npm} {pypi} {crate} {owner}",
+                            "description": "Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions} {project} {repo} {tagline} {version} {license} {forks} {contributors} {npm} {pypi} {crate} {owner} A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI.",
                             "type": "string"
                           },
                           "text": {
                             "title": "Text",
-                            "type": "string"
+                            "type": "string",
+                            "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                           },
                           "buttons": {
                             "title": "Buttons",
@@ -1362,22 +1404,25 @@
                                 },
                                 "label": {
                                   "title": "Label",
-                                  "type": "string"
+                                  "type": "string",
+                                  "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                                 },
                                 "url": {
                                   "title": "URL",
-                                  "type": "string"
+                                  "type": "string",
+                                  "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                                 },
                                 "icon": {
                                   "title": "Icon",
-                                  "type": "string"
+                                  "type": "string",
+                                  "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                                 }
                               }
                             }
                           },
                           "backers": {
                             "title": "Backers line",
-                            "description": "A short line under the buttons, e.g. how many people back the work.",
+                            "description": "A short line under the buttons, e.g. how many people back the work. A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI.",
                             "type": "string"
                           },
                           "emblem": {
@@ -1405,7 +1450,8 @@
                         "properties": {
                           "label": {
                             "title": "Label",
-                            "type": "string"
+                            "type": "string",
+                            "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                           },
                           "tiles": {
                             "title": "Tiles",
@@ -1455,7 +1501,8 @@
                         "properties": {
                           "label": {
                             "title": "Label",
-                            "type": "string"
+                            "type": "string",
+                            "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                           },
                           "style": {
                             "title": "Style",
@@ -1500,7 +1547,8 @@
                         "properties": {
                           "label": {
                             "title": "Label",
-                            "type": "string"
+                            "type": "string",
+                            "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                           },
                           "trophies": {
                             "title": "Trophies",
@@ -1550,7 +1598,8 @@
                         "properties": {
                           "label": {
                             "title": "Label",
-                            "type": "string"
+                            "type": "string",
+                            "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                           },
                           "total": {
                             "title": "Total contributions",
@@ -1595,7 +1644,8 @@
                         "properties": {
                           "label": {
                             "title": "Label",
-                            "type": "string"
+                            "type": "string",
+                            "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                           },
                           "slices": {
                             "title": "Max slices",
@@ -1644,7 +1694,8 @@
                         "properties": {
                           "label": {
                             "title": "Label",
-                            "type": "string"
+                            "type": "string",
+                            "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                           },
                           "period": {
                             "title": "Period",
@@ -1700,7 +1751,8 @@
                         "properties": {
                           "label": {
                             "title": "Label",
-                            "type": "string"
+                            "type": "string",
+                            "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                           },
                           "target": {
                             "title": "Next milestone",
@@ -1745,7 +1797,8 @@
                         "properties": {
                           "label": {
                             "title": "Label",
-                            "type": "string"
+                            "type": "string",
+                            "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                           },
                           "tiles": {
                             "title": "Tiles",
@@ -1790,7 +1843,8 @@
                         "properties": {
                           "label": {
                             "title": "Label",
-                            "type": "string"
+                            "type": "string",
+                            "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                           },
                           "license": {
                             "title": "Licence row",
@@ -1817,7 +1871,8 @@
                         "properties": {
                           "label": {
                             "title": "Label",
-                            "type": "string"
+                            "type": "string",
+                            "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                           },
                           "period": {
                             "title": "Count",
@@ -1858,7 +1913,8 @@
                         "properties": {
                           "label": {
                             "title": "Label",
-                            "type": "string"
+                            "type": "string",
+                            "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                           },
                           "shape": {
                             "title": "Cell shape",
@@ -1914,7 +1970,7 @@
                           },
                           "label": {
                             "title": "Label",
-                            "description": "{days} is replaced with the window length.",
+                            "description": "{days} is replaced with the window length. A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI.",
                             "type": "string"
                           },
                           "bpm": {
@@ -1943,7 +1999,8 @@
                         "properties": {
                           "label": {
                             "title": "Label",
-                            "type": "string"
+                            "type": "string",
+                            "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                           },
                           "rotation": {
                             "title": "Motion",
@@ -1980,7 +2037,8 @@
                         "properties": {
                           "label": {
                             "title": "Label",
-                            "type": "string"
+                            "type": "string",
+                            "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                           },
                           "weekdays": {
                             "title": "Weekday strip",
@@ -2013,7 +2071,7 @@
                         "properties": {
                           "label": {
                             "title": "Label",
-                            "description": "“since <first year>” is appended automatically.",
+                            "description": "“since <first year>” is appended automatically. A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI.",
                             "type": "string"
                           },
                           "mode": {
@@ -2052,7 +2110,8 @@
                         "properties": {
                           "title": {
                             "title": "Title",
-                            "type": "string"
+                            "type": "string",
+                            "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                           },
                           "rows": {
                             "title": "Rows",
@@ -2092,7 +2151,8 @@
                         "properties": {
                           "label": {
                             "title": "Label",
-                            "type": "string"
+                            "type": "string",
+                            "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                           },
                           "weeks": {
                             "title": "Range",
@@ -2140,7 +2200,8 @@
                         "properties": {
                           "label": {
                             "title": "Label",
-                            "type": "string"
+                            "type": "string",
+                            "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                           },
                           "metric": {
                             "title": "Show",
@@ -2184,7 +2245,8 @@
                         "properties": {
                           "label": {
                             "title": "Label",
-                            "type": "string"
+                            "type": "string",
+                            "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                           },
                           "speed": {
                             "title": "Drone speed",
@@ -2222,7 +2284,8 @@
                         "properties": {
                           "label": {
                             "title": "Label",
-                            "type": "string"
+                            "type": "string",
+                            "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                           },
                           "scale": {
                             "title": "Scale",
@@ -2261,7 +2324,8 @@
                         "properties": {
                           "label": {
                             "title": "Label",
-                            "type": "string"
+                            "type": "string",
+                            "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                           },
                           "style": {
                             "title": "Style",
@@ -2297,12 +2361,13 @@
                         "properties": {
                           "repo": {
                             "title": "Repository",
-                            "description": "Leave empty to always show the repository you pushed to most recently.",
+                            "description": "Leave empty to always show the repository you pushed to most recently. A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI.",
                             "type": "string"
                           },
                           "label": {
                             "title": "Headline label",
-                            "type": "string"
+                            "type": "string",
+                            "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                           },
                           "sparkline": {
                             "title": "Activity sparkline",
@@ -2350,7 +2415,8 @@
                           },
                           "repo": {
                             "title": "Repository name",
-                            "type": "string"
+                            "type": "string",
+                            "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                           },
                           "stats": {
                             "title": "Language and stars",
@@ -2390,7 +2456,8 @@
                         "properties": {
                           "label": {
                             "title": "Label",
-                            "type": "string"
+                            "type": "string",
+                            "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                           },
                           "source": {
                             "title": "Source",
@@ -2456,7 +2523,8 @@
                         "properties": {
                           "label": {
                             "title": "Label",
-                            "type": "string"
+                            "type": "string",
+                            "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                           },
                           "count": {
                             "title": "Releases",
@@ -2505,16 +2573,17 @@
                         "properties": {
                           "label": {
                             "title": "Label",
-                            "type": "string"
+                            "type": "string",
+                            "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                           },
                           "feed": {
                             "title": "Feed URL",
-                            "description": "RSS or Atom; fetched by the GitHub Action on every build.",
+                            "description": "RSS or Atom; fetched by the GitHub Action on every build. A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI.",
                             "type": "string"
                           },
                           "link": {
                             "title": "Card link",
-                            "description": "Images can only link as a whole, so the card opens this page.",
+                            "description": "Images can only link as a whole, so the card opens this page. A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI.",
                             "type": "string"
                           },
                           "count": {
@@ -2556,7 +2625,8 @@
                         "properties": {
                           "label": {
                             "title": "Title",
-                            "type": "string"
+                            "type": "string",
+                            "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                           },
                           "count": {
                             "title": "Releases",
@@ -2606,7 +2676,8 @@
                         "properties": {
                           "label": {
                             "title": "Title",
-                            "type": "string"
+                            "type": "string",
+                            "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                           },
                           "source": {
                             "title": "Source",
@@ -2629,7 +2700,7 @@
                               "properties": {
                                 "title": {
                                   "title": "Title",
-                                  "description": "Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions} {project} {repo} {tagline} {version} {license} {forks} {contributors} {npm} {pypi} {crate} {owner}",
+                                  "description": "Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions} {project} {repo} {tagline} {version} {license} {forks} {contributors} {npm} {pypi} {crate} {owner} A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI.",
                                   "type": "string"
                                 },
                                 "progress": {
@@ -2648,11 +2719,13 @@
                                 },
                                 "note": {
                                   "title": "Note",
-                                  "type": "string"
+                                  "type": "string",
+                                  "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                                 },
                                 "due": {
                                   "title": "When (optional)",
-                                  "type": "string"
+                                  "type": "string",
+                                  "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                                 }
                               }
                             }
@@ -2678,7 +2751,7 @@
                         "properties": {
                           "label": {
                             "title": "Label",
-                            "description": "Your city from the profile is appended.",
+                            "description": "Your city from the profile is appended. A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI.",
                             "type": "string"
                           },
                           "weather": {
@@ -2710,11 +2783,13 @@
                               "properties": {
                                 "text": {
                                   "title": "Quote",
-                                  "type": "string"
+                                  "type": "string",
+                                  "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                                 },
                                 "author": {
                                   "title": "Author",
-                                  "type": "string"
+                                  "type": "string",
+                                  "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                                 }
                               }
                             }
@@ -2740,7 +2815,8 @@
                         "properties": {
                           "label": {
                             "title": "Label",
-                            "type": "string"
+                            "type": "string",
+                            "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                           },
                           "marks": {
                             "title": "Quote mark",
@@ -2773,16 +2849,18 @@
                               "properties": {
                                 "text": {
                                   "title": "Quote",
-                                  "description": "Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions} {project} {repo} {tagline} {version} {license} {forks} {contributors} {npm} {pypi} {crate} {owner}",
+                                  "description": "Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions} {project} {repo} {tagline} {version} {license} {forks} {contributors} {npm} {pypi} {crate} {owner} A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI.",
                                   "type": "string"
                                 },
                                 "author": {
                                   "title": "Author",
-                                  "type": "string"
+                                  "type": "string",
+                                  "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                                 },
                                 "source": {
                                   "title": "Source",
-                                  "type": "string"
+                                  "type": "string",
+                                  "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                                 }
                               }
                             }
@@ -2808,7 +2886,7 @@
                         "properties": {
                           "text": {
                             "title": "Markdown",
-                            "description": "Emitted verbatim into the README. Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions} {project} {repo} {tagline} {version} {license} {forks} {contributors} {npm} {pypi} {crate} {owner}",
+                            "description": "Emitted verbatim into the README. Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions} {project} {repo} {tagline} {version} {license} {forks} {contributors} {npm} {pypi} {crate} {owner} A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI.",
                             "type": "string"
                           },
                           "align": {
@@ -2866,7 +2944,7 @@
                           },
                           "quickStartCmd": {
                             "title": "Quick-start command",
-                            "description": "Same command on every tab. Placeholders: {npm} {pypi} {crate} {bin} {repo}.",
+                            "description": "Same command on every tab. Placeholders: {npm} {pypi} {crate} {bin} {repo}. A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI.",
                             "type": "string"
                           },
                           "custom": {
@@ -2878,15 +2956,18 @@
                               "properties": {
                                 "label": {
                                   "title": "Tab label",
-                                  "type": "string"
+                                  "type": "string",
+                                  "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                                 },
                                 "cmd": {
                                   "title": "Command",
-                                  "type": "string"
+                                  "type": "string",
+                                  "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                                 },
                                 "then": {
                                   "title": "Then (optional)",
-                                  "type": "string"
+                                  "type": "string",
+                                  "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                                 }
                               }
                             }
@@ -2916,7 +2997,7 @@
                         "properties": {
                           "code": {
                             "title": "Code",
-                            "description": "Placeholders: {npm} {pypi} {crate} {bin} {repo} {project} {version}. Up to 36 rows are shown.",
+                            "description": "Placeholders: {npm} {pypi} {crate} {bin} {repo} {project} {version}. Up to 36 rows are shown. A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI.",
                             "type": "string"
                           },
                           "language": {
@@ -2935,7 +3016,8 @@
                           },
                           "filename": {
                             "title": "File name",
-                            "type": "string"
+                            "type": "string",
+                            "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                           },
                           "lineNumbers": {
                             "title": "Line numbers",
@@ -2943,7 +3025,7 @@
                           },
                           "highlight": {
                             "title": "Highlight lines",
-                            "description": "Line numbers or ranges to emphasise.",
+                            "description": "Line numbers or ranges to emphasise. A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI.",
                             "type": "string"
                           },
                           "reveal": {
@@ -2978,7 +3060,7 @@
                         "properties": {
                           "label": {
                             "title": "Title",
-                            "description": "Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions} {project} {repo} {tagline} {version} {license} {forks} {contributors} {npm} {pypi} {crate} {owner}",
+                            "description": "Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions} {project} {repo} {tagline} {version} {license} {forks} {contributors} {npm} {pypi} {crate} {owner} A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI.",
                             "type": "string"
                           },
                           "columns": {
@@ -3008,16 +3090,18 @@
                               "properties": {
                                 "icon": {
                                   "title": "Icon",
-                                  "description": "A line glyph (bolt, sparkle, code, globe, …) or a brand icon.",
+                                  "description": "A line glyph (bolt, sparkle, code, globe, …) or a brand icon. A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI.",
                                   "type": "string"
                                 },
                                 "title": {
                                   "title": "Title",
-                                  "type": "string"
+                                  "type": "string",
+                                  "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                                 },
                                 "text": {
                                   "title": "Description",
-                                  "type": "string"
+                                  "type": "string",
+                                  "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                                 }
                               }
                             }
@@ -3043,7 +3127,7 @@
                         "properties": {
                           "title": {
                             "title": "Heading",
-                            "description": "Markdown, e.g. `## Contents` or `**On this page**`. Leave empty for just the list.",
+                            "description": "Markdown, e.g. `## Contents` or `**On this page**`. Leave empty for just the list. A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI.",
                             "type": "string"
                           },
                           "numbered": {
@@ -3068,12 +3152,13 @@
                               "properties": {
                                 "title": {
                                   "title": "Title",
-                                  "description": "Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions} {project} {repo} {tagline} {version} {license} {forks} {contributors} {npm} {pypi} {crate} {owner}",
+                                  "description": "Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions} {project} {repo} {tagline} {version} {license} {forks} {contributors} {npm} {pypi} {crate} {owner} A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI.",
                                   "type": "string"
                                 },
                                 "anchor": {
                                   "title": "Anchor",
-                                  "type": "string"
+                                  "type": "string",
+                                  "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                                 },
                                 "level": {
                                   "title": "Level",
@@ -3139,7 +3224,8 @@
                         "properties": {
                           "message": {
                             "title": "Message",
-                            "type": "string"
+                            "type": "string",
+                            "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                           },
                           "stamp": {
                             "title": "Build stamp",
@@ -3180,16 +3266,17 @@
                         "properties": {
                           "eyebrow": {
                             "title": "Eyebrow",
-                            "type": "string"
+                            "type": "string",
+                            "description": "A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI."
                           },
                           "title": {
                             "title": "Title",
-                            "description": "Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions} {project} {repo} {tagline} {version} {license} {forks} {contributors} {npm} {pypi} {crate} {owner}",
+                            "description": "Placeholders: {name} {login} {city} {company} {role} {year} {followers} {stars} {repos} {streak} {contributions} {project} {repo} {tagline} {version} {license} {forks} {contributors} {npm} {pypi} {crate} {owner} A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI.",
                             "type": "string"
                           },
                           "icon": {
                             "title": "Icon",
-                            "description": "Optional; a brand icon or a line glyph (rocket, code, book, star…).",
+                            "description": "Optional; a brand icon or a line glyph (rocket, code, book, star…). A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI.",
                             "type": "string"
                           },
                           "align": {
@@ -3215,6 +3302,34 @@
                 }
               ]
             }
+          }
+        }
+      }
+    },
+    "media": {
+      "type": "array",
+      "description": "The media library: uploaded images, used from icon options as media:<id>. Replacing an image's data updates every widget using it.",
+      "maxItems": 24,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "data"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9-]{1,40}$"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 60
+          },
+          "data": {
+            "type": "string",
+            "pattern": "^data:image/(png|jpeg|gif|webp);base64,",
+            "maxLength": 200000,
+            "description": "A base64 data URI; keep images near 256 px."
           }
         }
       }

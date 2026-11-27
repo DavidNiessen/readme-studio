@@ -949,6 +949,150 @@
   padding: 2px;
   margin-bottom: 14px;
 }
+/* the upload row at the top of the icon picker: a click opens the file chooser, a file can be dropped on it */
+.icon-drop {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding: 12px 14px;
+  border: 1.5px dashed var(--line-strong);
+  border-radius: var(--r-3);
+  color: var(--ink-2);
+  cursor: pointer;
+  transition:
+    border-color var(--dur-1),
+    background var(--dur-1);
+}
+.icon-drop:hover,
+.icon-drop:focus-within {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.icon-drop.is-over {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.icon-drop.is-full {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.icon-drop.is-busy {
+  opacity: 0.6;
+  pointer-events: none;
+}
+.icon-drop > svg {
+  width: 22px;
+  height: 22px;
+  flex: none;
+  color: var(--accent);
+}
+.icon-drop span {
+  display: grid;
+  gap: 2px;
+}
+.icon-drop small {
+  color: var(--muted);
+  font-size: var(--t-xs);
+}
+.icon-drop__error {
+  margin: -4px 0 12px;
+  color: var(--danger, #d1242f);
+  font-size: var(--t-sm);
+}
+.icon-upload {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  border-radius: 3px;
+}
+.icon-upload--lg {
+  width: 26px;
+  height: 26px;
+}
+
+/* ---------------------------------------------------------------- media library (rail tab) */
+
+.media {
+  display: grid;
+  gap: 12px;
+  padding: 12px;
+}
+.media__intro {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--t-sm);
+  line-height: 1.5;
+}
+.media .icon-drop {
+  margin-bottom: 0;
+}
+.media__error {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin: 0;
+  color: var(--danger);
+  font-size: var(--t-sm);
+}
+.media__error svg {
+  width: 14px;
+  height: 14px;
+  flex: none;
+}
+.media__list {
+  display: grid;
+  gap: 6px;
+}
+.media__item {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) auto auto;
+  gap: 8px;
+  align-items: center;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-3);
+  background: var(--surface);
+}
+/* a checkerboard behind the image, so transparent parts read as transparent */
+.media__thumb {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  border-radius: 6px;
+  background: repeating-conic-gradient(var(--sunken) 0 25%, var(--surface) 0 50%) 0 0 / 10px 10px;
+}
+.media__meta {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.media__name {
+  width: 100%;
+  min-width: 0;
+  padding: 2px 4px;
+  margin-left: -4px;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 600;
+  font-size: var(--t-sm);
+}
+.media__name:hover,
+.media__name:focus {
+  border-color: var(--line);
+  background: var(--paper);
+  outline: none;
+}
+.media__meta .mono {
+  overflow: hidden;
+  color: var(--faint);
+  font-size: 10.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 /* one scroll for both sections, so searching never leaves a short list stranded in a tall box */
 .icon-picker__scroll {
   max-height: min(56vh, 460px);

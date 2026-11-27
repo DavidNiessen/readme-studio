@@ -56,12 +56,20 @@ function sizeOf(svg: string): { width: number; height: number } {
 
 /** The parts of a config every widget's render depends on, serialised once per config and data. */
 const shared = new WeakMap<StudioConfig, WeakMap<ProfileData, string>>();
+/** A short fingerprint of a long string (an image's data), for cache keys. */
+function hash(s: string): string {
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619);
+  return `${(h >>> 0).toString(36)}.${s.length}`;
+}
+
 function sharedKey(config: StudioConfig, data: ProfileData): string {
   let byData = shared.get(config);
   if (!byData) shared.set(config, (byData = new WeakMap()));
   let k = byData.get(data);
   // views: a widget falls back to names and roles other widgets set, so those count too
-  if (k === undefined) byData.set(data, (k = JSON.stringify([config.theme, views(config, data)])));
+  // the media library too: replacing an image must redraw every widget that refers to it
+  if (k === undefined) byData.set(data, (k = JSON.stringify([config.theme, views(config, data), (config.media ?? []).map((m) => `${m.id}:${hash(m.data)}`)])));
   return k;
 }
 

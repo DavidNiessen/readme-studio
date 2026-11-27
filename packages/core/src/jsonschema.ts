@@ -12,7 +12,7 @@ function fieldSchema(f: Field): Record<string, unknown> {
   switch (f.type) {
     case "text":
     case "icon":
-      return { ...base, type: "string" };
+      return { ...base, type: "string", description: `${f.help ? `${f.help} ` : ""}A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI.` };
     case "color":
       return { ...base, anyOf: [hex, { const: "" }] };
     case "number":
@@ -105,6 +105,20 @@ export function configJsonSchema(): Record<string, unknown> {
               allOf: blockVariants,
             },
           },
+        },
+      },
+    },
+    media: {
+      type: "array",
+      description: "The media library: uploaded images, used from icon options as media:<id>. Replacing an image's data updates every widget using it.",
+      maxItems: 24,
+      items: {
+        type: "object",
+        required: ["id", "data"],
+        properties: {
+          id: { type: "string", pattern: "^[a-z0-9-]{1,40}$" },
+          name: { type: "string", maxLength: 60 },
+          data: { type: "string", pattern: "^data:image/(png|jpeg|gif|webp);base64,", maxLength: 200000, description: "A base64 data URI; keep images near 256 px." },
         },
       },
     },

@@ -1,4 +1,5 @@
 import { iconData, type IconData } from "../icons/data";
+import { isImageData } from "./images";
 
 export interface Icon {
   id: string;
@@ -39,7 +40,18 @@ export function iconsVersion(): number {
 }
 
 export function hasIcon(id: string): boolean {
-  return lookup(id) !== undefined;
+  return isImageData(id) || lookup(id) !== undefined;
+}
+
+/** An uploaded image as an icon: drawn in a 24 box, in its own colours. */
+function imageIcon(href: string): Icon {
+  return {
+    id: href,
+    title: "Uploaded image",
+    inner: `<image href="${href}" width="24" height="24" preserveAspectRatio="xMidYMid meet"/>`,
+    viewBox: "0 0 24 24",
+    color: null,
+  };
 }
 
 function toIcon(id: string, d: IconData): Icon {
@@ -48,6 +60,7 @@ function toIcon(id: string, d: IconData): Icon {
 
 /** Icon by id; unknown ids get the generic code glyph. */
 export function icon(id: string): Icon {
+  if (isImageData(id)) return imageIcon(id);
   const key = id.toLowerCase().replace(/[^a-z0-9]/g, "");
   const found = lookup(id) ? id : lookup(key) ? key : "code";
   return toIcon(found, lookup(found) ?? iconData.code);

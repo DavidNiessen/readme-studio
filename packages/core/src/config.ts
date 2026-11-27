@@ -4,6 +4,7 @@ import { DEFAULT_THEME, MODES, PALETTE_KEYS, type Mode, type Motion, type Textur
 import { FONTS } from "./fonts";
 import { getWidget } from "./widgets/registry";
 import { palettePresets } from "./theme";
+import { isImageData, MAX_IMAGE_CHARS } from "./lib/images";
 
 export const CONFIG_VERSION = 1;
 export const SCHEMA_URL = "https://readme.niessen.dev/schema.json";
@@ -71,6 +72,22 @@ export interface ProjectInfo {
   packages: { npm: string; pypi: string; crates: string };
 }
 
+/**
+ * An image in the design's media library: uploaded once, used by any number of widgets through
+ * `media:<id>` in an icon option. Replacing its data updates every widget that uses it.
+ */
+export interface MediaItem {
+  /** stable reference, a short slug */
+  id: string;
+  /** what the studio shows */
+  name: string;
+  /** the image: a base64 PNG, JPEG, GIF or WebP data URI (see isImageData) */
+  data: string;
+}
+
+/** Most images a design keeps. */
+export const MAX_MEDIA = 24;
+
 export interface StudioConfig {
   $schema?: string;
   version: number;
@@ -81,6 +98,8 @@ export interface StudioConfig {
   theme: ThemeSettings;
   layout: Row[];
   output: OutputSettings;
+  /** the media library: uploaded images, referenced from icon options as `media:<id>` */
+  media: MediaItem[];
 }
 
 export const DEFAULT_PROFILE: Profile = {
@@ -285,6 +304,32 @@ function normOutput(v: unknown): OutputSettings {
   };
 }
 
+function normMedia(v: unknown, warnings: string[]): MediaItem[] {
+  if (!Array.isArray(v)) return [];
+  const out: MediaItem[] = [];
+  const ids = new Set<string>();
+  for (const m of v) {
+    if (!isObj(m)) continue;
+    const id = str(m.id, "", 40).toLowerCase().replace(/[^a-z0-9-]/g, "");
+    const name = str(m.name, id, 60).trim() || id;
+    if (!id || ids.has(id)) {
+      warnings.push(`Media "${name}" has a missing or repeated id; dropped.`);
+      continue;
+    }
+    if (!isImageData(m.data)) {
+      warnings.push(`Media "${id}" is not a base64 PNG, JPEG, GIF or WebP image within ${MAX_IMAGE_CHARS} characters; dropped.`);
+      continue;
+    }
+    if (out.length >= MAX_MEDIA) {
+      warnings.push(`More than ${MAX_MEDIA} media items; "${id}" and later ones dropped.`);
+      break;
+    }
+    ids.add(id);
+    out.push({ id, name, data: m.data as string });
+  }
+  return out;
+}
+
 /** Validate and complete any (possibly hand-edited or older) config. Never throws. */
 export function normalizeConfig(raw: unknown): Normalized {
   const warnings: string[] = [];
@@ -300,6 +345,7 @@ export function normalizeConfig(raw: unknown): Normalized {
     theme: normTheme(c.theme),
     layout: normLayout(moveIntoWidgets(c.layout, isObj(c.profile) ? c.profile : {}, isObj(c.project) ? c.project : {}), warnings),
     output: normOutput(c.output),
+    media: normMedia(c.media, warnings),
   };
   return { config, warnings };
 }
@@ -355,5 +401,7 @@ export function parseConfig(text: string): Normalized {
 }
 
 export function serializeConfig(c: StudioConfig): string {
-  return `${JSON.stringify({ ...c, $schema: SCHEMA_URL }, null, 2)}\n`;
+  // an empty media library is left out, so designs without images stay as they were
+  const { media, ...rest } = c;
+  return `${JSON.stringify({ ...rest, ...(media?.length ? { media } : {}), $schema: SCHEMA_URL }, null, 2)}\n`;
 }

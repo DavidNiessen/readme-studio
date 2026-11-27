@@ -2201,6 +2201,30 @@ var iconData = {
   "zig": { "t": "Zig", "c": "#F7A41D", "v": "0 0 24 24", "b": '<path fill="currentColor" d="m23.53 1.02-7.686 3.45h-7.06l-2.98 3.452h7.173L.47 22.98l7.681-3.607h7.065v-.002l2.978-3.45-7.148-.001 12.482-14.9zM0 4.47v14.901h1.883l2.98-3.45H3.451v-8h.942l2.824-3.45H0zm22.117 0-2.98 3.608h1.412v7.844h-.942l-2.98 3.45H24V4.47h-1.883z"/>' }
 };
 
+// ../core/src/lib/images.ts
+var MAX_IMAGE_CHARS = 2e5;
+var DATA_URI = /^data:image\/(png|jpeg|gif|webp);base64,[A-Za-z0-9+/]+={0,2}$/;
+function isImageData(v) {
+  return typeof v === "string" && v.length <= MAX_IMAGE_CHARS && DATA_URI.test(v);
+}
+var MEDIA_PREFIX = "media:";
+function mediaRef(v) {
+  return typeof v === "string" && v.startsWith(MEDIA_PREFIX) ? v.slice(MEDIA_PREFIX.length) : null;
+}
+function resolveMedia(v, media) {
+  if (typeof v === "string") {
+    const id = mediaRef(v);
+    return id === null ? v : media[id] ?? "";
+  }
+  if (Array.isArray(v)) return v.map((x) => resolveMedia(x, media));
+  if (v && typeof v === "object") {
+    const out = {};
+    for (const [k, x] of Object.entries(v)) out[k] = resolveMedia(x, media);
+    return out;
+  }
+  return v;
+}
+
 // ../core/src/lib/icons.ts
 var more = {};
 var moreVersion = 0;
@@ -2214,12 +2238,22 @@ function loadMoreIcons() {
   return moreLoading;
 }
 function hasIcon(id) {
-  return lookup(id) !== void 0;
+  return isImageData(id) || lookup(id) !== void 0;
+}
+function imageIcon(href) {
+  return {
+    id: href,
+    title: "Uploaded image",
+    inner: `<image href="${href}" width="24" height="24" preserveAspectRatio="xMidYMid meet"/>`,
+    viewBox: "0 0 24 24",
+    color: null
+  };
 }
 function toIcon(id, d) {
   return { id, title: d.t, inner: d.b, viewBox: d.v, color: d.c === "multi" ? null : d.c };
 }
 function icon(id) {
+  if (isImageData(id)) return imageIcon(id);
   const key = id.toLowerCase().replace(/[^a-z0-9]/g, "");
   const found = lookup(id) ? id : lookup(key) ? key : "code";
   return toIcon(found, lookup(found) ?? iconData.code);
@@ -2458,6 +2492,7 @@ function iconColor(t, id, mode) {
   return contrast(c, t.raised) < 1.7 ? t.text : c;
 }
 function keyOf(i, iconId) {
+  if (isImageData(iconId)) return `${i + 1}-image`;
   return `${i + 1}-${iconId.replace(/[^a-z0-9]/gi, "").toLowerCase() || "link"}`;
 }
 var socials = defineWidget({
@@ -2493,7 +2528,7 @@ var socials = defineWidget({
     { key: "runner", label: "Running border light", type: "toggle" }
   ],
   alt: () => "social links",
-  parts: (ctx) => ctx.profile.links.filter((l) => l.url).map((l, i) => ({ key: keyOf(i, l.icon), alt: l.label || l.icon, href: l.url })),
+  parts: (ctx) => ctx.profile.links.filter((l) => l.url).map((l, i) => ({ key: keyOf(i, l.icon), alt: l.label || (isImageData(l.icon) ? "link" : l.icon), href: l.url })),
   render(ctx, o) {
     const first = this.parts(ctx, o)[0];
     return first ? this.renderPart(ctx, o, first.key) : svg({ width: 200, height: H3, theme: ctx.theme, title: "no links", body: "" });
@@ -12094,6 +12129,7 @@ function getWidget(type) {
 // ../core/src/config.ts
 var CONFIG_VERSION = 1;
 var SCHEMA_URL = "https://readme.niessen.dev/schema.json";
+var MAX_MEDIA = 24;
 var DEFAULT_PROFILE = {
   login: "octocat",
   location: { city: "San Francisco", latitude: 37.77, longitude: -122.42, timezone: "America/Los_Angeles" },
@@ -12255,6 +12291,31 @@ function normOutput(v) {
     schedule: schedule.split(/\s+/).length === 5 ? schedule : d.schedule
   };
 }
+function normMedia(v, warnings) {
+  if (!Array.isArray(v)) return [];
+  const out = [];
+  const ids = /* @__PURE__ */ new Set();
+  for (const m of v) {
+    if (!isObj(m)) continue;
+    const id = str2(m.id, "", 40).toLowerCase().replace(/[^a-z0-9-]/g, "");
+    const name = str2(m.name, id, 60).trim() || id;
+    if (!id || ids.has(id)) {
+      warnings.push(`Media "${name}" has a missing or repeated id; dropped.`);
+      continue;
+    }
+    if (!isImageData(m.data)) {
+      warnings.push(`Media "${id}" is not a base64 PNG, JPEG, GIF or WebP image within ${MAX_IMAGE_CHARS} characters; dropped.`);
+      continue;
+    }
+    if (out.length >= MAX_MEDIA) {
+      warnings.push(`More than ${MAX_MEDIA} media items; "${id}" and later ones dropped.`);
+      break;
+    }
+    ids.add(id);
+    out.push({ id, name, data: m.data });
+  }
+  return out;
+}
 function normalizeConfig(raw) {
   const warnings = [];
   const c = isObj(raw) ? raw : {};
@@ -12268,7 +12329,8 @@ function normalizeConfig(raw) {
     project: normProject(c.project, profile.login),
     theme: normTheme(c.theme),
     layout: normLayout(moveIntoWidgets(c.layout, isObj(c.profile) ? c.profile : {}, isObj(c.project) ? c.project : {}), warnings),
-    output: normOutput(c.output)
+    output: normOutput(c.output),
+    media: normMedia(c.media, warnings)
   };
   return { config, warnings };
 }
@@ -12313,15 +12375,21 @@ function moveIntoWidgets(layout2, profile, project2) {
 function createCtx(config, data13, mode, env = {}) {
   const date = env.date ?? /* @__PURE__ */ new Date();
   const d = viewData(config, data13);
+  const media = Object.fromEntries((config.media ?? []).map((m) => [m.id, m.data]));
+  const v = views(config, data13);
   return {
     theme: resolveTheme(config.theme, mode),
     data: d,
     d: derive(d),
     now: localParts(date, config.profile.location.timezone),
     date,
-    ...views(config, data13),
+    ...v,
+    // profile links may use an image from the media library as their icon
+    profile: { ...v.profile, links: resolveMedia(v.profile.links, media) },
+    project: { ...v.project, logo: resolveMedia(v.project.logo, media) },
     kind: config.kind,
-    run: env.run ?? null
+    run: env.run ?? null,
+    media
   };
 }
 function views(config, data13) {
@@ -12405,7 +12473,7 @@ ${lines.map((l, i) => `<text x="24" y="${66 + i * 16}" font-size="12" class="m">
   });
 }
 function renderPart(part, ctx) {
-  const o = { ...part.def.defaults, ...part.block.options };
+  const o = resolveMedia({ ...part.def.defaults, ...part.block.options }, ctx.media ?? {});
   try {
     if (part.key && part.def.renderPart) return part.def.renderPart(ctx, o, part.key);
     return part.def.render(ctx, o);
@@ -12415,7 +12483,7 @@ function renderPart(part, ctx) {
   }
 }
 function renderFrames(part, ctx) {
-  const o = { ...part.def.defaults, ...part.block.options };
+  const o = resolveMedia({ ...part.def.defaults, ...part.block.options }, ctx.media ?? {});
   if (part.def.frames) {
     try {
       return part.def.frames(ctx, o);
@@ -13738,7 +13806,7 @@ function fieldSchema(f2) {
   switch (f2.type) {
     case "text":
     case "icon":
-      return { ...base, type: "string" };
+      return { ...base, type: "string", description: `${f2.help ? `${f2.help} ` : ""}A line icon or brand id, media:<id> for an image in the media library, or a base64 image data URI.` };
     case "color":
       return { ...base, anyOf: [hex2, { const: "" }] };
     case "number":

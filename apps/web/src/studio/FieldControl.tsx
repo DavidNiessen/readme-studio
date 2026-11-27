@@ -1,10 +1,21 @@
-import { glyphNames, glyphShape, hasIcon, icon, iconList, isGlyphName, loadMoreIcons, type Field } from "@readme-studio/core";
+import { glyphNames, glyphShape, hasIcon, icon, iconList, imageKb, isGlyphName, isImageData, loadMoreIcons, MAX_MEDIA, mediaRef, type Field } from "@readme-studio/core";
 import { ArrowDown, ArrowUp, ChevronRight, Plus, Search, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { arrayMove, SortableItem, SortableList, SortHandle } from "../components/Sortable";
+import { mediaValue } from "../lib/media";
+import { shrinkImage } from "../lib/uploadImage";
+import { useStudio } from "../state/store";
+import { UploadZone } from "./Media";
 import { Button, ColorInput, Dialog, Field as FieldWrap, IconButton, Segmented, Select, Slider, TagsInput, TextArea, TextInput, ToggleRow, cn } from "../components/ui";
 
 function IconGlyph({ id }: { id: string }) {
+  const media = useStudio((st) => st.config.media);
+  const ref = mediaRef(id);
+  if (ref !== null) {
+    const m = media.find((x) => x.id === ref);
+    return m ? <img src={m.data} alt="" className="icon-upload" /> : <Search />;
+  }
+  if (isImageData(id)) return <img src={id} alt="" className="icon-upload" />;
   if (isGlyphName(id)) {
     const g = glyphShape(id);
     return <svg viewBox={g.viewBox} fill="none" stroke="currentColor" strokeWidth={g.strokeWidth} strokeLinecap="round" strokeLinejoin="round" dangerouslySetInnerHTML={{ __html: g.inner }} />;
@@ -34,10 +45,31 @@ export function IconPicker({ value, onChange, label, allowGlyphs = true }: { val
   const needle = q.trim().toLowerCase();
   const brand = open ? all.filter((i) => !needle || i.id.includes(needle.replace(/[^a-z0-9]/g, "")) || i.title.toLowerCase().includes(needle)) : [];
   const glyphHits = open && allowGlyphs ? glyphNames.filter((g) => !needle || words(g).includes(needle) || g.includes(needle)) : [];
-  const title = isGlyphName(value) ? words(value) : value && hasIcon(value) ? icon(value).title : value || "None";
+  const media = useStudio((st) => st.config.media);
+  const addMedia = useStudio((st) => st.addMedia);
+  const ref = mediaRef(value);
+  const used = ref !== null ? media.find((m) => m.id === ref) : undefined;
+  const uploaded = isImageData(value);
+  const title = ref !== null ? (used ? used.name : "Missing image") : uploaded ? "Uploaded image" : isGlyphName(value) ? words(value) : value && hasIcon(value) ? icon(value).title : value || "None";
+  const libraryHits = open ? media.filter((m) => !needle || m.name.toLowerCase().includes(needle) || m.id.includes(needle)) : [];
   const pick = (id: string) => {
     onChange(id);
     setOpen(false);
+  };
+  // an upload goes into the design's media library (a README's images cannot load anything from
+  // elsewhere), and the field refers to it: replacing it there updates everything that uses it
+  const [upload, setUpload] = useState<{ busy: boolean; error?: string }>({ busy: false });
+  const take = async (files: FileList | File[]) => {
+    const file = [...files][0];
+    if (!file) return;
+    setUpload({ busy: true });
+    try {
+      const id = addMedia(file.name, await shrinkImage(file));
+      setUpload({ busy: false });
+      pick(mediaValue(id));
+    } catch (e) {
+      setUpload({ busy: false, error: e instanceof Error ? e.message : String(e) });
+    }
   };
   return (
     <>
@@ -45,7 +77,7 @@ export function IconPicker({ value, onChange, label, allowGlyphs = true }: { val
         {value ? <IconGlyph id={value} /> : <Search />}
         <span>{title}</span>
         <span className="mono" style={{ fontSize: 11, color: "var(--faint)", flex: "none" }}>
-          {value}
+          {used ? `media · ${imageKb(used.data)} KB` : uploaded ? `${imageKb(value)} KB` : value}
         </span>
       </button>
       {/* built only while open: the grid is hundreds of buttons, and the inspector re-renders on every keystroke */}
@@ -57,15 +89,33 @@ export function IconPicker({ value, onChange, label, allowGlyphs = true }: { val
         subtitle={allowGlyphs ? "Line icons for anything, and brand logos from Simple Icons." : "Brand logos from Simple Icons."}
         width={560}
       >
+        <UploadZone busy={upload.busy} full={media.length >= MAX_MEDIA} onFiles={(f) => void take(f)} label="Upload an image" />
+        {upload.error && (
+          <p className="icon-drop__error" role="alert">
+            {upload.error}
+          </p>
+        )}
         <input
           className="input"
-          placeholder={`Search ${(allowGlyphs ? glyphNames.length : 0) + all.length} icons, e.g. rocket, database, rust`}
+          placeholder={`Search ${(allowGlyphs ? glyphNames.length : 0) + all.length + media.length} icons, e.g. rocket, database, rust`}
           value={q}
           onChange={(e) => setQ(e.target.value)}
           data-autofocus
           style={{ marginBottom: 12 }}
         />
         <div className="icon-picker__scroll">
+          {libraryHits.length > 0 && (
+            <>
+              <div className="subhead">Your media · {libraryHits.length}</div>
+              <div className="icon-picker">
+                {libraryHits.map((m) => (
+                  <button key={m.id} type="button" title={m.name} aria-label={m.name} aria-pressed={mediaValue(m.id) === value} onClick={() => pick(mediaValue(m.id))}>
+                    <img src={m.data} alt="" className="icon-upload icon-upload--lg" />
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
           {glyphHits.length > 0 && (
             <>
               <div className="subhead">Line icons · {glyphHits.length}</div>
@@ -90,7 +140,7 @@ export function IconPicker({ value, onChange, label, allowGlyphs = true }: { val
               </div>
             </>
           )}
-          {!brand.length && !glyphHits.length && <div className="empty">No icon matches “{q}”.</div>}
+          {!brand.length && !glyphHits.length && !libraryHits.length && <div className="empty">No icon matches “{q}”.</div>}
         </div>
       </Dialog>
       )}

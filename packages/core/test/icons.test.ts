@@ -1,11 +1,29 @@
 import { describe, expect, it } from "vitest";
-import { createCtx, glyphNames, hasIcon, icon, iconList, iconsVersion, isGlyphName, loadMoreIcons, mockData, normalizeConfig, renderPart, blockParts } from "../src/index";
+import {
+  blockParts,
+  createCtx,
+  glyphNames,
+  hasIcon,
+  icon,
+  iconList,
+  iconsVersion,
+  isGlyphName,
+  isImageData,
+  loadMoreIcons,
+  MAX_IMAGE_CHARS,
+  mockData,
+  normalizeConfig,
+  renderPart,
+  serializeConfig,
+} from "../src/index";
 import { mark } from "../src/widgets/kit-c";
 
 const DATE = new Date("2026-11-26T09:30:00Z");
 
 function featuresSvg(iconId: string): string {
-  const config = normalizeConfig({ layout: [{ blocks: [{ type: "features", id: "features", options: { items: [{ icon: iconId, title: "One", text: "Two" }] } }] }] }).config;
+  const config = normalizeConfig({
+    layout: [{ blocks: [{ type: "features", id: "features", options: { items: [{ icon: iconId, title: "One", text: "Two" }] } }] }],
+  }).config;
   const ctx = createCtx(config, mockData(DATE, "mona"), "dark", { date: DATE });
   return renderPart(blockParts(config.layout[0].blocks[0], ctx)[0], ctx);
 }
@@ -40,5 +58,110 @@ describe("icon library", () => {
     expect(iconList().length).toBeGreaterThan(450);
     const theme = createCtx(normalizeConfig({}).config, mockData(DATE, "mona"), "dark", { date: DATE }).theme;
     expect(mark(theme, "ollama", 0, 0, 16, "brand")).toContain("<path");
+  });
+});
+
+describe("uploaded images", () => {
+  // a 1×1 PNG
+  const png = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
+
+  it("draws an uploaded image wherever an icon goes, in its own colours", () => {
+    expect(isImageData(png)).toBe(true);
+    expect(hasIcon(png)).toBe(true);
+    const svg = featuresSvg(png);
+    expect(svg).toContain(`<image href="${png}"`);
+    expect(svg).toContain('preserveAspectRatio="xMidYMid meet"');
+  });
+
+  it("uses the image as the project's logo in the hero", () => {
+    const config = normalizeConfig({
+      kind: "project",
+      project: { repo: "mona/aurora" },
+      layout: [{ blocks: [{ type: "project-hero", id: "hero", options: { emblem: png } }] }],
+    }).config;
+    const ctx = createCtx(config, mockData(DATE, "mona", "Mona", "UTC", "mona/aurora"), "dark", { date: DATE });
+    expect(renderPart(blockParts(config.layout[0].blocks[0], ctx)[0], ctx)).toContain(`<image href="${png}"`);
+  });
+
+  it("accepts only small base64 raster data, never markup", () => {
+    for (const bad of [
+      "data:image/svg+xml;base64,PHN2Zz48L3N2Zz4=",
+      'data:image/png;base64,AAAA" onload="alert(1)',
+      "data:text/html;base64,PGgxPg==",
+      "https://example.com/logo.png",
+      `data:image/png;base64,${"A".repeat(MAX_IMAGE_CHARS)}`,
+    ]) {
+      expect(isImageData(bad)).toBe(false);
+      expect(featuresSvg(bad)).not.toContain("<image");
+    }
+  });
+
+  it("names a social link's file after the link, not after the image data", () => {
+    const config = normalizeConfig({
+      profile: { login: "mona", links: [{ icon: png, label: "", url: "https://example.com" }] },
+      layout: [{ blocks: [{ type: "socials", id: "socials" }] }],
+    }).config;
+    const ctx = createCtx(config, mockData(DATE, "mona"), "dark", { date: DATE });
+    const parts = blockParts(config.layout[0].blocks[0], ctx);
+    expect(parts.length).toBeGreaterThan(0);
+    for (const p of parts) {
+      expect(p.name.length).toBeLessThan(40);
+      expect(p.alt).not.toContain("base64");
+    }
+  });
+});
+
+describe("media library", () => {
+  const red = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg==";
+  const blue = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==";
+  const design = (data: string, extra: Record<string, unknown> = {}) =>
+    normalizeConfig({
+      kind: "project",
+      project: { repo: "mona/aurora" },
+      media: [{ id: "logo", name: "Logo", data }],
+      layout: [
+        { blocks: [{ type: "project-hero", id: "hero", options: { emblem: "media:logo" } }] },
+        { blocks: [{ type: "features", id: "features", options: { items: [{ icon: "media:logo", title: "One", text: "Two" }] } }] },
+      ],
+      ...extra,
+    }).config;
+  const render = (config: ReturnType<typeof design>) => {
+    const ctx = createCtx(config, mockData(DATE, "mona", "Mona", "UTC", "mona/aurora"), "dark", { date: DATE });
+    return config.layout.map((r) => renderPart(blockParts(r.blocks[0], ctx)[0], ctx));
+  };
+
+  it("draws one uploaded image in every widget that refers to it", () => {
+    const [hero, features] = render(design(red));
+    expect(hero).toContain(`<image href="${red}"`);
+    expect(features).toContain(`<image href="${red}"`);
+  });
+
+  it("replacing the image updates every widget at once", () => {
+    const config = design(red);
+    const replaced = { ...config, media: [{ ...config.media[0], data: blue }] };
+    for (const svg of render(replaced)) {
+      expect(svg).toContain(`<image href="${blue}"`);
+      expect(svg).not.toContain(red);
+    }
+  });
+
+  it("draws nothing for a reference to an image that is not there", () => {
+    const [, features] = render(design(red, { media: [] }));
+    expect(features).not.toContain("<image");
+    expect(features).not.toContain("media:logo");
+  });
+
+  it("keeps only valid images with unique ids, and leaves an empty library out of the file", () => {
+    const { config, warnings } = normalizeConfig({
+      media: [
+        { id: "Logo!", name: "Logo", data: red },
+        { id: "logo", data: blue },
+        { id: "bad", data: "https://x/y.png" },
+      ],
+    });
+    expect(config.media.map((m) => m.id)).toEqual(["logo"]);
+    expect(warnings.length).toBe(2);
+    expect(serializeConfig(normalizeConfig({}).config)).not.toContain('"media"');
+    expect(JSON.parse(serializeConfig(config)).media[0].data).toBe(red);
   });
 });

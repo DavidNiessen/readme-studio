@@ -41,6 +41,8 @@ export interface Ctx {
   project: ProjectView;
   /** GitHub Actions run number, when available */
   run: string | null;
+  /** the design's media library, id → image data, for resolving `media:<id>` options */
+  media?: Readonly<Record<string, string>>;
 }
 
 // ------------------------------------------------------------ inspector fields

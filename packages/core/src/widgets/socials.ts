@@ -4,6 +4,7 @@ import { icon, iconSvg } from "../lib/icons";
 import { fitText, surfaceFill, svg } from "../lib/svg";
 import type { Theme } from "../theme";
 import { defineWidget } from "./types";
+import { isImageData } from "../lib/images";
 
 const H = 52;
 
@@ -16,6 +17,8 @@ function iconColor(t: Theme, id: string, mode: string): string {
 }
 
 function keyOf(i: number, iconId: string): string {
+  // an uploaded image names its file "image", not after its data
+  if (isImageData(iconId)) return `${i + 1}-image`;
   return `${i + 1}-${iconId.replace(/[^a-z0-9]/gi, "").toLowerCase() || "link"}`;
 }
 
@@ -55,7 +58,7 @@ export const socials = defineWidget({
   parts: (ctx) =>
     ctx.profile.links
       .filter((l) => l.url)
-      .map((l, i) => ({ key: keyOf(i, l.icon), alt: l.label || l.icon, href: l.url })),
+      .map((l, i) => ({ key: keyOf(i, l.icon), alt: l.label || (isImageData(l.icon) ? "link" : l.icon), href: l.url })),
   render(ctx, o) {
     const first = this.parts!(ctx, o)[0];
     return first ? this.renderPart!(ctx, o, first.key) : svg({ width: 200, height: H, theme: ctx.theme, title: "no links", body: "" });

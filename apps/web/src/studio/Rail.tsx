@@ -2,7 +2,7 @@ import { closestCenter, DndContext, DragOverlay, KeyboardSensor, PointerSensor, 
 import { SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { CATEGORIES, getWidget, normalizeConfig, widgetFits, widgetList, type Block, type StudioConfig, type WidgetCategory, type WidgetDef } from "@readme-studio/core";
-import { Eye, EyeOff, GripVertical, Layers, MoreHorizontal, Plus, LayoutTemplate } from "lucide-react";
+import { Eye, EyeOff, GripVertical, Images, Layers, MoreHorizontal, Plus, LayoutTemplate } from "lucide-react";
 import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { Button, IconButton, Menu, Tabs, cn } from "../components/ui";
 import { WidgetImage } from "../components/WidgetImage";
@@ -11,6 +11,7 @@ import { renderBlock, useFontsReady } from "../lib/render";
 import { useStudio } from "../state/store";
 import { blockActions, clickBlock, onBlockContextMenu, onEmptyContextMenu, targetsOf } from "./blockActions";
 import { WidgetIcon } from "./icons";
+import { MediaPanel } from "./Media";
 import { pressLibraryWidget } from "./useCanvasDrag";
 import { wholeElementDrag } from "../components/Sortable";
 
@@ -279,7 +280,7 @@ export function Rail() {
   const { railTab, setRailTab, config } = useStudio();
   const count = config.layout.reduce((a, r) => a + r.blocks.length, 0);
   return (
-    <aside className="panel panel--rail" aria-label="Layers and widgets">
+    <aside className="panel panel--rail" aria-label="Layers, widgets and media">
       <Tabs
         label="Left panel"
         value={railTab}
@@ -287,9 +288,10 @@ export function Rail() {
         tabs={[
           { value: "layers", label: `Layers · ${count}`, icon: <Layers /> },
           { value: "add", label: "Add widget", icon: <Plus /> },
+          { value: "media", label: config.media.length ? `Media · ${config.media.length}` : "Media", icon: <Images /> },
         ]}
       />
-      <div className="panel__scroll">{railTab === "layers" ? <Layers_ /> : <Library />}</div>
+      <div className="panel__scroll">{railTab === "layers" ? <Layers_ /> : railTab === "media" ? <MediaPanel /> : <Library />}</div>
     </aside>
   );
 }

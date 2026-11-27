@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { getWidget, hashSeed, mockData, mockWeeks, normalizeConfig, presetConfig, type Mode, type ProfileData, type StudioConfig } from "@readme-studio/core";
 import { addBlock, duplicateBlock, findBlock, flatten, moveBlock, moveBlocksTo, removeBlock, renameBlock, updateBlock, updateOptions } from "../lib/layout";
 import { findDesignBySource, getCurrentId, getPref, loadDesigns, saveDesign, setCurrentId, setPref, type SavedDesign } from "../lib/storage";
+import { addMedia, removeMedia, renameMedia, replaceMedia } from "../lib/media";
 
 export type InspectorTab = "block" | "theme" | "data";
 export type DialogId = "export" | "save" | "presets" | "import" | "json" | "shortcuts" | "designs" | "palette" | "add" | null;
@@ -47,7 +48,7 @@ interface StudioState {
   tab: InspectorTab;
   pane: MobilePane;
   dialog: DialogId;
-  railTab: "layers" | "add";
+  railTab: "layers" | "add" | "media";
 
   /** live: GitHub data for `dataKey`; sample: the stand-in until there is some (see lib/liveData) */
   dataMode: "sample" | "live";
@@ -77,7 +78,7 @@ interface StudioState {
   setTab: (t: InspectorTab) => void;
   setPane: (p: MobilePane) => void;
   openDialog: (d: DialogId) => void;
-  setRailTab: (t: "layers" | "add") => void;
+  setRailTab: (t: "layers" | "add" | "media") => void;
   setName: (n: string) => void;
 
   add: (type: string, options?: Record<string, unknown>) => void;
@@ -100,6 +101,12 @@ interface StudioState {
   moveTo: (ids: string[], targetId: string, after: boolean) => void;
   setOptions: (id: string, patch: Record<string, unknown>, key?: string) => void;
   rename: (id: string, wanted: string) => void;
+
+  /** the media library: images stored once in the design, used by any widget as media:<id> */
+  addMedia: (name: string, data: string) => string;
+  replaceMedia: (id: string, data: string) => void;
+  renameMedia: (id: string, name: string) => void;
+  removeMedia: (id: string) => void;
 
   showSample: () => void;
   setLive: (d: ProfileData, key: string, at: number) => void;
@@ -364,6 +371,21 @@ export const useStudio = create<StudioState>((set, get) => ({
     const r = renameBlock(get().config, id, wanted);
     get().commit(() => r.config);
     set({ selected: r.id });
+  },
+
+  addMedia(name, data) {
+    const r = addMedia(get().config, name, data);
+    get().commit(() => r.config);
+    return r.id;
+  },
+  replaceMedia(id, data) {
+    get().commit((c) => replaceMedia(c, id, data));
+  },
+  renameMedia(id, name) {
+    get().commit((c) => renameMedia(c, id, name), `media-name:${id}`);
+  },
+  removeMedia(id) {
+    get().commit((c) => removeMedia(c, id));
   },
 
   showSample() {

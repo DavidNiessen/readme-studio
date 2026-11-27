@@ -7,6 +7,7 @@ import { svg, wrapText } from "./lib/svg";
 import { resolveTheme, type Mode } from "./theme";
 import { getWidget } from "./widgets/registry";
 import type { Ctx, GifFrames, ProfileView, ProjectView, WidgetDef } from "./widgets/types";
+import { resolveMedia } from "./lib/images";
 
 export interface RenderEnv {
   date?: Date;
@@ -17,15 +18,21 @@ export interface RenderEnv {
 export function createCtx(config: StudioConfig, data: ProfileData, mode: Mode, env: RenderEnv = {}): Ctx {
   const date = env.date ?? new Date();
   const d = viewData(config, data);
+  const media = Object.fromEntries((config.media ?? []).map((m) => [m.id, m.data]));
+  const v = views(config, data);
   return {
     theme: resolveTheme(config.theme, mode),
     data: d,
     d: derive(d),
     now: localParts(date, config.profile.location.timezone),
     date,
-    ...views(config, data),
+    ...v,
+    // profile links may use an image from the media library as their icon
+    profile: { ...v.profile, links: resolveMedia(v.profile.links, media) },
+    project: { ...v.project, logo: resolveMedia(v.project.logo, media) },
     kind: config.kind,
     run: env.run ?? null,
+    media,
   };
 }
 
@@ -142,7 +149,8 @@ ${lines.map((l, i) => `<text x="24" y="${66 + i * 16}" font-size="12" class="m">
 
 /** Render one part of a block to SVG (or markdown text for markdown widgets). */
 export function renderPart(part: PartMeta, ctx: Ctx): string {
-  const o = { ...part.def.defaults, ...part.block.options };
+  // images from the media library are swapped in here, so a replaced image reaches every widget using it
+  const o = resolveMedia({ ...part.def.defaults, ...part.block.options }, ctx.media ?? {});
   try {
     if (part.key && part.def.renderPart) return part.def.renderPart(ctx, o, part.key);
     return part.def.render(ctx, o);
@@ -154,7 +162,7 @@ export function renderPart(part: PartMeta, ctx: Ctx): string {
 
 /** Frames for GIF widgets; falls back to a single static frame. */
 export function renderFrames(part: PartMeta, ctx: Ctx): GifFrames {
-  const o = { ...part.def.defaults, ...part.block.options };
+  const o = resolveMedia({ ...part.def.defaults, ...part.block.options }, ctx.media ?? {});
   if (part.def.frames) {
     try {
       return part.def.frames(ctx, o);

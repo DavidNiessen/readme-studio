@@ -11,6 +11,7 @@ export { widgetList, getWidget } from "./widgets/registry";
 export { fillOutsideCode } from "./widgets/markdown";
 export { PLACEHOLDERS, PLACEHOLDER_HELP } from "./widgets/placeholders";
 export * from "./lib/color";
+export { imageKb, imageSvg, isImageData, MAX_IMAGE_CHARS, MEDIA_PREFIX, mediaRef, resolveMedia } from "./lib/images";
 export { icon, iconList, iconSvg, hasIcon, iconsVersion, loadMoreIcons, moreIconsLoaded, type Icon } from "./lib/icons";
 export { encodeGif, type Frame } from "./lib/gif";
 export { esc, groupDigits } from "./lib/escape";

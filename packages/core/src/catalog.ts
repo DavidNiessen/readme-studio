@@ -147,9 +147,10 @@ Everything is driven by one file, \`readme.config.json\` (schema: ${SCHEMA_URL})
 - Names, roles, bios, taglines and logos are options of the widgets that show them (hero \`title\`/\`roles\`, about \`name\`/\`bio\`, project-hero \`title\`/\`tagline\`/\`emblem\`) and default to the GitHub profile or repository.
 - \`layout\`: array of rows \`{ align, blocks: [{ id, type, options, hidden?, link? }] }\`. Blocks in one row sit side by side (use half-width widgets in pairs). \`id\` becomes the image file name.
 - \`theme\`: \`preset\` (palette), \`font\`, \`headingFont\`, \`radius\`, \`border\`, \`texture\` (dots|grid|lines|none), \`motion\` (full|subtle|off), \`surface\`, optional \`accent\` to generate a palette.
+- \`media\`: the media library, \`[{ id, name, data }]\` with \`data\` a base64 PNG, JPEG, GIF or WebP data URI (at most 200,000 characters; keep images near 256 px). Icon options use one as \`media:<id>\`; replacing its \`data\` updates every widget using it.
 - \`output\`: \`branch\` (asset branch, default "readme-studio"), \`modes\` (["dark","light"]), \`schedule\` (cron), \`repository\`.
 - Free text accepts placeholders: ${PLACEHOLDERS.map((p) => p.token).join(" ")}.
-- Icon options take a line icon (\`rocket\`, \`database\`, \`git-branch\`) or a brand (\`rust\`, \`docker\`, \`figma\`). llms-full.txt lists every id.
+- Icon options take a line icon (\`rocket\`, \`database\`, \`git-branch\`), a brand (\`rust\`, \`docker\`, \`figma\`) or \`media:<id>\` for an image in the design's media library. llms-full.txt lists every id.
 - Unknown widgets are skipped and invalid values repaired; \`validate\` lists every repair.
 
 ## Palettes
