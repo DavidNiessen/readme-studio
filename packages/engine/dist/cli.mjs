@@ -1698,7 +1698,7 @@ var hero = defineWidget({
 @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
 .ring{transform-box:fill-box;transform-origin:center;animation:spin 18s linear infinite}
 .ring2{transform-box:fill-box;transform-origin:center;animation:spinR 26s linear infinite}
-.kpulse{transform-box:fill-box;transform-origin:center;animation:kp 3s ease-in-out infinite}
+.kpulse{transform-box:fill-box;transform-origin:center;opacity:.25;transform:scale(.9);animation:kp 3s ease-in-out infinite}
 @keyframes kp{0%,100%{opacity:.25;transform:scale(.9)}50%{opacity:.6;transform:scale(1.1)}}
 .under{transform-box:fill-box;transform-origin:left;animation:growX 1.2s cubic-bezier(.2,.7,.2,1) 2s both}`;
     const nameY = 122;
@@ -8452,7 +8452,7 @@ ${inner}
 .ring{transform-box:fill-box;transform-origin:center;animation:spin 18s linear infinite}
 .ring2{transform-box:fill-box;transform-origin:center;animation:spinR 26s linear infinite}
 .orbit{transform-box:fill-box;transform-origin:center;animation:spin 9s linear infinite}
-.kpulse{transform-box:fill-box;transform-origin:center;animation:kp 3s ease-in-out infinite}
+.kpulse{transform-box:fill-box;transform-origin:center;opacity:.25;transform:scale(.9);animation:kp 3s ease-in-out infinite}
 @keyframes kp{0%,100%{opacity:.25;transform:scale(.9)}50%{opacity:.6;transform:scale(1.1)}}
 .psh{animation:pshine 5s ease-in-out 3s infinite}
 @keyframes pshine{0%,70%,100%{opacity:0}80%{opacity:1}}`;
