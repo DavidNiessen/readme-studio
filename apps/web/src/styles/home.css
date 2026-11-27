@@ -1394,43 +1394,51 @@
   transform: scaleX(var(--p));
   transform-origin: left;
 }
-/* the lines of a song: the one being read in focus at a fixed height, the others soft around it */
+/* one verse at a time, all of it on screen; the next one rises in as the last fills */
 .lp-lyrics {
-  position: relative;
-  height: min(440px, 52svh);
-  overflow: hidden;
-  -webkit-mask-image: linear-gradient(transparent, #000 18%, #000 72%, transparent);
-  mask-image: linear-gradient(transparent, #000 18%, #000 72%, transparent);
-  --shift: 0px;
+  display: grid;
+}
+.lp-verse {
+  grid-area: 1 / 1;
+  align-self: start;
+  opacity: 0;
+  filter: blur(10px);
+  transform: translateY(40px) scale(0.97);
+  transform-origin: left top;
+  transition:
+    opacity 0.6s var(--ease),
+    filter 0.7s var(--ease),
+    transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.lp-verse.is-on {
+  opacity: 1;
+  filter: none;
+  transform: none;
+}
+.lp-verse.is-past {
+  transform: translateY(-40px) scale(0.97);
 }
 .lp-line {
-  margin: 0 0 0.42em;
+  margin: 0;
   font-family: var(--font-sans);
-  font-size: clamp(26px, 2.35vw, 36px);
+  font-size: clamp(34px, 3.5vw, 54px);
   font-weight: 700;
-  line-height: 1.2;
-  letter-spacing: -0.022em;
-  transform: translateY(calc(var(--shift) * -1)) scale(0.96);
-  transform-origin: left center;
-  opacity: calc(0.62 - var(--d) * 0.1);
-  filter: blur(calc(var(--d) * 0.7px));
-  transition:
-    transform 0.9s cubic-bezier(0.22, 1, 0.36, 1),
-    opacity 0.6s var(--ease),
-    filter 0.6s var(--ease);
-  /* lines below the one being read follow a beat later, one after another */
-  transition-delay: calc(var(--lag) * 45ms);
+  line-height: 1.1;
+  letter-spacing: -0.03em;
   --on: var(--ink);
-  --off: color-mix(in srgb, var(--ink) 24%, transparent);
+  --off: color-mix(in srgb, var(--ink) 20%, transparent);
+  transition: filter 0.6s var(--ease);
+}
+.lp-line + .lp-line {
+  margin-top: 0.3em;
+}
+/* a line not yet reached waits a little out of focus */
+.lp-line:not(.is-on) {
+  filter: blur(1.5px);
 }
 .lp-line.is-title {
   --on: var(--accent);
-  --off: color-mix(in srgb, var(--accent) 32%, transparent);
-}
-.lp-line.is-on {
-  transform: translateY(calc(var(--shift) * -1));
-  opacity: 1;
-  filter: none;
+  --off: color-mix(in srgb, var(--accent) 28%, transparent);
 }
 /* each word fills from the left with a soft edge, and lifts a little as it does */
 .lp-line span span {
@@ -1443,12 +1451,6 @@
   background-clip: text;
   color: transparent;
   transform: translateY(calc((1 - var(--lit, 0)) * 0.06em));
-}
-/* lines that have been read settle back, dimmed with the rest */
-.lp-line.is-past span span {
-  background-position: 100% 0;
-  transform: none;
-  transition: background-position 0.8s var(--ease);
 }
 .lp-how__stage {
   position: relative;
@@ -2072,12 +2074,8 @@
   .lp-how__copy {
     gap: 14px;
   }
-  .lp-lyrics {
-    height: 7.2em;
-    font-size: clamp(21px, 5.4vw, 30px);
-  }
   .lp-line {
-    font-size: 1em;
+    font-size: clamp(28px, 7.6vw, 40px);
   }
   /* no turn on a narrow screen: the window would reach past its edge */
   .lp-studio.is-chapter-0,
@@ -2118,18 +2116,12 @@
     min-height: 640px;
   }
   .lp-studio,
-  .lp-line {
+  .lp-verse {
     transition: none;
   }
-  .lp-lyrics {
-    height: auto;
-    -webkit-mask-image: none;
-    mask-image: none;
-  }
+  .lp-verse,
   .lp-line {
-    transform: none !important;
-    opacity: 1;
-    filter: none;
+    filter: none !important;
   }
   .lp-line span span {
     background-position: 0 0 !important;
@@ -2264,45 +2256,258 @@
   font-style: normal;
 }
 .lp-pz.is-fonts .lp-head p,
-.lp-pz.is-fonts .preset-meta,
-.lp-pz.is-fonts .center-link {
+.lp-pz.is-fonts .lp-pz__about p,
+.lp-pz.is-fonts .lp-pz__facts,
+.lp-pz.is-fonts .lp-pz__actions {
   font-family: var(--pz-body);
 }
-.lp-pz.is-fonts .preset-meta h4 {
+.lp-pz.is-fonts .lp-pz__about h3 {
   font-family: var(--pz-head);
   font-weight: var(--pz-head-weight);
 }
-.lp-pz .preset-card {
-  border-color: var(--pz-border);
-  border-radius: var(--pz-radius);
-  background: color-mix(in srgb, var(--pz-card) 82%, transparent);
-  color: var(--pz-text);
-  transition:
-    border-color 0.3s var(--ease),
-    border-radius 0.5s var(--ease),
-    box-shadow 0.4s var(--ease),
-    transform 0.4s var(--ease);
+
+/* the pinned stretch: one screen, held while the page scrolls past each preset */
+.lp-pz__run {
+  height: calc(100svh + var(--n) * 70svh);
 }
-.lp-pz .preset-card .preset-thumb {
-  border-radius: calc(var(--pz-radius) - 6px);
+.lp-pz__pin {
+  position: sticky;
+  top: 60px;
+  height: calc(100svh - 60px);
+  display: flex;
+  align-items: center;
+}
+.lp-pz__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  gap: 56px;
+  align-items: center;
+  height: 100%;
+  padding-top: 28px;
+  padding-bottom: 28px;
+}
+.lp-pz__copy {
+  display: grid;
+  gap: 22px;
+  align-content: center;
+}
+.lp-pz__list {
+  display: grid;
+  grid-template-columns: repeat(2, max-content);
+  gap: 2px 22px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.lp-pz__list button {
+  display: inline-flex;
+  gap: 6px;
+  padding: 4px 0;
+  border: 0;
+  background: none;
+  color: var(--pz-muted);
+  font: inherit;
+  font-size: var(--t-sm);
+  cursor: pointer;
+  transition: color 0.3s var(--ease);
+}
+.lp-pz__list button span {
+  color: color-mix(in srgb, var(--pz-muted) 70%, transparent);
+}
+.lp-pz__list button:hover,
+.lp-pz__list button.is-on {
+  color: var(--pz-text);
+}
+.lp-pz__list button.is-on span {
+  color: var(--pz-accent);
+}
+.lp-pz__bar {
+  position: relative;
+  height: 2px;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--pz-text) 14%, transparent);
+  overflow: hidden;
+  --p: 0;
+}
+.lp-pz__bar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--pz-accent);
+  transform: scaleX(var(--p));
+  transform-origin: left;
+}
+/* the name and description: the current one in place, the others waiting above and below */
+.lp-pz__now {
+  display: grid;
+}
+.lp-pz__about {
+  grid-area: 1 / 1;
+  align-self: start;
+  opacity: 0;
+  filter: blur(8px);
+  transform: translateY(30px);
+  transition:
+    opacity 0.5s var(--ease),
+    filter 0.6s var(--ease),
+    transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.lp-pz__about.is-on {
+  opacity: 1;
+  filter: none;
+  transform: none;
+}
+.lp-pz__about.is-past {
+  transform: translateY(-30px);
+}
+.lp-pz__kind {
+  color: var(--pz-accent);
+  font-size: 11.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.lp-pz__about h3 {
+  margin: 10px 0 12px;
+  font-size: clamp(36px, 4vw, 58px);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.035em;
+}
+.lp-pz__about p {
+  margin: 0;
+  max-width: 440px;
+  color: var(--pz-muted);
+  font-size: var(--t-lg);
+  line-height: 1.55;
+}
+.lp-pz__facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.lp-pz__facts li {
+  padding: 5px 11px;
+  border: 1px solid var(--pz-border);
+  border-radius: var(--pz-radius);
+  background: color-mix(in srgb, var(--pz-card) 70%, transparent);
+  color: var(--pz-text);
+  font-size: var(--t-sm);
   transition: border-radius 0.5s var(--ease);
 }
-.lp-pz .preset-card.is-selected {
-  border-color: var(--pz-accent);
-  box-shadow:
-    0 0 0 1px var(--pz-accent),
-    0 30px 70px -30px color-mix(in srgb, var(--pz-glow) 55%, transparent);
+.lp-pz__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 22px;
 }
-.lp-pz .center-link a {
+.lp-pz__go {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 18px;
+  border-radius: var(--pz-radius);
+  background: var(--pz-accent);
+  color: var(--pz-card);
+  font-weight: 600;
+  text-decoration: none;
+  transition:
+    border-radius 0.5s var(--ease),
+    transform 0.2s var(--ease);
+}
+.lp-pz__go:hover {
+  transform: translateY(-1px);
+}
+.lp-pz__go svg {
+  width: 16px;
+  height: 16px;
+}
+.lp-pz__all {
   color: var(--pz-text);
-  border-color: color-mix(in srgb, var(--pz-text) 30%, transparent);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--pz-text) 35%, transparent);
+  text-underline-offset: 4px;
 }
-.lp-pz .center-link a:hover {
-  color: var(--pz-accent);
+/* the READMEs, stacked: the current one in front, the last one leaving upwards, the next below */
+.lp-pz__stage {
+  position: relative;
+  height: min(100%, 680px);
+}
+.lp-pz__shot {
+  position: absolute;
+  inset: 0;
+  display: block;
+  padding: 10px;
+  border: 1px solid var(--pz-border);
+  border-radius: var(--pz-radius);
+  background: color-mix(in srgb, var(--pz-card) 85%, transparent);
+  box-shadow: 0 40px 90px -40px color-mix(in srgb, var(--pz-glow) 45%, rgba(0, 0, 0, 0.6));
+  opacity: 0;
+  transform: translateY(14%) scale(0.94) rotate(1.5deg);
+  pointer-events: none;
+  transition:
+    opacity 0.6s var(--ease),
+    transform 0.9s cubic-bezier(0.22, 1, 0.36, 1),
+    border-radius 0.5s var(--ease);
+}
+.lp-pz__shot.is-on {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+.lp-pz__shot.is-past {
+  transform: translateY(-10%) scale(0.92) rotate(-1.5deg);
+}
+.lp-pz__shot .preset-thumb {
+  height: 100% !important;
+  border-radius: calc(var(--pz-radius) - 6px);
+}
+@media (max-width: 1000px) {
+  /* phones and tablets: the name above, the README below it */
+  .lp-pz__grid {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: 18px;
+    padding-top: 16px;
+    padding-bottom: 16px;
+  }
+  .lp-pz__copy {
+    gap: 12px;
+  }
+  .lp-pz__about h3 {
+    margin: 6px 0 6px;
+    font-size: clamp(28px, 8vw, 40px);
+  }
+  .lp-pz__about p {
+    font-size: var(--t-md);
+  }
+  .lp-pz__facts,
+  .lp-pz__all {
+    display: none;
+  }
+  .lp-pz__go {
+    padding: 9px 14px;
+    font-size: var(--t-sm);
+  }
+  .lp-pz__stage {
+    height: 100%;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   .lp-pz,
-  .lp-pz__tex {
+  .lp-pz__tex,
+  .lp-pz__about,
+  .lp-pz__shot {
     transition: none;
+  }
+  .lp-pz__run {
+    height: auto;
+  }
+  .lp-pz__pin {
+    position: relative;
+    top: 0;
+    height: 760px;
   }
 }

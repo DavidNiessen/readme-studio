@@ -1,17 +1,28 @@
-import { fontFaceCss, fontInfo, fontStack, layoutPresets, presetConfig, resolveTheme, type Mode } from "@readme-studio/core";
+import {
+  fontFaceCss,
+  fontInfo,
+  fontStack,
+  getPalettePreset,
+  layoutPresets,
+  presetConfig,
+  resolveTheme,
+  type Mode,
+} from "@readme-studio/core";
 import { ArrowRight } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { PresetThumb } from "../../components/PresetThumb";
 import { cn } from "../../components/ui";
 import { useFontsReady } from "../../lib/render";
 import { href } from "../../lib/router";
-import { Reveal } from "./scroll";
+import { clamp, reducedMotion } from "./scroll";
 import { useSiteMode } from "./stills";
 
-const LIST = [
-  ...layoutPresets.filter((p) => (p.kind ?? "profile") === "profile").slice(0, 2),
-  ...layoutPresets.filter((p) => p.kind === "project").slice(0, 2),
-];
+/** Two profiles and two projects, one for each texture: dots, none, grid and lines. */
+const LIST = ["command-center", "minimal-paper", "maintainers-dashboard", "cli-tool"]
+  .map((id) => layoutPresets.find((p) => p.id === id))
+  .filter((p): p is (typeof layoutPresets)[number] => !!p);
+
+const TEXTURE: Record<string, string> = { dots: "Dotted cards", grid: "Grid cards", lines: "Hatched cards", none: "Plain cards" };
 
 /** The page's own copy of the fonts the presets use, so the section can set its text in them. */
 const pageFonts = new Set<string>();
@@ -29,13 +40,13 @@ export function usePageFonts(ids: string[]): boolean {
   return ready;
 }
 
-/** A preset's look as CSS variables: its colours in the site's scheme, typefaces, corners and texture. */
-function presetStyle(id: string, mode: Mode): { style: CSSProperties; texture: string } {
-  const theme = resolveTheme(presetConfig(id).theme, mode);
+/** A preset's look as CSS variables: its colours in the site's scheme, typefaces and corners. */
+function presetLook(id: string, mode: Mode) {
+  const settings = presetConfig(id).theme;
+  const theme = resolveTheme(settings, mode);
   const vars: Record<string, string> = {
     "--pz-bg": theme.card,
     "--pz-card": theme.bg,
-    "--pz-raised": theme.raised,
     "--pz-border": theme.border,
     "--pz-text": theme.text,
     "--pz-muted": theme.muted,
@@ -47,58 +58,133 @@ function presetStyle(id: string, mode: Mode): { style: CSSProperties; texture: s
     "--pz-body": fontStack(theme.font),
     "--pz-head-weight": fontInfo(theme.headingFont).category === "serif" ? "600" : "700",
   };
-  return { style: vars as CSSProperties, texture: theme.texture };
+  return {
+    style: vars as CSSProperties,
+    texture: theme.texture,
+    facts: [getPalettePreset(settings.preset).name, fontInfo(settings.headingFont).name, TEXTURE[theme.texture] ?? "Plain cards"],
+  };
 }
 
 /**
- * Four presets, and a section that takes on the look of the selected one: its colours, typefaces,
- * corners and texture. The first is selected to begin with; hovering another selects it, and the
- * choice stays after the pointer leaves. On touch screens the first tap selects, the second opens.
+ * The presets, one at a time as the page scrolls. The section pins to the screen and, preset by
+ * preset, takes on each one's look (its colours, typefaces, corners and texture) while its README
+ * slides in beside its name. The list of names jumps straight to one.
  */
 export function PresetShowcase({ head }: { head: ReactNode }) {
   const mode = useSiteMode();
-  const [selected, setSelected] = useState(LIST[0].id);
-  const hover = useRef(typeof matchMedia !== "undefined" && matchMedia("(hover: hover)").matches);
+  const still = reducedMotion();
+  const [index, setIndex] = useState(0);
+  const section = useRef<HTMLElement>(null);
+  const run = useRef<HTMLDivElement>(null);
+  const bar = useRef<HTMLDivElement>(null);
   const fonts = useMemo(() => LIST.flatMap((p) => [presetConfig(p.id).theme.font, presetConfig(p.id).theme.headingFont]), []);
   const fontsReady = usePageFonts(fonts);
-  const look = presetStyle(selected, mode);
+  const look = presetLook(LIST[index].id, mode);
 
+  /** How far the page has scrolled through the pinned stretch, from 0 to 1. */
+  const progress = () => {
+    const el = run.current;
+    if (!el) return 0;
+    const pin = el.firstElementChild as HTMLElement;
+    const top = parseFloat(getComputedStyle(pin).top) || 0;
+    return clamp((top - el.getBoundingClientRect().top) / Math.max(1, el.offsetHeight - pin.offsetHeight));
+  };
+  useEffect(() => {
+    if (still) return;
+    let frame = 0;
+    const measure = () => {
+      frame = 0;
+      const p = progress();
+      bar.current?.style.setProperty("--p", p.toFixed(3));
+      setIndex(Math.min(LIST.length - 1, Math.floor(p * LIST.length)));
+    };
+    const queue = () => {
+      if (!frame) frame = requestAnimationFrame(measure);
+    };
+    measure();
+    window.addEventListener("scroll", queue, { passive: true });
+    window.addEventListener("resize", queue);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", queue);
+      window.removeEventListener("resize", queue);
+    };
+  }, [still]);
+
+  /** Scrolls to the middle of a preset's stretch. */
+  const go = (i: number) => {
+    const el = run.current;
+    if (!el || still) return setIndex(i);
+    const pin = el.firstElementChild as HTMLElement;
+    const top = parseFloat(getComputedStyle(pin).top) || 0;
+    const span = el.offsetHeight - pin.offsetHeight;
+    window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - top + (span * (i + 0.5)) / LIST.length, behavior: "smooth" });
+  };
+
+  const current = LIST[index];
   return (
-    <section className={cn("lp-section lp-pz", `is-tex-${look.texture}`, fontsReady && "is-fonts")} style={look.style}>
+    <section ref={section} className={cn("lp-section lp-pz", fontsReady && "is-fonts", still && "is-still")} style={look.style}>
       <div className="lp-pz__bg" aria-hidden>
         {(["dots", "grid", "lines"] as const).map((t) => (
           <span key={t} className={cn("lp-pz__tex", `lp-pz__tex--${t}`, look.texture === t && "is-on")} />
         ))}
       </div>
-      <div className="wrap">
-        {head}
-        <div className="preset-row">
-          {LIST.map((p, i) => (
-            <Reveal key={p.id} delay={i * 90}>
-              <a
-                className={cn("preset-card lp-tilt", p.id === selected && "is-selected")}
-                href={href(`/studio?preset=${p.id}`)}
-                onPointerEnter={(e) => e.pointerType === "mouse" && setSelected(p.id)}
-                onFocus={() => setSelected(p.id)}
-                onClick={(e) => {
-                  if (hover.current || p.id === selected) return;
-                  e.preventDefault();
-                  setSelected(p.id);
-                }}
-              >
-                <PresetThumb id={p.id} height={260} mode={mode} />
-                <div className="preset-meta">
-                  <h4>{p.name}</h4>
-                  <p>{p.description}</p>
-                </div>
-              </a>
-            </Reveal>
-          ))}
-        </div>
-        <div className="center-link">
-          <a href={href("/presets")}>
-            All {layoutPresets.length} presets <ArrowRight />
-          </a>
+      <div className="wrap">{head}</div>
+      <div ref={run} className="lp-pz__run" style={{ ["--n" as string]: LIST.length }}>
+        <div className="lp-pz__pin">
+          <div className="wrap lp-pz__grid">
+            <div className="lp-pz__copy">
+              <ol className="lp-pz__list">
+                {LIST.map((p, i) => (
+                  <li key={p.id}>
+                    <button type="button" className={cn(i === index && "is-on")} onClick={() => go(i)}>
+                      <span className="mono">0{i + 1}</span> {p.name}
+                    </button>
+                  </li>
+                ))}
+              </ol>
+              <div ref={bar} className="lp-pz__bar" aria-hidden />
+              <div className="lp-pz__now">
+                {LIST.map((p, i) => (
+                  <div
+                    key={p.id}
+                    className={cn("lp-pz__about", i === index ? "is-on" : i < index ? "is-past" : "is-next")}
+                    aria-hidden={i !== index}
+                  >
+                    <span className="lp-pz__kind mono">{p.kind === "project" ? "Project README" : "Profile README"}</span>
+                    <h3>{p.name}</h3>
+                    <p>{p.description}</p>
+                  </div>
+                ))}
+              </div>
+              <ul className="lp-pz__facts">
+                {look.facts.map((f) => (
+                  <li key={f}>{f}</li>
+                ))}
+              </ul>
+              <div className="lp-pz__actions">
+                <a className="lp-pz__go" href={href(`/studio?preset=${current.id}`)}>
+                  Open {current.name} in the studio <ArrowRight />
+                </a>
+                <a className="lp-pz__all" href={href("/presets")}>
+                  All {layoutPresets.length} presets
+                </a>
+              </div>
+            </div>
+            <div className="lp-pz__stage">
+              {LIST.map((p, i) => (
+                <a
+                  key={p.id}
+                  className={cn("lp-pz__shot", i === index ? "is-on" : i < index ? "is-past" : "is-next")}
+                  href={href(`/studio?preset=${p.id}`)}
+                  tabIndex={i === index ? 0 : -1}
+                  aria-label={`Open ${p.name} in the studio`}
+                >
+                  <PresetThumb id={p.id} height={640} maxRows={8} mode={mode} />
+                </a>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     </section>

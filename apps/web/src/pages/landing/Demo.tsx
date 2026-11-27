@@ -44,13 +44,13 @@ const VARIANTS = {
 };
 
 /**
- * The words, as lines of a song: each chapter opens with its title line. Lines light word by word
- * as the page scrolls, the current one in focus and the others soft around it.
+ * The words, a short verse per chapter: its title line and one more. The whole verse shows while its
+ * chapter plays, lighting word by word as the page scrolls; once it is full the next takes its place.
  */
 const CHAPTERS = [
-  ["Drag widgets in.", "Banners, stats, graphs and clocks:", "54 widgets fed by real GitHub data,", "dropped exactly where you want them."],
-  ["Make it yours.", "Pick one of 17 palettes, or your own.", "Choose from 12 typefaces,", "and watch every change land at once."],
-  ["Save to GitHub.", "Commit, or open a pull request.", "The workflow in your repository", "keeps every image current, every night."],
+  ["Drag widgets in.", "54 of them, fed by live GitHub data."],
+  ["Make it yours.", "Palettes, typefaces, texture and motion."],
+  ["Save to GitHub.", "It keeps itself current, every night."],
 ];
 /** Every line, with its chapter and where its words start in the chapter's count. */
 const LINES = CHAPTERS.flatMap((lines, ch) => {
@@ -148,8 +148,6 @@ export function Demo() {
   const section = useRef<HTMLElement>(null);
   const pin = useRef<HTMLDivElement>(null);
   const words = useRef<(HTMLSpanElement | null)[][]>(LINES.map(() => []));
-  const lyrics = useRef<HTMLDivElement>(null);
-  const lineEls = useRef<(HTMLElement | null)[]>([]);
   const [line, setLine] = useState(still ? LINES.length - 1 : 0);
   const lastLine = useRef(line);
   const steps = useRef<(HTMLElement | null)[]>([]);
@@ -184,18 +182,6 @@ export function Demo() {
     fit();
     return () => ro.disconnect();
   }, []);
-
-  // the line being read sits at a fixed height of the lyrics view; the rest move around it
-  useLayoutEffect(() => {
-    const box = lyrics.current;
-    const el = lineEls.current[line];
-    if (!box || !el) return;
-    const place = () => box.style.setProperty("--shift", `${Math.round(el.offsetTop - box.clientHeight * (narrow ? 0.12 : 0.3))}px`);
-    place();
-    const ro = new ResizeObserver(place);
-    ro.observe(box);
-    return () => ro.disconnect();
-  }, [line, narrow]);
 
   // ---------------------------------------------------------------- following the scroll
 
@@ -361,20 +347,25 @@ export function Demo() {
                 </span>
               ))}
             </div>
-            <div ref={lyrics} className="lp-lyrics">
-              {LINES.map((l, n) => (
-                <p
-                  key={n}
-                  ref={(el) => void (lineEls.current[n] = el)}
-                  className={cn("lp-line", l.title && "is-title", n === line && "is-on", n < line && "is-past")}
-                  style={{ ["--d" as string]: Math.min(4, Math.abs(n - line)), ["--lag" as string]: Math.max(0, n - line) }}
+            <div className="lp-lyrics">
+              {CHAPTERS.map((_, ch) => (
+                <div
+                  key={ch}
+                  className={cn("lp-verse", ch === chapter ? "is-on" : ch < chapter ? "is-past" : "is-next")}
+                  aria-hidden={ch !== chapter}
                 >
-                  {l.words.map((w, j) => (
-                    <span key={j}>
-                      <span ref={(el) => void (words.current[n][j] = el)}>{w}</span>{" "}
-                    </span>
-                  ))}
-                </p>
+                  {LINES.map((l, n) =>
+                    l.ch !== ch ? null : (
+                      <p key={n} className={cn("lp-line", l.title && "is-title", n <= line && l.ch === LINES[line].ch && "is-on")}>
+                        {l.words.map((w, j) => (
+                          <span key={j}>
+                            <span ref={(el) => void (words.current[n][j] = el)}>{w}</span>{" "}
+                          </span>
+                        ))}
+                      </p>
+                    ),
+                  )}
+                </div>
               ))}
             </div>
           </div>
