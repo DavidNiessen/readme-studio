@@ -159,6 +159,33 @@ class Bytes {
 }
 
 /** Encode RGBA frames into a looping animated GIF. */
+/** The smallest rectangle holding every changed pixel (a 1×1 corner when nothing changed). */
+function changedBox(idx: Uint8Array, width: number, height: number): { x: number; y: number; w: number; h: number } {
+  let x0 = width;
+  let y0 = height;
+  let x1 = -1;
+  let y1 = -1;
+  for (let y = 0; y < height; y++) {
+    const row = y * width;
+    for (let x = 0; x < width; x++) {
+      if (idx[row + x] === 0) continue;
+      if (x < x0) x0 = x;
+      if (x > x1) x1 = x;
+      if (y < y0) y0 = y;
+      y1 = y;
+    }
+  }
+  if (x1 < 0) return { x: 0, y: 0, w: 1, h: 1 };
+  return { x: x0, y: y0, w: x1 - x0 + 1, h: y1 - y0 + 1 };
+}
+
+function crop(idx: Uint8Array, width: number, b: { x: number; y: number; w: number; h: number }): Uint8Array {
+  if (b.x === 0 && b.w === width) return idx.subarray(b.y * width, (b.y + b.h) * width);
+  const out = new Uint8Array(b.w * b.h);
+  for (let y = 0; y < b.h; y++) out.set(idx.subarray((b.y + y) * width + b.x, (b.y + y) * width + b.x + b.w), y * b.w);
+  return out;
+}
+
 export function encodeGif(width: number, height: number, frames: Frame[]): Uint8Array {
   // histogram over a sample of every frame
   const hist = new Map<number, Bucket>();
@@ -221,19 +248,21 @@ export function encodeGif(width: number, height: number, frames: Frame[]): Uint8
     }
     const full = new Uint8Array(idx.length);
     for (let p = 0; p < idx.length; p++) full[p] = idx[p] === 0 && prev ? prev[p] : idx[p];
+    // only the rectangle that changed is stored: titles, legends and margins stay as they were
+    const box = prev ? changedBox(idx, width, height) : { x: 0, y: 0, w: width, h: height };
     // graphic control: disposal 1 (keep), transparent index 0
     out.bytes([0x21, 0xf9, 4, 0x05]);
     out.word(Math.round(f.delay / 10));
     out.byte(0);
     out.byte(0);
     out.byte(0x2c);
-    out.word(0);
-    out.word(0);
-    out.word(width);
-    out.word(height);
+    out.word(box.x);
+    out.word(box.y);
+    out.word(box.w);
+    out.word(box.h);
     out.byte(0);
     out.byte(8);
-    out.blocks(lzw(idx, 8));
+    out.blocks(lzw(crop(idx, width, box), 8));
     prev = full;
   }
   out.byte(0x3b);

@@ -17,7 +17,7 @@ const LOG: [string, string][] = [
   ["", "hero-dark.svg                 68.4 KB    3 ms"],
   ["", "stats-dark.svg                22.1 KB    1 ms"],
   ["", "contrib-dark.svg              41.0 KB    2 ms"],
-  ["", "skyline-dark.gif             812.6 KB  904 ms"],
+  ["", "skyline-dark.gif             1.7 MB    2.1 s"],
   ["", "… 23 more, dark and light"],
   ["", "Publishing assets to octocat/octocat@readme-studio"],
   ["02:18", "README.md updated and pushed  ✓"],

@@ -3182,8 +3182,13 @@ ${tile}`;
 // ../core/src/widgets/skyline.ts
 var W8 = 840;
 var H5 = 420;
-var SPIN_FRAMES = 36;
-var SWAY_FRAMES = 32;
+var TIMING = {
+  spin: { smooth: { frames: 96, delay: 40 }, light: { frames: 36, delay: 100 } },
+  sway: { smooth: { frames: 70, delay: 50 }, light: { frames: 32, delay: 110 } }
+};
+function timing(o) {
+  return TIMING[o.rotation === "sway" ? "sway" : "spin"][o.frameRate === "light" ? "light" : "smooth"];
+}
 var TOP = 56;
 var BOTTOM = 44;
 function shade(hex3, k) {
@@ -3278,8 +3283,9 @@ function fitAll(list) {
   return { scale, ox: W8 / 2 - scale * (x0 + x1) / 2, oy: TOP + (H5 - TOP - BOTTOM) / 2 - scale * (y0 + y1) / 2 };
 }
 function angles(o) {
-  if (o.rotation === "sway") return Array.from({ length: SWAY_FRAMES }, (_, i) => 0.5 + 0.42 * Math.sin(i / SWAY_FRAMES * Math.PI * 2));
-  return Array.from({ length: SPIN_FRAMES }, (_, i) => i / SPIN_FRAMES * Math.PI * 2 + 0.5);
+  const n = timing(o).frames;
+  if (o.rotation === "sway") return Array.from({ length: n }, (_, i) => 0.5 + 0.42 * Math.sin(i / n * Math.PI * 2));
+  return Array.from({ length: n }, (_, i) => i / n * Math.PI * 2 + 0.5);
 }
 function prepare(ctx, o) {
   const weeks = ctx.data.weeks.slice(-53);
@@ -3319,7 +3325,7 @@ var skyline = defineWidget({
   kind: "gif",
   width: "full",
   needs: ["calendar"],
-  defaults: { label: "3d skyline \xB7 last 12 months", rotation: "spin", color: "heat" },
+  defaults: { label: "3d skyline \xB7 last 12 months", rotation: "spin", frameRate: "smooth", color: "heat" },
   fields: [
     { key: "label", label: "Label", type: "text" },
     {
@@ -3330,6 +3336,16 @@ var skyline = defineWidget({
         { value: "spin", label: "Full spin" },
         { value: "sway", label: "Gentle sway" }
       ]
+    },
+    {
+      key: "frameRate",
+      label: "Frame rate",
+      type: "segmented",
+      options: [
+        { value: "smooth", label: "Smooth" },
+        { value: "light", label: "Light" }
+      ],
+      help: "Smooth turns in 25 frames a second (about 1.7 MB). Light uses 10 (about 0.7 MB), for a README that should load fast."
     },
     {
       key: "color",
@@ -3349,7 +3365,7 @@ var skyline = defineWidget({
   },
   frames(ctx, o) {
     const p = prepare(ctx, o);
-    const delay = o.rotation === "sway" ? 110 : 100;
+    const delay = timing(o).delay;
     return { width: W8, height: H5, frames: p.list.map((a) => ({ svg: frameSvg(ctx, o, p, a, false), delay })) };
   }
 });
@@ -7069,7 +7085,7 @@ var clock = defineWidget({
       const aH = (h % 12 + m / 60 + sec / 3600) * 30;
       const aM = (m + sec / 60) * 6;
       const aS = sec * 6;
-      const hand = (angle, period2, timing, inner) => `<g transform="rotate(${f(angle, 2)} ${cx} ${cy})"><g style="transform-origin:${cx}px ${cy}px;animation:spin ${period2}s ${timing} infinite">${inner}</g></g>`;
+      const hand = (angle, period2, timing2, inner) => `<g transform="rotate(${f(angle, 2)} ${cx} ${cy})"><g style="transform-origin:${cx}px ${cy}px;animation:spin ${period2}s ${timing2} infinite">${inner}</g></g>`;
       left = `<g class="in" style="${dl(0.1)}">
 <circle cx="${cx}" cy="${cy}" r="${r}" fill="${t.raised}" stroke="${t.border}"/>
 <circle cx="${cx}" cy="${cy}" r="${r - 4}" stroke="${t.border}" stroke-opacity=".7"/>
@@ -12733,6 +12749,30 @@ var Bytes = class {
     return Uint8Array.from(this.parts);
   }
 };
+function changedBox(idx, width, height) {
+  let x0 = width;
+  let y0 = height;
+  let x1 = -1;
+  let y1 = -1;
+  for (let y = 0; y < height; y++) {
+    const row = y * width;
+    for (let x = 0; x < width; x++) {
+      if (idx[row + x] === 0) continue;
+      if (x < x0) x0 = x;
+      if (x > x1) x1 = x;
+      if (y < y0) y0 = y;
+      y1 = y;
+    }
+  }
+  if (x1 < 0) return { x: 0, y: 0, w: 1, h: 1 };
+  return { x: x0, y: y0, w: x1 - x0 + 1, h: y1 - y0 + 1 };
+}
+function crop(idx, width, b) {
+  if (b.x === 0 && b.w === width) return idx.subarray(b.y * width, (b.y + b.h) * width);
+  const out = new Uint8Array(b.w * b.h);
+  for (let y = 0; y < b.h; y++) out.set(idx.subarray((b.y + y) * width + b.x, (b.y + y) * width + b.x + b.w), y * b.w);
+  return out;
+}
 function encodeGif(width, height, frames) {
   const hist = /* @__PURE__ */ new Map();
   for (const f2 of frames) {
@@ -12792,18 +12832,19 @@ function encodeGif(width, height, frames) {
     }
     const full = new Uint8Array(idx.length);
     for (let p = 0; p < idx.length; p++) full[p] = idx[p] === 0 && prev ? prev[p] : idx[p];
+    const box = prev ? changedBox(idx, width, height) : { x: 0, y: 0, w: width, h: height };
     out.bytes([33, 249, 4, 5]);
     out.word(Math.round(f2.delay / 10));
     out.byte(0);
     out.byte(0);
     out.byte(44);
-    out.word(0);
-    out.word(0);
-    out.word(width);
-    out.word(height);
+    out.word(box.x);
+    out.word(box.y);
+    out.word(box.w);
+    out.word(box.h);
     out.byte(0);
     out.byte(8);
-    out.blocks(lzw(idx, 8));
+    out.blocks(lzw(crop(idx, width, box), 8));
     prev = full;
   }
   out.byte(59);

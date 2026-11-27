@@ -59,3 +59,33 @@ describe("gif encoder", () => {
     expect(gif[gif.length - 1]).toBe(0x3b);
   });
 });
+
+describe("frame cropping", () => {
+  it("stores only the rectangle that changed since the previous frame", () => {
+    const w = 40;
+    const h = 30;
+    const solid = () => {
+      const px = new Uint8Array(w * h * 4);
+      for (let i = 0; i < px.length; i += 4) px.set([20, 20, 30, 255], i);
+      return px;
+    };
+    const second = solid();
+    // a 5×4 patch at (10, 7) changes colour
+    for (let y = 7; y < 11; y++) for (let x = 10; x < 15; x++) second.set([240, 80, 40, 255], (y * w + x) * 4);
+    const gif = encodeGif(w, h, [
+      { rgba: solid(), delay: 40 },
+      { rgba: second, delay: 40 },
+    ]);
+    // image descriptors: 0x2c, then left, top, width, height as little-endian words
+    const descriptors: number[][] = [];
+    for (let i = 0; i < gif.length - 9; i++) {
+      if (gif[i] !== 0x2c || gif[i - 1] !== 0 || gif[i - 8] !== 0x21) continue;
+      const word = (o: number) => gif[i + o] | (gif[i + o + 1] << 8);
+      descriptors.push([word(1), word(3), word(5), word(7)]);
+    }
+    expect(descriptors).toEqual([
+      [0, 0, w, h],
+      [10, 7, 5, 4],
+    ]);
+  });
+});

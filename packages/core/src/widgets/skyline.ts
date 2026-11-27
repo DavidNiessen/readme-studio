@@ -8,8 +8,19 @@ import { defineWidget, type Ctx, type GifFrames, type Options } from "./types";
 
 const W = 840;
 const H = 420;
-const SPIN_FRAMES = 36;
-const SWAY_FRAMES = 32;
+/**
+ * Frames per loop and their delay, per motion and frame rate. Smooth turns at the same speed as
+ * light, in steps a third the size: 25 fps for a spin, 20 for the slower sway. Each frame costs
+ * about 17 KB of GIF, so smooth is around 1.7 MB where light is around 0.7 MB.
+ */
+const TIMING = {
+  spin: { smooth: { frames: 96, delay: 40 }, light: { frames: 36, delay: 100 } },
+  sway: { smooth: { frames: 70, delay: 50 }, light: { frames: 32, delay: 110 } },
+} as const;
+
+function timing(o: Options) {
+  return TIMING[o.rotation === "sway" ? "sway" : "spin"][o.frameRate === "light" ? "light" : "smooth"];
+}
 const TOP = 56;
 const BOTTOM = 44;
 
@@ -133,8 +144,9 @@ function fitAll(list: Bounds[]): Fit {
 }
 
 function angles(o: Options): number[] {
-  if (o.rotation === "sway") return Array.from({ length: SWAY_FRAMES }, (_, i) => 0.5 + 0.42 * Math.sin((i / SWAY_FRAMES) * Math.PI * 2));
-  return Array.from({ length: SPIN_FRAMES }, (_, i) => (i / SPIN_FRAMES) * Math.PI * 2 + 0.5);
+  const n = timing(o).frames;
+  if (o.rotation === "sway") return Array.from({ length: n }, (_, i) => 0.5 + 0.42 * Math.sin((i / n) * Math.PI * 2));
+  return Array.from({ length: n }, (_, i) => (i / n) * Math.PI * 2 + 0.5);
 }
 
 interface Prepared {
@@ -185,7 +197,7 @@ export const skyline = defineWidget({
   kind: "gif",
   width: "full",
   needs: ["calendar"],
-  defaults: { label: "3d skyline · last 12 months", rotation: "spin", color: "heat" },
+  defaults: { label: "3d skyline · last 12 months", rotation: "spin", frameRate: "smooth", color: "heat" },
   fields: [
     { key: "label", label: "Label", type: "text" },
     {
@@ -196,6 +208,16 @@ export const skyline = defineWidget({
         { value: "spin", label: "Full spin" },
         { value: "sway", label: "Gentle sway" },
       ],
+    },
+    {
+      key: "frameRate",
+      label: "Frame rate",
+      type: "segmented",
+      options: [
+        { value: "smooth", label: "Smooth" },
+        { value: "light", label: "Light" },
+      ],
+      help: "Smooth turns in 25 frames a second (about 1.7 MB). Light uses 10 (about 0.7 MB), for a README that should load fast.",
     },
     {
       key: "color",
@@ -215,7 +237,7 @@ export const skyline = defineWidget({
   },
   frames(ctx, o): GifFrames {
     const p = prepare(ctx, o);
-    const delay = o.rotation === "sway" ? 110 : 100;
+    const delay = timing(o).delay;
     return { width: W, height: H, frames: p.list.map((a) => ({ svg: frameSvg(ctx, o, p, a, false), delay })) };
   },
 });

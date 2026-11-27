@@ -2751,6 +2751,23 @@
           ]
         },
         {
+          "key": "frameRate",
+          "label": "Frame rate",
+          "type": "segmented",
+          "default": "smooth",
+          "help": "Smooth turns in 25 frames a second (about 1.7 MB). Light uses 10 (about 0.7 MB), for a README that should load fast.",
+          "choices": [
+            {
+              "value": "smooth",
+              "label": "Smooth"
+            },
+            {
+              "value": "light",
+              "label": "Light"
+            }
+          ]
+        },
+        {
           "key": "color",
           "label": "Tower colours",
           "type": "segmented",

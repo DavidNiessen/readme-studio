@@ -499,6 +499,7 @@ Category Activity · output gif · width full · for profile READMEs
 
 - `label` (text) · default "3d skyline · last 12 months"
 - `rotation` (segmented: spin | sway) · default "spin"
+- `frameRate` (segmented: smooth | light) · default "smooth" · Smooth turns in 25 frames a second (about 1.7 MB). Light uses 10 (about 0.7 MB), for a README that should load fast.
 - `color` (segmented: heat | accent) · default "heat"
 
 ### rhythm

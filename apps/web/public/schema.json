@@ -2009,6 +2009,14 @@
                               "sway"
                             ]
                           },
+                          "frameRate": {
+                            "title": "Frame rate",
+                            "description": "Smooth turns in 25 frames a second (about 1.7 MB). Light uses 10 (about 0.7 MB), for a README that should load fast.",
+                            "enum": [
+                              "smooth",
+                              "light"
+                            ]
+                          },
                           "color": {
                             "title": "Tower colours",
                             "enum": [
