@@ -1394,70 +1394,61 @@
   transform: scaleX(var(--p));
   transform-origin: left;
 }
-/* the texts share one place; the current one is in it, the others wait above and below */
-.lp-how__lyrics {
-  display: grid;
+/* the lines of a song: the one being read in focus at a fixed height, the others soft around it */
+.lp-lyrics {
+  position: relative;
+  height: min(440px, 52svh);
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(transparent, #000 18%, #000 72%, transparent);
+  mask-image: linear-gradient(transparent, #000 18%, #000 72%, transparent);
+  --shift: 0px;
 }
-.lp-lyric {
-  grid-area: 1 / 1;
-  align-self: start;
-  opacity: 0;
-  filter: blur(6px);
-  transform: translateY(36px);
+.lp-line {
+  margin: 0 0 0.42em;
+  font-family: var(--font-sans);
+  font-size: clamp(26px, 2.35vw, 36px);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.022em;
+  transform: translateY(calc(var(--shift) * -1)) scale(0.96);
+  transform-origin: left center;
+  opacity: calc(0.62 - var(--d) * 0.1);
+  filter: blur(calc(var(--d) * 0.7px));
   transition:
+    transform 0.9s cubic-bezier(0.22, 1, 0.36, 1),
     opacity 0.6s var(--ease),
-    transform 0.8s var(--ease),
     filter 0.6s var(--ease);
-  pointer-events: none;
+  /* lines below the one being read follow a beat later, one after another */
+  transition-delay: calc(var(--lag) * 45ms);
+  --on: var(--ink);
+  --off: color-mix(in srgb, var(--ink) 24%, transparent);
 }
-.lp-lyric.is-on {
+.lp-line.is-title {
+  --on: var(--accent);
+  --off: color-mix(in srgb, var(--accent) 32%, transparent);
+}
+.lp-line.is-on {
+  transform: translateY(calc(var(--shift) * -1));
   opacity: 1;
   filter: none;
+}
+/* each word fills from the left with a soft edge, and lifts a little as it does */
+.lp-line span span {
+  display: inline-block;
+  padding-bottom: 0.08em;
+  background-image: linear-gradient(90deg, var(--on) 0 42%, var(--off) 58% 100%);
+  background-size: 260% 100%;
+  background-position: calc(100% - var(--lit, 0) * 100%) 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  transform: translateY(calc((1 - var(--lit, 0)) * 0.06em));
+}
+/* lines that have been read settle back, dimmed with the rest */
+.lp-line.is-past span span {
+  background-position: 100% 0;
   transform: none;
-  pointer-events: auto;
-}
-.lp-lyric.is-past {
-  transform: translateY(-36px);
-}
-.lp-lyric__text {
-  margin: 0;
-  font-family: var(--font-serif);
-  font-size: clamp(30px, 3.1vw, 46px);
-  line-height: 1.16;
-  letter-spacing: -0.015em;
-}
-/* each word goes from a ghost of itself to full ink as the scroll reaches it */
-.lp-lyric__text span {
-  --lit: 0;
-  color: color-mix(in srgb, var(--ink) calc(18% + var(--lit) * 82%), transparent);
-}
-.lp-lyric__text span.is-title {
-  color: color-mix(in srgb, var(--accent) calc(22% + var(--lit) * 78%), transparent);
-  font-style: italic;
-}
-.lp-lyric__facts {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin: 26px 0 0;
-  padding: 0;
-  list-style: none;
-}
-.lp-lyric__facts li {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 11px;
-  border: 1px solid var(--line);
-  border-radius: var(--r-pill);
-  background: var(--surface);
-  color: var(--ink-2);
-  font-size: var(--t-sm);
-}
-.lp-lyric__facts svg {
-  width: 13px;
-  height: 13px;
-  color: var(--accent);
+  transition: background-position 0.8s var(--ease);
 }
 .lp-how__stage {
   position: relative;
@@ -2069,79 +2060,6 @@
   opacity: 0.35;
 }
 
-/* phones: a narrower window. The library becomes a row of three cards, the palette and typeface a
-   strip under it, and the README fills the rest */
-.lp-studio.is-compact .lp-studio__tools,
-.lp-studio.is-compact .lp-studio__ghost,
-.lp-studio.is-compact .lp-studio__rail .lp-studio__tabs,
-.lp-studio.is-compact .lp-studio__inspector .lp-studio__tabs,
-.lp-studio.is-compact .lp-studio__search,
-.lp-studio.is-compact .lp-studio__group,
-.lp-studio.is-compact .lp-studio__inspector .lp-studio__label,
-.lp-studio.is-compact .lp-pal__name,
-.lp-studio.is-compact .lp-card small,
-.lp-studio.is-compact .lp-studio__meta {
-  display: none;
-}
-.lp-studio.is-compact .lp-studio__name {
-  margin-right: auto;
-}
-.lp-studio.is-compact .lp-studio__body {
-  grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: auto auto minmax(0, 1fr);
-}
-.lp-studio.is-compact .lp-studio__rail {
-  padding: 10px 0;
-  border-right: 0;
-  border-bottom: 1px solid var(--line);
-}
-.lp-studio.is-compact .lp-studio__cards {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-.lp-studio.is-compact .lp-card b {
-  font-size: 11.5px;
-  white-space: nowrap;
-}
-.lp-studio.is-compact .lp-card__thumb {
-  height: 50px;
-}
-.lp-studio.is-compact .lp-studio__inspector {
-  grid-row: 2;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 132px;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  border-left: 0;
-  border-bottom: 1px solid var(--line);
-}
-.lp-studio.is-compact .lp-studio__palettes {
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 5px;
-}
-.lp-studio.is-compact .lp-pal {
-  padding: 3px;
-}
-.lp-studio.is-compact .lp-pal__swatch {
-  height: 26px;
-}
-.lp-studio.is-compact .lp-pal__swatch > span {
-  padding: 3px 2px;
-  gap: 1px;
-}
-.lp-studio.is-compact .lp-pal__swatch i {
-  width: 3px;
-}
-.lp-studio.is-compact .lp-studio__fake span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.lp-studio.is-compact .lp-studio__canvas {
-  grid-row: 3;
-  padding: 12px;
-}
-
 @media (max-width: 1000px) {
   /* phones and tablets: the text above, the window below it, both pinned */
   .lp-how__grid {
@@ -2154,20 +2072,12 @@
   .lp-how__copy {
     gap: 14px;
   }
-  .lp-lyric__text {
-    font-size: clamp(22px, 5.6vw, 34px);
+  .lp-lyrics {
+    height: 7.2em;
+    font-size: clamp(21px, 5.4vw, 30px);
   }
-  .lp-lyric__facts {
-    display: none;
-  }
-  .lp-lyric {
-    transform: translateY(18px);
-  }
-  .lp-lyric.is-past {
-    transform: translateY(-18px);
-  }
-  .lp-lyric.is-on {
-    transform: none;
+  .lp-line {
+    font-size: 1em;
   }
   /* no turn on a narrow screen: the window would reach past its edge */
   .lp-studio.is-chapter-0,
@@ -2175,6 +2085,23 @@
   .lp-studio.is-chapter-2 {
     --ry: 0deg;
     --rx: 0deg;
+  }
+}
+/* phones: the full window, wider than the screen and panned after the cursor, reaching the screen's edges */
+@media (max-width: 640px) {
+  .lp-how__stage {
+    margin-inline: calc(var(--s-6) * -1);
+    overflow: hidden;
+  }
+  .lp-studio {
+    transition:
+      transform 1.1s var(--ease),
+      box-shadow 0.6s var(--ease);
+  }
+}
+@media (max-width: 560px) {
+  .lp-how__stage {
+    margin-inline: calc(var(--s-4) * -1);
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -2191,11 +2118,21 @@
     min-height: 640px;
   }
   .lp-studio,
-  .lp-lyric {
+  .lp-line {
     transition: none;
   }
-  .lp-lyric__text span {
-    --lit: 1 !important;
+  .lp-lyrics {
+    height: auto;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+  .lp-line {
+    transform: none !important;
+    opacity: 1;
+    filter: none;
+  }
+  .lp-line span span {
+    background-position: 0 0 !important;
   }
   .lp-studio__fake.is-changed,
   .lp-ripple.is-on::after {
@@ -2207,96 +2144,165 @@
   }
 }
 
-/* ---------------------------------------------------------------- presets: the selected one behind the page */
+/* ---------------------------------------------------------------- presets: the section takes on the selected preset's look */
 
-/* the page's content is one layer, so the backdrop can sit under all of it and over the page colour */
-.site:has(.lp-backdrop) main {
-  position: relative;
-  z-index: 1;
+@property --pz-bg {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
 }
-.lp-backdrop {
-  position: fixed;
+@property --pz-card {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+@property --pz-border {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+@property --pz-text {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: black;
+}
+@property --pz-muted {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: gray;
+}
+@property --pz-subtle {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: gray;
+}
+@property --pz-accent {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: black;
+}
+@property --pz-glow {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: black;
+}
+.lp-pz {
+  position: relative;
+  isolation: isolate;
+  color: var(--pz-text);
+  /* registered colours, so a new preset's colours blend in rather than cut */
+  transition:
+    --pz-bg 0.7s var(--ease),
+    --pz-card 0.7s var(--ease),
+    --pz-border 0.7s var(--ease),
+    --pz-text 0.7s var(--ease),
+    --pz-muted 0.7s var(--ease),
+    --pz-subtle 0.7s var(--ease),
+    --pz-accent 0.7s var(--ease),
+    --pz-glow 0.7s var(--ease);
+}
+.lp-pz__bg {
+  position: absolute;
   inset: 0;
   z-index: -1;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.9s var(--ease);
-}
-.lp-backdrop.is-on {
-  opacity: 1;
-}
-.lp-backdrop__layer {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  transform: scale(1.03);
-  transition:
-    opacity 0.8s var(--ease),
-    transform 1.2s var(--ease);
-}
-.lp-backdrop__layer.is-on {
-  opacity: 1;
-  transform: none;
-}
-.lp-backdrop__page {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-}
-.lp-backdrop__readme {
-  width: min(1240px, 100vw);
-  margin: 0 auto;
-  padding: 80px 24px;
-  filter: blur(1.5px) saturate(1.1);
-  will-change: transform;
-}
-.lp-backdrop__row {
-  display: flex;
-  justify-content: center;
-  gap: 12px;
-  margin-bottom: 14px;
-}
-.lp-backdrop__row img {
-  display: block;
-  flex: 1 1 0;
-  min-width: 0;
-  height: auto;
-}
-.lp-backdrop__row.is-pills {
-  gap: 6px;
-}
-.lp-backdrop__row.is-pills img {
-  flex: none;
-  height: 28px;
-  width: auto;
-}
-/* the page colour washes over it, more at the edges, so the section stays readable */
-.lp-backdrop::after {
-  content: "";
-  position: absolute;
-  inset: 0;
   background:
-    radial-gradient(
-      ellipse at 50% 55%,
-      color-mix(in srgb, var(--paper) 52%, transparent),
-      color-mix(in srgb, var(--paper) 78%, transparent) 75%
-    ),
-    linear-gradient(var(--paper), transparent 18%, transparent 82%, var(--paper));
+    radial-gradient(ellipse 70% 55% at 50% 30%, color-mix(in srgb, var(--pz-glow) 16%, transparent), transparent 70%), var(--pz-bg);
+  /* soft edges into the page above and below */
+  -webkit-mask-image: linear-gradient(transparent, #000 90px, #000 calc(100% - 90px), transparent);
+  mask-image: linear-gradient(transparent, #000 90px, #000 calc(100% - 90px), transparent);
 }
-.lp-presets .preset-card {
-  background: color-mix(in srgb, var(--surface) 88%, transparent);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+.lp-pz__tex {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.7s var(--ease);
 }
-.lp-presets .preset-card.is-selected {
-  border-color: var(--ink);
+.lp-pz__tex.is-on {
+  opacity: 0.55;
+}
+.lp-pz__tex--dots {
+  background-image: radial-gradient(var(--pz-subtle) 1px, transparent 1.4px);
+  background-size: 18px 18px;
+}
+.lp-pz__tex--grid {
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--pz-subtle) 60%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--pz-subtle) 60%, transparent) 1px, transparent 1px);
+  background-size: 26px 26px;
+}
+.lp-pz__tex--lines {
+  background-image: repeating-linear-gradient(45deg, color-mix(in srgb, var(--pz-subtle) 55%, transparent) 0 1px, transparent 1px 11px);
+}
+.lp-pz .lp-head .eyebrow {
+  color: var(--pz-accent);
+}
+.lp-pz .lp-head h2 {
+  color: var(--pz-text);
+}
+.lp-pz .lp-head h2 em {
+  color: var(--pz-accent);
+}
+.lp-pz .lp-head p,
+.lp-pz .preset-meta p {
+  color: var(--pz-muted);
+}
+/* the preset's typefaces, once they are in */
+.lp-pz .lp-head h2 {
+  /* two lines held open, so a wider typeface does not push the cards down */
+  display: grid;
+  align-content: end;
+  min-height: 2.1em;
+}
+.lp-pz.is-fonts .lp-head h2 {
+  font-family: var(--pz-head);
+  font-weight: var(--pz-head-weight);
+  font-size: clamp(30px, 4.4vw, 54px);
+  letter-spacing: -0.035em;
+  line-height: 1.05;
+}
+.lp-pz.is-fonts .lp-head h2 em {
+  font-style: normal;
+}
+.lp-pz.is-fonts .lp-head p,
+.lp-pz.is-fonts .preset-meta,
+.lp-pz.is-fonts .center-link {
+  font-family: var(--pz-body);
+}
+.lp-pz.is-fonts .preset-meta h4 {
+  font-family: var(--pz-head);
+  font-weight: var(--pz-head-weight);
+}
+.lp-pz .preset-card {
+  border-color: var(--pz-border);
+  border-radius: var(--pz-radius);
+  background: color-mix(in srgb, var(--pz-card) 82%, transparent);
+  color: var(--pz-text);
+  transition:
+    border-color 0.3s var(--ease),
+    border-radius 0.5s var(--ease),
+    box-shadow 0.4s var(--ease),
+    transform 0.4s var(--ease);
+}
+.lp-pz .preset-card .preset-thumb {
+  border-radius: calc(var(--pz-radius) - 6px);
+  transition: border-radius 0.5s var(--ease);
+}
+.lp-pz .preset-card.is-selected {
+  border-color: var(--pz-accent);
   box-shadow:
-    0 0 0 1px var(--ink),
-    0 30px 60px -30px rgba(0, 0, 0, 0.5);
+    0 0 0 1px var(--pz-accent),
+    0 30px 70px -30px color-mix(in srgb, var(--pz-glow) 55%, transparent);
+}
+.lp-pz .center-link a {
+  color: var(--pz-text);
+  border-color: color-mix(in srgb, var(--pz-text) 30%, transparent);
+}
+.lp-pz .center-link a:hover {
+  color: var(--pz-accent);
 }
 @media (prefers-reduced-motion: reduce) {
-  .lp-backdrop,
-  .lp-backdrop__layer {
+  .lp-pz,
+  .lp-pz__tex {
     transition: none;
   }
 }

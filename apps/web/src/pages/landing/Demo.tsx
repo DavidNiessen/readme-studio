@@ -1,4 +1,4 @@
-import { getWidget, palettePresets } from "@readme-studio/core";
+import { fontStack, getWidget, palettePresets } from "@readme-studio/core";
 import {
   BookOpen,
   Check,
@@ -23,6 +23,7 @@ import { WidgetImage } from "../../components/WidgetImage";
 import { cn } from "../../components/ui";
 import type { RenderedPart } from "../../lib/render";
 import { clamp, ease, reducedMotion } from "./scroll";
+import { usePageFonts } from "./Presets";
 import { useSiteMode, useStillVariants } from "./stills";
 
 /** The widgets the cursor drags in, in order. */
@@ -42,27 +43,30 @@ const VARIANTS = {
   "amber-grotesk": { palette: "amber", headingFont: "space-grotesk" },
 };
 
-/** One text per chapter, lit word by word as the page scrolls. The first sentence is its title. */
+/**
+ * The words, as lines of a song: each chapter opens with its title line. Lines light word by word
+ * as the page scrolls, the current one in focus and the others soft around it.
+ */
 const CHAPTERS = [
-  {
-    title: "Drag widgets in.",
-    text: "Banners, stats, graphs and clocks: 54 widgets fed by real GitHub data, dropped exactly where you want them.",
-    facts: ["54 widgets", "Profile and project READMEs"],
-  },
-  {
-    title: "Make it yours.",
-    text: "Pick one of 17 palettes or make your own, choose from 12 typefaces, and see every change the moment you make it.",
-    facts: ["17 palettes", "12 typefaces", "Dark and light"],
-  },
-  {
-    title: "Save to GitHub.",
-    text: "Commit or open a pull request. The workflow in your repository renders every image and keeps it current, every night.",
-    facts: ["Commit or pull request", "Rebuilt nightly"],
-  },
-].map((c) => ({
-  ...c,
-  words: [...c.title.split(" ").map((w) => ({ w, title: true })), ...c.text.split(" ").map((w) => ({ w, title: false }))],
-}));
+  ["Drag widgets in.", "Banners, stats, graphs and clocks:", "54 widgets fed by real GitHub data,", "dropped exactly where you want them."],
+  ["Make it yours.", "Pick one of 17 palettes, or your own.", "Choose from 12 typefaces,", "and watch every change land at once."],
+  ["Save to GitHub.", "Commit, or open a pull request.", "The workflow in your repository", "keeps every image current, every night."],
+];
+/** Every line, with its chapter and where its words start in the chapter's count. */
+const LINES = CHAPTERS.flatMap((lines, ch) => {
+  let start = 0;
+  return lines.map((text, n) => {
+    const words = text.split(" ");
+    const line = { ch, title: n === 0, words, start };
+    start += words.length;
+    return line;
+  });
+});
+const WORDS = CHAPTERS.map((lines) => lines.join(" ").split(" ").length);
+
+/** The window's designed size. */
+const W = 940;
+const H = 640;
 
 /** How much of a chapter's scroll lights its text; the rest holds it full before the next one. */
 const FILL = 0.72;
@@ -134,7 +138,7 @@ export function Demo() {
   const still = reducedMotion();
   const [chapter, setChapter] = useState(still ? 2 : 0);
   const [view, setView] = useState<View>(() => viewAt(still ? 3 : 0));
-  const [compact, setCompact] = useState(false);
+  const [narrow, setNarrow] = useState(false);
   const mode = useSiteMode();
   const renders = useStillVariants(VARIANTS, BLOCKS, mode);
   const variant = view.grotesk ? "amber-grotesk" : (["crimson", "ocean", "amber"] as const)[view.palette];
@@ -143,7 +147,11 @@ export function Demo() {
 
   const section = useRef<HTMLElement>(null);
   const pin = useRef<HTMLDivElement>(null);
-  const words = useRef<(HTMLSpanElement | null)[][]>(CHAPTERS.map(() => []));
+  const words = useRef<(HTMLSpanElement | null)[][]>(LINES.map(() => []));
+  const lyrics = useRef<HTMLDivElement>(null);
+  const lineEls = useRef<(HTMLElement | null)[]>([]);
+  const [line, setLine] = useState(still ? LINES.length - 1 : 0);
+  const lastLine = useRef(line);
   const steps = useRef<(HTMLElement | null)[]>([]);
   const stage = useRef<HTMLDivElement>(null);
   const frame = useRef<HTMLDivElement>(null);
@@ -155,27 +163,39 @@ export function Demo() {
   // how far the README is scrolled up to show its newest widget
   const shift = useRef(0);
 
-  // the window is designed at a fixed size, compact on narrow screens, and scaled into its box
+  // the window is designed at one size. Where it fits, it is scaled into its box; on a phone it keeps
+  // a readable size, wider than the screen, and the view pans to follow the cursor
+  const fitted = useRef({ s: 1, room: 0 });
   useLayoutEffect(() => {
     const el = stage.current;
     if (!el) return;
     const fit = () => {
-      const narrow = el.clientWidth < 640;
-      setCompact(narrow);
-      const w = narrow ? 460 : 940;
-      const h = narrow ? 620 : 640;
-      const s = Math.min(1, el.clientWidth / w, el.clientHeight / h);
+      const isNarrow = el.clientWidth < 640;
+      setNarrow(isNarrow);
+      const s = isNarrow ? Math.min(0.85, el.clientHeight / H) : Math.min(1, el.clientWidth / W, el.clientHeight / H);
+      fitted.current = { s, room: Math.max(0, W * s - el.clientWidth) };
       el.style.setProperty("--s", String(s));
-      el.style.setProperty("--fw", `${w}px`);
-      el.style.setProperty("--fh", `${h}px`);
-      el.style.setProperty("--ox", `${Math.max(0, (el.clientWidth - w * s) / 2)}px`);
-      el.style.setProperty("--oy", `${Math.max(0, (el.clientHeight - h * s) / 2)}px`);
+      el.style.setProperty("--ox", `${Math.max(0, (el.clientWidth - W * s) / 2)}px`);
+      el.style.setProperty("--oy", `${Math.max(0, (el.clientHeight - H * s) / 2)}px`);
+      window.dispatchEvent(new Event("scroll"));
     };
     const ro = new ResizeObserver(fit);
     ro.observe(el);
     fit();
     return () => ro.disconnect();
   }, []);
+
+  // the line being read sits at a fixed height of the lyrics view; the rest move around it
+  useLayoutEffect(() => {
+    const box = lyrics.current;
+    const el = lineEls.current[line];
+    if (!box || !el) return;
+    const place = () => box.style.setProperty("--shift", `${Math.round(el.offsetTop - box.clientHeight * (narrow ? 0.12 : 0.3))}px`);
+    place();
+    const ro = new ResizeObserver(place);
+    ro.observe(box);
+    return () => ro.disconnect();
+  }, [line, narrow]);
 
   // ---------------------------------------------------------------- following the scroll
 
@@ -209,11 +229,19 @@ export function Demo() {
       setChapter(ch);
     }
     // the text lights word by word, a soft edge running through it
-    CHAPTERS.forEach((c, i) => {
-      const lit = clamp((T - i) / FILL) * c.words.length;
-      words.current[i].forEach((el, j) => el?.style.setProperty("--lit", clamp(lit - j).toFixed(3)));
-      steps.current[i]?.style.setProperty("--p", clamp(T - i).toFixed(3));
+    CHAPTERS.forEach((_, i) => steps.current[i]?.style.setProperty("--p", clamp(T - i).toFixed(3)));
+    const lit = clamp((T - ch) / FILL) * WORDS[ch];
+    let on = 0;
+    LINES.forEach((l, n) => {
+      const done = l.ch < ch ? WORDS[l.ch] : l.ch > ch ? 0 : lit;
+      words.current[n].forEach((el, j) => el?.style.setProperty("--lit", clamp(done - l.start - j).toFixed(3)));
+      // the line being read: the last of this chapter whose first word has been reached
+      if (l.ch === ch && (l.start === 0 || lit > l.start)) on = n;
     });
+    if (on !== lastLine.current) {
+      lastLine.current = on;
+      setLine(on);
+    }
     const f = frame.current;
     const c = cursor.current;
     if (!f || !c) return;
@@ -248,6 +276,12 @@ export function Demo() {
     const y = (1 - t) * (1 - t) * ay + 2 * (1 - t) * t * my + t * t * by;
     const down = !!(t < 0.5 ? a.down : b.down);
     c.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
+    const { s: scale, room } = fitted.current;
+    if (room > 0 && stage.current) {
+      // on a phone the window is wider than the screen: keep the cursor in the middle of the view
+      const pan = clamp(x * scale - stage.current.clientWidth / 2, 0, room);
+      stage.current.style.setProperty("--ox", `${(-pan).toFixed(1)}px`);
+    }
     c.classList.toggle("is-down", down);
     const r = ripple.current;
     if (down && !wasDown.current && r) {
@@ -305,13 +339,13 @@ export function Demo() {
       window.removeEventListener("resize", onScroll);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [still, compact]);
+  }, [still, narrow]);
 
   // keep the cursor on its target when the layout changes under it (a widget lands, the size changes)
   useEffect(() => {
     const id = requestAnimationFrame(() => window.dispatchEvent(new Event("scroll")));
     return () => cancelAnimationFrame(id);
-  }, [view, rows, compact]);
+  }, [view, rows, narrow]);
 
   const dragged = view.dragging >= 0 ? thumbs[view.dragging]?.[0] : undefined;
   return (
@@ -321,34 +355,26 @@ export function Demo() {
           <div className="lp-how__copy">
             <div className="lp-how__steps" aria-hidden>
               {CHAPTERS.map((c, i) => (
-                <span key={c.title} ref={(el) => void (steps.current[i] = el)} className={cn(i === chapter && "is-on")}>
+                <span key={c[0]} ref={(el) => void (steps.current[i] = el)} className={cn(i === chapter && "is-on")}>
                   <b className="mono">0{i + 1}</b>
                   <i />
                 </span>
               ))}
             </div>
-            <div className="lp-how__lyrics">
-              {CHAPTERS.map((c, i) => (
-                <article
-                  key={c.title}
-                  className={cn("lp-lyric", i === chapter ? "is-on" : i < chapter ? "is-past" : "is-next")}
-                  aria-hidden={i !== chapter}
+            <div ref={lyrics} className="lp-lyrics">
+              {LINES.map((l, n) => (
+                <p
+                  key={n}
+                  ref={(el) => void (lineEls.current[n] = el)}
+                  className={cn("lp-line", l.title && "is-title", n === line && "is-on", n < line && "is-past")}
+                  style={{ ["--d" as string]: Math.min(4, Math.abs(n - line)), ["--lag" as string]: Math.max(0, n - line) }}
                 >
-                  <p className="lp-lyric__text">
-                    {c.words.map(({ w, title }, j) => (
-                      <span key={j} ref={(el) => void (words.current[i][j] = el)} className={cn(title && "is-title")}>
-                        {w}{" "}
-                      </span>
-                    ))}
-                  </p>
-                  <ul className="lp-lyric__facts">
-                    {c.facts.map((f) => (
-                      <li key={f}>
-                        <Check /> {f}
-                      </li>
-                    ))}
-                  </ul>
-                </article>
+                  {l.words.map((w, j) => (
+                    <span key={j}>
+                      <span ref={(el) => void (words.current[n][j] = el)}>{w}</span>{" "}
+                    </span>
+                  ))}
+                </p>
               ))}
             </div>
           </div>
@@ -358,7 +384,6 @@ export function Demo() {
               scrollRef={scrollBox}
               innerRef={inner}
               chapter={chapter}
-              compact={compact}
               view={view}
               mode={mode}
               rows={rows}
@@ -389,12 +414,13 @@ export function Demo() {
 }
 
 /** The studio as it looks, cut down to what the story uses. */
+const DEMO_FONTS = ["space-grotesk", "jetbrains-mono"];
+
 function StudioWindow({
   frameRef,
   scrollRef,
   innerRef,
   chapter,
-  compact,
   view,
   mode,
   rows,
@@ -406,7 +432,6 @@ function StudioWindow({
   scrollRef: RefObject<HTMLDivElement | null>;
   innerRef: RefObject<HTMLDivElement | null>;
   chapter: number;
-  compact: boolean;
   view: View;
   mode: "dark" | "light";
   rows: RenderedPart[][];
@@ -414,8 +439,9 @@ function StudioWindow({
   fresh: boolean;
   children: ReactNode;
 }) {
+  usePageFonts(DEMO_FONTS);
   return (
-    <div ref={frameRef} className={cn("lp-studio", `is-chapter-${chapter}`, compact && "is-compact", view.saved && "is-saved")} aria-hidden>
+    <div ref={frameRef} className={cn("lp-studio", `is-chapter-${chapter}`, view.saved && "is-saved")} aria-hidden>
       <div className="lp-studio__top" data-part="top">
         <span className="lp-studio__brand">
           <LogoMark size={22} />
@@ -557,7 +583,7 @@ function StudioWindow({
           </div>
           <div className="lp-studio__label">Heading typeface</div>
           <div className={cn("lp-studio__fake", view.grotesk && "is-changed")} data-demo="font">
-            <span style={{ fontFamily: view.grotesk ? "'Space Grotesk', var(--font-sans)" : "var(--font-mono)" }}>
+            <span style={{ fontFamily: view.grotesk ? fontStack("space-grotesk") : fontStack("jetbrains-mono") }}>
               {view.grotesk ? "Space Grotesk" : "JetBrains Mono"}
             </span>
             <ChevronDown />

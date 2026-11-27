@@ -206,8 +206,8 @@ export function Landing() {
         </div>
       </section>
 
-      <section className="lp-section">
-        <div className="wrap">
+      <PresetShowcase
+        head={
           <Head
             eyebrow={`${layoutPresets.length} presets`}
             title={
@@ -217,14 +217,8 @@ export function Landing() {
             }
             text="Complete designs for profiles and projects, from a maximal command center to a single quiet card."
           />
-          <PresetShowcase />
-          <div className="center-link">
-            <a href={href("/presets")}>
-              All {layoutPresets.length} presets <ArrowRight />
-            </a>
-          </div>
-        </div>
-      </section>
+        }
+      />
 
       <section className="lp-section">
         <div className="wrap">

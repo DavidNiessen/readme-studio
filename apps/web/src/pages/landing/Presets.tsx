@@ -1,140 +1,106 @@
-import { layoutPresets, presetConfig, type Mode } from "@readme-studio/core";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { fontFaceCss, fontInfo, fontStack, layoutPresets, presetConfig, resolveTheme, type Mode } from "@readme-studio/core";
+import { ArrowRight } from "lucide-react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { PresetThumb } from "../../components/PresetThumb";
-import { WidgetImage } from "../../components/WidgetImage";
 import { cn } from "../../components/ui";
+import { useFontsReady } from "../../lib/render";
 import { href } from "../../lib/router";
-import { renderLayout, useFontsReady } from "../../lib/render";
-import { Reveal, reducedMotion } from "./scroll";
-import { sampleData, useSiteMode } from "./stills";
+import { Reveal } from "./scroll";
+import { useSiteMode } from "./stills";
 
-const DATE = new Date();
 const LIST = [
   ...layoutPresets.filter((p) => (p.kind ?? "profile") === "profile").slice(0, 2),
   ...layoutPresets.filter((p) => p.kind === "project").slice(0, 2),
 ];
 
-/**
- * Four presets. While the section is on screen, the selected one (the first, until another is
- * hovered) fills the page behind it as a full README, and hovering another swaps it in. The choice
- * stays after the pointer leaves. On touch screens the first tap selects, the second opens it.
- */
-export function PresetShowcase() {
-  const mode = useSiteMode();
-  const [selected, setSelected] = useState(LIST[0].id);
-  const [visible, setVisible] = useState(false);
-  // presets are rendered the first time they are shown, then kept, so swapping back is instant
-  const [seen, setSeen] = useState<string[]>([]);
-  const ref = useRef<HTMLDivElement>(null);
-  const hover = useRef(typeof matchMedia !== "undefined" && matchMedia("(hover: hover)").matches);
-
+/** The page's own copy of the fonts the presets use, so the section can set its text in them. */
+const pageFonts = new Set<string>();
+export function usePageFonts(ids: string[]): boolean {
+  const ready = useFontsReady(ids);
   useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    // on while the row is around the middle of the screen, so the sections either side keep the plain page
-    const io = new IntersectionObserver(([e]) => setVisible(e.isIntersecting), { rootMargin: "-25% 0px -25% 0px" });
-    io.observe(el);
-    return () => io.disconnect();
-  }, []);
-  useEffect(() => {
-    if (visible && !seen.includes(selected)) setSeen((s) => [...s, selected]);
-  }, [visible, selected, seen]);
-
-  return (
-    <div ref={ref} className="lp-presets">
-      <div className={cn("lp-backdrop", visible && "is-on")} aria-hidden>
-        {seen.map((id) => (
-          <div key={id} className={cn("lp-backdrop__layer", id === selected && "is-on")}>
-            <Backdrop id={id} mode={mode} />
-          </div>
-        ))}
-      </div>
-      <div className="preset-row">
-        {LIST.map((p, i) => (
-          <Reveal key={p.id} delay={i * 90}>
-            <a
-              className={cn("preset-card lp-tilt", p.id === selected && "is-selected")}
-              href={href(`/studio?preset=${p.id}`)}
-              onPointerEnter={(e) => e.pointerType === "mouse" && setSelected(p.id)}
-              onFocus={() => setSelected(p.id)}
-              onClick={(e) => {
-                if (hover.current || p.id === selected) return;
-                e.preventDefault();
-                setSelected(p.id);
-              }}
-            >
-              <PresetThumb id={p.id} height={260} mode={mode} />
-              <div className="preset-meta">
-                <h4>{p.name}</h4>
-                <p>{p.description}</p>
-              </div>
-            </a>
-          </Reveal>
-        ))}
-      </div>
-    </div>
-  );
+    const fresh = ids.filter((id) => !pageFonts.has(fontInfo(id).id));
+    if (!ready || !fresh.length) return;
+    fresh.forEach((id) => pageFonts.add(fontInfo(id).id));
+    const style = document.createElement("style");
+    style.dataset.presetFonts = fresh.join(" ");
+    style.textContent = fontFaceCss(fresh);
+    document.head.appendChild(style);
+  }, [ready, ids]);
+  return ready;
 }
 
-/** A preset's whole README, still, large enough to fill the window behind the page. */
-function Backdrop({ id, mode }: { id: string; mode: Mode }) {
-  const config = useMemo(() => {
-    const c = presetConfig(id);
-    // stills: a screen-sized backdrop of looping images would keep the browser drawing every frame
-    return { ...c, theme: { ...c.theme, motion: "off" as const } };
-  }, [id]);
-  const ready = useFontsReady([config.theme.font, config.theme.headingFont]);
-  const [rows, setRows] = useState<ReturnType<typeof renderLayout>>([]);
-  useEffect(() => {
-    if (!ready) return;
-    const t = window.setTimeout(() => setRows(renderLayout(config, sampleData(config.kind), mode, DATE)), 0);
-    return () => window.clearTimeout(t);
-  }, [ready, config, mode]);
-  const drift = useRef<HTMLDivElement>(null);
+/** A preset's look as CSS variables: its colours in the site's scheme, typefaces, corners and texture. */
+function presetStyle(id: string, mode: Mode): { style: CSSProperties; texture: string } {
+  const theme = resolveTheme(presetConfig(id).theme, mode);
+  const vars: Record<string, string> = {
+    "--pz-bg": theme.card,
+    "--pz-card": theme.bg,
+    "--pz-raised": theme.raised,
+    "--pz-border": theme.border,
+    "--pz-text": theme.text,
+    "--pz-muted": theme.muted,
+    "--pz-subtle": theme.subtle,
+    "--pz-accent": theme.accent,
+    "--pz-glow": theme.glow,
+    "--pz-radius": `${Math.min(24, theme.radius + 4)}px`,
+    "--pz-head": fontStack(theme.headingFont),
+    "--pz-body": fontStack(theme.font),
+    "--pz-head-weight": fontInfo(theme.headingFont).category === "serif" ? "600" : "700",
+  };
+  return { style: vars as CSSProperties, texture: theme.texture };
+}
 
-  // the README drifts up slowly while the page scrolls, so more of it passes behind the section
-  useEffect(() => {
-    const el = drift.current;
-    if (!el || reducedMotion()) return;
-    let frame = 0;
-    const move = () => {
-      frame = 0;
-      const host = el.closest(".lp-presets");
-      if (!host) return;
-      const r = host.getBoundingClientRect();
-      const p = Math.min(1, Math.max(0, (window.innerHeight - r.top) / (window.innerHeight + r.height)));
-      const room = Math.max(0, el.offsetHeight - window.innerHeight);
-      el.style.transform = `translateY(${(-p * room * 0.5).toFixed(1)}px)`;
-    };
-    const queue = () => {
-      if (!frame) frame = requestAnimationFrame(move);
-    };
-    move();
-    window.addEventListener("scroll", queue, { passive: true });
-    window.addEventListener("resize", queue);
-    return () => {
-      cancelAnimationFrame(frame);
-      window.removeEventListener("scroll", queue);
-      window.removeEventListener("resize", queue);
-    };
-  }, [rows]);
+/**
+ * Four presets, and a section that takes on the look of the selected one: its colours, typefaces,
+ * corners and texture. The first is selected to begin with; hovering another selects it, and the
+ * choice stays after the pointer leaves. On touch screens the first tap selects, the second opens.
+ */
+export function PresetShowcase({ head }: { head: ReactNode }) {
+  const mode = useSiteMode();
+  const [selected, setSelected] = useState(LIST[0].id);
+  const hover = useRef(typeof matchMedia !== "undefined" && matchMedia("(hover: hover)").matches);
+  const fonts = useMemo(() => LIST.flatMap((p) => [presetConfig(p.id).theme.font, presetConfig(p.id).theme.headingFont]), []);
+  const fontsReady = usePageFonts(fonts);
+  const look = presetStyle(selected, mode);
 
   return (
-    <div className="lp-backdrop__page" style={{ background: mode === "dark" ? "#0d1117" : "#ffffff" }}>
-      <div ref={drift} className="lp-backdrop__readme">
-        {rows.map((r) => {
-          const imgs = r.parts.filter((p) => p.meta.kind !== "markdown");
-          if (!imgs.length) return null;
-          const fixed = imgs.every((p) => p.meta.fixedHeight);
-          return (
-            <div key={r.rowId} className={cn("lp-backdrop__row", fixed && "is-pills")}>
-              {imgs.map((p) => (
-                <WidgetImage key={p.meta.name} part={p} />
-              ))}
-            </div>
-          );
-        })}
+    <section className={cn("lp-section lp-pz", `is-tex-${look.texture}`, fontsReady && "is-fonts")} style={look.style}>
+      <div className="lp-pz__bg" aria-hidden>
+        {(["dots", "grid", "lines"] as const).map((t) => (
+          <span key={t} className={cn("lp-pz__tex", `lp-pz__tex--${t}`, look.texture === t && "is-on")} />
+        ))}
       </div>
-    </div>
+      <div className="wrap">
+        {head}
+        <div className="preset-row">
+          {LIST.map((p, i) => (
+            <Reveal key={p.id} delay={i * 90}>
+              <a
+                className={cn("preset-card lp-tilt", p.id === selected && "is-selected")}
+                href={href(`/studio?preset=${p.id}`)}
+                onPointerEnter={(e) => e.pointerType === "mouse" && setSelected(p.id)}
+                onFocus={() => setSelected(p.id)}
+                onClick={(e) => {
+                  if (hover.current || p.id === selected) return;
+                  e.preventDefault();
+                  setSelected(p.id);
+                }}
+              >
+                <PresetThumb id={p.id} height={260} mode={mode} />
+                <div className="preset-meta">
+                  <h4>{p.name}</h4>
+                  <p>{p.description}</p>
+                </div>
+              </a>
+            </Reveal>
+          ))}
+        </div>
+        <div className="center-link">
+          <a href={href("/presets")}>
+            All {layoutPresets.length} presets <ArrowRight />
+          </a>
+        </div>
+      </div>
+    </section>
   );
 }
