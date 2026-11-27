@@ -66,6 +66,12 @@ interface StudioState {
 
   select: (id: string | null) => void;
   setMode: (m: Mode) => void;
+  /**
+   * Whether the canvas plays the widgets' animations. Paused, it shows their final frames: looping
+   * SVG images keep the browser drawing every frame, which slows the editor on slower machines.
+   */
+  animate: boolean;
+  setAnimate: (v: boolean) => void;
   setDevice: (d: "desktop" | "mobile") => void;
   replay: () => void;
   setTab: (t: InspectorTab) => void;
@@ -166,6 +172,7 @@ export const useStudio = create<StudioState>((set, get) => ({
     set(id ? { editing: id, selected: id, selection: [id], tab: "block" } : { editing: null });
   },
   mode: getPref<Mode>("mode", "dark"),
+  animate: getPref<boolean>("animate", true),
   device: "desktop",
   epoch: 0,
   tab: "theme",
@@ -229,6 +236,10 @@ export const useStudio = create<StudioState>((set, get) => ({
   select(id) {
     set((s) => ({ selected: id, selection: id ? [id] : [], tab: id ? "block" : s.tab === "block" ? "theme" : s.tab }));
   },
+  setAnimate(v) {
+    setPref("animate", v);
+    set((s) => ({ animate: v, epoch: v ? s.epoch + 1 : s.epoch }));
+  },
   setMode(m) {
     setPref("mode", m);
     set({ mode: m });
@@ -237,6 +248,8 @@ export const useStudio = create<StudioState>((set, get) => ({
     set({ device: d });
   },
   replay() {
+    // replaying a paused canvas plays it again
+    if (!get().animate) return get().setAnimate(true);
     set((s) => ({ epoch: s.epoch + 1 }));
   },
   setTab(t) {

@@ -29,6 +29,8 @@ import {
   RotateCcw,
   X,
   RefreshCw,
+  Pause,
+  RotateCw,
 } from "lucide-react";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { layoutPresets, parseConfig, resolvePalette, type StudioConfig } from "@readme-studio/core";
@@ -205,7 +207,10 @@ function TopBar() {
             <Smartphone />
           </IconButton>
           <IconButton label="Replay animations" shortcut="R" onClick={s.replay}>
-            <Play />
+            <RotateCw />
+          </IconButton>
+          <IconButton label={s.animate ? "Pause animations" : "Play animations"} shortcut="P" active={!s.animate} onClick={() => s.setAnimate(!s.animate)}>
+            {s.animate ? <Pause /> : <Play />}
           </IconButton>
         </div>
       </div>
@@ -240,7 +245,8 @@ function TopBar() {
             "sep",
             { label: s.mode === "dark" ? "Preview light" : "Preview dark", icon: s.mode === "dark" ? <Sun /> : <Moon />, shortcut: "T", onSelect: () => s.setMode(s.mode === "dark" ? "light" : "dark") },
             { label: s.device === "desktop" ? "Mobile width" : "Desktop width", icon: s.device === "desktop" ? <Smartphone /> : <Monitor />, onSelect: () => s.setDevice(s.device === "desktop" ? "mobile" : "desktop") },
-            { label: "Replay animations", icon: <Play />, shortcut: "R", onSelect: s.replay },
+            { label: "Replay animations", icon: <RotateCw />, shortcut: "R", onSelect: s.replay },
+            { label: s.animate ? "Pause animations" : "Play animations", icon: s.animate ? <Pause /> : <Play />, shortcut: "P", onSelect: () => s.setAnimate(!s.animate) },
             { label: "Refresh GitHub data", icon: <RefreshCw />, hint: data.text, onSelect: s.refreshData },
             ...(draft ? [{ label: "Reset unsaved changes", icon: <RotateCcw />, hint: draft.repo, onSelect: () => void resetDraft() }] : []),
             { label: `App theme: ${ui}`, icon: <SunMoon />, onSelect: () => setUi(ui === "system" ? "dark" : ui === "dark" ? "light" : "system") },
@@ -370,6 +376,7 @@ function useShortcuts() {
         s.setHidden(ids, !blocks.every((b) => b.hidden));
       } else if (k === "t") s.setMode(s.mode === "dark" ? "light" : "dark");
       else if (k === "r") s.replay();
+      else if (k === "p") s.setAnimate(!s.animate);
       else if (k === "a") {
         s.setRailTab("add");
         s.setPane("layers");

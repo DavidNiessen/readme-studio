@@ -87,7 +87,10 @@ function Markdown({ part, repo, selected, primary, drop, drag, dragged }: { part
 
 export function Canvas() {
   const { config, data, mode, device, epoch, selected, selection, select, openDialog, setRailTab, setPane, editing, editMarkdown, setOptions } = useStudio();
-  const { rows } = useRenderedLayout(config, data, mode);
+  // paused: the final frames, as a static design renders them
+  const animate = useStudio((s) => s.animate);
+  const shown = useMemo(() => (animate || config.theme.motion === "off" ? config : { ...config, theme: { ...config.theme, motion: "off" as const } }), [config, animate]);
+  const { rows } = useRenderedLayout(shown, data, mode);
   const scroller = useRef<HTMLElement>(null);
   const { drag: dragging, drop, handle } = useCanvasDrag(scroller);
   const pending = useRef<string | null>(null);
@@ -208,7 +211,7 @@ export function Canvas() {
                                 </span>
                               )}
                               {isPrimary && firstOfBlock && <Tools id={id} />}
-                              <WidgetImage part={p} epoch={epoch} style={p.meta.fixedHeight ? { height: "100%", width: "auto" } : undefined} />
+                              <WidgetImage part={p} epoch={epoch} still={!animate} style={p.meta.fixedHeight ? { height: "100%", width: "auto" } : undefined} />
                             </span>
                           );
                         })}
