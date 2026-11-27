@@ -148,6 +148,13 @@ describe("workflow", () => {
     expect(y).toContain("profile-token");
   });
 
+  it("only cancels superseded runs on the same branch", () => {
+    const y = workflowYaml(presetConfig("command-center", { login: "mona" }));
+    // A shared group let pushes to other branches cancel the publishing run on main.
+    expect(y).toContain("group: readme-studio-${{ github.ref }}");
+    expect(y).toContain("cancel-in-progress: true");
+  });
+
   it("describes a project workflow without the profile token", () => {
     const y = workflowYaml(presetConfig("oss-library", { login: "mona" }, { repo: "mona/aurora" }));
     expect(y).toContain("animated project README");
