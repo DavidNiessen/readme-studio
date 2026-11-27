@@ -30,6 +30,7 @@ import { WidgetImage } from "../components/WidgetImage";
 import { CodeBlock, ColorInput } from "../components/ui";
 import { renderBlock, useFontsReady } from "../lib/render";
 import { href, useRoute } from "../lib/router";
+import { CHROME_STORE_URL } from "../components/InstallExtension";
 
 // ================================================================ navigation model
 
@@ -1570,23 +1571,23 @@ function ExtensionGuide() {
       </p>
       <p>
         Each repository keeps its own draft. Close the overlay, work on another repository, come back: your unsaved changes are still there. The top bar shows when the
-        design differs from the repository's, with <b>Discard</b> to load the committed design again.
+        design differs from the repository's, with <b>Reset</b> to load the committed design again.
       </p>
 
       <Heading id="install">Install</Heading>
-      <ol>
+      <ul className="d-list">
         <li>
-          Download <code>readme-studio-chrome-*.zip</code> or <code>readme-studio-firefox-*.zip</code> from the latest{" "}
-          <Ext to="https://github.com/DavidNiessen/readme-studio/releases/latest">release</Ext>.
+          <b>Chrome, Edge, Brave, Opera and Arc:</b> install it from the <Ext to={CHROME_STORE_URL}>Chrome Web Store</Ext>.
         </li>
         <li>
-          Chrome, Edge, Brave and Arc: unzip it, open <code>chrome://extensions</code>, turn on Developer mode and choose <b>Load unpacked</b>.
+          <b>Firefox:</b> the add-on is in review at Firefox Add-ons. Until it is listed, download <code>readme-studio-firefox-*.zip</code> from the latest{" "}
+          <Ext to="https://github.com/DavidNiessen/readme-studio/releases/latest">release</Ext>, open <code>about:debugging#/runtime/this-firefox</code> and choose{" "}
+          <b>Load Temporary Add-on</b> with the zip. Firefox asks once for access to GitHub; the options page has the button.
         </li>
-        <li>
-          Firefox: open <code>about:debugging#/runtime/this-firefox</code> and choose <b>Load Temporary Add-on</b> with the zip. Firefox asks once for access to GitHub; the
-          options page has the button.
-        </li>
-      </ol>
+      </ul>
+      <p>
+        Every release also carries <code>readme-studio-chrome-*.zip</code>, to load unpacked from <code>chrome://extensions</code> with Developer mode on.
+      </p>
 
       <Heading id="saving">Saving back to GitHub</Heading>
       <p>
