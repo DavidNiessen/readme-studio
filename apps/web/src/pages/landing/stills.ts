@@ -70,9 +70,10 @@ export function useStills(blocks: { type: string; options?: Record<string, unkno
 export function useStillVariants<K extends string>(
   variants: Record<K, StillOptions>,
   blocks: { type: string; options?: Record<string, unknown> }[],
+  mode: Mode = "dark",
 ): Partial<Record<K, RenderedPart[][]>> {
-  const [done, setDone] = useState<Partial<Record<K, RenderedPart[][]>>>({});
-  const fonts = useFontsReady(["jetbrains-mono"]);
+  const [done, setDone] = useState<{ mode: Mode; renders: Partial<Record<K, RenderedPart[][]>> }>({ mode, renders: {} });
+  const fonts = useFontsReady(["jetbrains-mono", "space-grotesk"]);
   useEffect(() => {
     if (!fonts) return;
     let alive = true;
@@ -82,8 +83,8 @@ export function useStillVariants<K extends string>(
       if (!alive || i >= keys.length) return;
       const k = keys[i++];
       const c = configFor(blocks, variants[k]);
-      const rows = renderLayout(c, sampleData(c.kind), variants[k].mode ?? "dark", DATE).map((r) => r.parts);
-      setDone((d) => ({ ...d, [k]: rows }));
+      const rows = renderLayout(c, sampleData(c.kind), mode, DATE).map((r) => r.parts);
+      setDone((d) => ({ mode, renders: { ...(d.mode === mode ? d.renders : {}), [k]: rows } }));
       window.setTimeout(next, 30);
     };
     window.setTimeout(next, 0);
@@ -91,6 +92,29 @@ export function useStillVariants<K extends string>(
       alive = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fonts]);
-  return done;
+  }, [fonts, mode]);
+  // until the new scheme's renders are in, the previous ones stand in
+  return done.renders;
+}
+
+/** The site's colour scheme: the visitor's choice in the header, else the system's. Previews follow it. */
+export function useSiteMode(): Mode {
+  const read = (): Mode => {
+    const t = document.documentElement.dataset.theme;
+    if (t === "dark" || t === "light") return t;
+    return matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  };
+  const [mode, setMode] = useState<Mode>(read);
+  useEffect(() => {
+    const update = () => setMode(read());
+    const mo = new MutationObserver(update);
+    mo.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+    const mq = matchMedia("(prefers-color-scheme: dark)");
+    mq.addEventListener("change", update);
+    return () => {
+      mo.disconnect();
+      mq.removeEventListener("change", update);
+    };
+  }, []);
+  return mode;
 }

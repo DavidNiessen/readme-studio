@@ -1,11 +1,11 @@
-import { getWidget, normalizeConfig, palettePresets, type Mode } from "@readme-studio/core";
-import { ArrowRight, GripVertical, Moon, Plus, RotateCcw, Sun, X } from "lucide-react";
+import { getWidget, normalizeConfig, palettePresets } from "@readme-studio/core";
+import { ArrowRight, GripVertical, Plus, RotateCcw, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { WidgetImage } from "../../components/WidgetImage";
 import { cn } from "../../components/ui";
 import { href } from "../../lib/router";
 import { encodeShare } from "../../lib/share";
-import { useStills } from "./stills";
+import { useSiteMode, useStills } from "./stills";
 
 /** What the playground offers: profile widgets that read well small. */
 const OFFER = ["hero", "socials", "stats", "contrib", "pulse", "languages", "terminal", "streak", "clock", "footer"].filter((t) =>
@@ -30,7 +30,8 @@ interface Item {
 export function Playground() {
   const [items, setItems] = useState<Item[]>(() => START.map((type) => ({ key: nextKey++, type })));
   const [palette, setPalette] = useState("crimson");
-  const [mode, setMode] = useState<Mode>("dark");
+  // the README follows the site's colour scheme, like everything on the page
+  const mode = useSiteMode();
   const blocks = items.map((i) => ({ type: i.type, options: i.type === "contrib" ? { weekly: false } : undefined }));
   // entrances play as a widget lands, then it rests: no endless loops on a landing page
   const rows = useStills(blocks, { palette, mode, motion: "subtle" });
@@ -138,34 +139,21 @@ export function Playground() {
                 aria-label={p.name}
                 title={p.name}
                 onClick={() => setPalette(id)}
-                style={{ background: `linear-gradient(135deg, ${p.dark.card} 0 50%, ${p.dark.accent} 50% 100%)` }}
+                style={{ background: `linear-gradient(135deg, ${p[mode].card} 0 50%, ${p[mode].accent} 50% 100%)` }}
               />
             );
           })}
         </div>
         <div className="lp-pg__row">
-          <div className="lp-pg__mode" role="group" aria-label="Colour scheme">
-            <button type="button" aria-pressed={mode === "dark"} onClick={() => setMode("dark")}>
-              <Moon /> Dark
-            </button>
-            <button type="button" aria-pressed={mode === "light"} onClick={() => setMode("light")}>
-              <Sun /> Light
-            </button>
-          </div>
-          <button
-            type="button"
-            className="lp-pg__reset"
-            onClick={() => setItems(START.map((type) => ({ key: nextKey++, type })))}
-            title="Start over"
-          >
-            <RotateCcw />
+          <button type="button" className="lp-pg__reset" onClick={() => setItems(START.map((type) => ({ key: nextKey++, type })))}>
+            <RotateCcw /> Start over
           </button>
         </div>
         <a className="btn btn--accent btn--lg lp-pg__go" href={studioLink()}>
           Open this in the studio <ArrowRight />
         </a>
       </div>
-      <div className={cn("lp-pg__readme", mode === "light" && "is-light")}>
+      <div className="lp-pg__readme">
         <div className="lp-pg__file mono">octocat / README.md</div>
         <div ref={list} className="lp-pg__list">
           {items.map((it, i) => (

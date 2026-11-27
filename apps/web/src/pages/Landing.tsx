@@ -8,7 +8,8 @@ import { href } from "../lib/router";
 import { Demo } from "./landing/Demo";
 import { HeroFan } from "./landing/HeroFan";
 import { Playground } from "./landing/Playground";
-import { Reveal, useScrollProgress } from "./landing/scroll";
+import { ease, reducedMotion, Reveal, useScrollProgress } from "./landing/scroll";
+import { useSiteMode } from "./landing/stills";
 import { ExtensionScene, RunsItself, WidgetRows } from "./landing/Sections";
 
 const RULES: [string, string][] = [
@@ -19,6 +20,25 @@ const RULES: [string, string][] = [
   ["Private stays private", "Only public repositories are ever named. A token adds private counts, never private names."],
   ["Fails gracefully", "If GitHub's API is down, the action falls back to the public calendar. A broken widget never breaks the build."],
 ];
+
+/**
+ * Scrolls to an element with an eased glide (a slow start and a soft landing) rather than a jump.
+ * The site routes by the URL's hash, so an in-page #anchor would be taken for a page.
+ */
+function glideTo(el: HTMLElement | null) {
+  if (!el) return;
+  const to = el.getBoundingClientRect().top + window.scrollY - 24;
+  if (reducedMotion()) return window.scrollTo(0, to);
+  const from = window.scrollY;
+  const ms = Math.min(1400, 500 + Math.abs(to - from) * 0.5);
+  const t0 = performance.now();
+  const step = (now: number) => {
+    const t = Math.min(1, (now - t0) / ms);
+    window.scrollTo(0, from + (to - from) * ease(t));
+    if (t < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
 
 /** A section heading whose words rise into place as it scrolls into view. */
 function Head({ eyebrow, title, text }: { eyebrow?: string; title: React.ReactNode; text?: React.ReactNode }) {
@@ -47,14 +67,18 @@ function Hero() {
             stay <em>alive.</em>
           </h1>
           <p className="lp-hero__lede">
-            Design an animated README for your GitHub profile or your project, from {widgetList.length} widgets and {palettePresets.length} palettes. A GitHub Action
-            re-renders it on a schedule, so streaks, stars, contributors and releases are never stale.
+            Design an animated README for your GitHub profile or your project, from {widgetList.length} widgets and {palettePresets.length}{" "}
+            palettes. A GitHub Action re-renders it on a schedule, so streaks, stars, contributors and releases are never stale.
           </p>
           <div className="hero__cta">
             <a className="btn btn--accent btn--lg" href={href("/studio")}>
               Start designing <ArrowRight />
             </a>
-            <a className="btn btn--lg" href={store ? store.url : href("/presets")} {...(store ? { target: "_blank", rel: "noopener" } : {})}>
+            <a
+              className="btn btn--lg"
+              href={store ? store.url : href("/presets")}
+              {...(store ? { target: "_blank", rel: "noopener" } : {})}
+            >
               {store ? `Add to ${store.browser}` : "Browse presets"}
             </a>
           </div>
@@ -72,7 +96,15 @@ function Hero() {
         </div>
         <HeroFan />
       </div>
-      <a className="lp-hero__more" href="#how" aria-label="See how it works">
+      <a
+        className="lp-hero__more"
+        href={href("/")}
+        aria-label="See how it works"
+        onClick={(e) => {
+          e.preventDefault();
+          glideTo(document.getElementById("how"));
+        }}
+      >
         <span>See how it works</span>
         <ArrowDown />
       </a>
@@ -101,6 +133,30 @@ function Numbers() {
   );
 }
 
+/** Four presets, their thumbnails in the site's colour scheme. */
+function PresetRow() {
+  const mode = useSiteMode();
+  const list = [
+    ...layoutPresets.filter((p) => (p.kind ?? "profile") === "profile").slice(0, 2),
+    ...layoutPresets.filter((p) => p.kind === "project").slice(0, 2),
+  ];
+  return (
+    <div className="preset-row">
+      {list.map((p, i) => (
+        <Reveal key={p.id} delay={i * 90}>
+          <a className="preset-card lp-tilt" href={href(`/studio?preset=${p.id}`)}>
+            <PresetThumb id={p.id} height={260} mode={mode} />
+            <div className="preset-meta">
+              <h4>{p.name}</h4>
+              <p>{p.description}</p>
+            </div>
+          </a>
+        </Reveal>
+      ))}
+    </div>
+  );
+}
+
 export function Landing() {
   return (
     <SitePage current="home">
@@ -109,7 +165,15 @@ export function Landing() {
 
       <section id="how" className="lp-section lp-section--tight">
         <div className="wrap">
-          <Head eyebrow="How it works" title={<>Drag, tune, <em>save.</em></>} text="Scroll to watch a README come together in the studio." />
+          <Head
+            eyebrow="How it works"
+            title={
+              <>
+                Drag, tune, <em>save.</em>
+              </>
+            }
+            text="Scroll to watch a README come together in the studio."
+          />
         </div>
         <Demo />
       </section>
@@ -118,7 +182,11 @@ export function Landing() {
         <div className="wrap">
           <Head
             eyebrow="Try it here"
-            title={<>Your turn. <em>Build one.</em></>}
+            title={
+              <>
+                Your turn. <em>Build one.</em>
+              </>
+            }
             text="Drag widgets into the README, drag them into order, switch palettes. It is the real renderer: what you see is what GitHub shows."
           />
           <Reveal>
@@ -129,14 +197,30 @@ export function Landing() {
 
       <section className="lp-section">
         <div className="wrap">
-          <Head eyebrow="Then" title={<>It runs <em>itself.</em></>} text="No accounts, no API keys, no hosting. Your repository's own workflow keeps it current." />
+          <Head
+            eyebrow="Then"
+            title={
+              <>
+                It runs <em>itself.</em>
+              </>
+            }
+            text="No accounts, no API keys, no hosting. Your repository's own workflow keeps it current."
+          />
           <RunsItself />
         </div>
       </section>
 
       <section className="lp-section lp-section--bleed">
         <div className="wrap">
-          <Head eyebrow={`${widgetList.length} widgets`} title={<>Widgets that know <em>what you did today.</em></>} text="Hand-drawn SVGs fed by real GitHub data: calendars, streaks, releases, languages, even the weather." />
+          <Head
+            eyebrow={`${widgetList.length} widgets`}
+            title={
+              <>
+                Widgets that know <em>what you did today.</em>
+              </>
+            }
+            text="Hand-drawn SVGs fed by real GitHub data: calendars, streaks, releases, languages, even the weather."
+          />
         </div>
         <WidgetRows />
       </section>
@@ -151,22 +235,14 @@ export function Landing() {
         <div className="wrap">
           <Head
             eyebrow={`${layoutPresets.length} presets`}
-            title={<>Start from something <em>finished.</em></>}
+            title={
+              <>
+                Start from something <em>finished.</em>
+              </>
+            }
             text="Complete designs for profiles and projects, from a maximal command center to a single quiet card."
           />
-          <div className="preset-row">
-            {[...layoutPresets.filter((p) => (p.kind ?? "profile") === "profile").slice(0, 2), ...layoutPresets.filter((p) => p.kind === "project").slice(0, 2)].map((p, i) => (
-              <Reveal key={p.id} delay={i * 90}>
-                <a className="preset-card lp-tilt" href={href(`/studio?preset=${p.id}`)}>
-                  <PresetThumb id={p.id} height={260} />
-                  <div className="preset-meta">
-                    <h4>{p.name}</h4>
-                    <p>{p.description}</p>
-                  </div>
-                </a>
-              </Reveal>
-            ))}
-          </div>
+          <PresetRow />
           <div className="center-link">
             <a href={href("/presets")}>
               All {layoutPresets.length} presets <ArrowRight />
@@ -177,7 +253,14 @@ export function Landing() {
 
       <section className="lp-section">
         <div className="wrap">
-          <Head title={<>Built around <em>GitHub's rules.</em></>} text="GitHub strips scripts and proxies images. Everything here is designed for exactly that." />
+          <Head
+            title={
+              <>
+                Built around <em>GitHub's rules.</em>
+              </>
+            }
+            text="GitHub strips scripts and proxies images. Everything here is designed for exactly that."
+          />
           <div className="features">
             {RULES.map(([t, d], i) => (
               <Reveal key={t} className="feature" delay={(i % 3) * 90}>

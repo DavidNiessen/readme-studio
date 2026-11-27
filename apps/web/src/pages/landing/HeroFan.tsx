@@ -1,10 +1,10 @@
-import type { DesignKind } from "@readme-studio/core";
-import { BookOpen } from "lucide-react";
+import type { DesignKind, Mode } from "@readme-studio/core";
+import { BookOpen, FolderGit2, User } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { WidgetImage } from "../../components/WidgetImage";
 import { cn } from "../../components/ui";
 import { reducedMotion, useScrollProgress } from "./scroll";
-import { useStills } from "./stills";
+import { useSiteMode, useStills } from "./stills";
 
 const WINDOWS: {
   kind: DesignKind;
@@ -30,9 +30,22 @@ const WINDOWS: {
 ];
 
 /** One README in a browser window, all windows the same size, the content fading out at the foot. */
-function Window({ w, front, epoch, onFront }: { w: (typeof WINDOWS)[number]; front: boolean; epoch: number; onFront: () => void }) {
+function Window({
+  w,
+  front,
+  epoch,
+  onFront,
+  mode,
+}: {
+  w: (typeof WINDOWS)[number];
+  front: boolean;
+  epoch: number;
+  onFront: () => void;
+  mode: Mode;
+}) {
   const rows = useStills(w.blocks, {
     kind: w.kind,
+    mode,
     palette: w.kind === "project" ? "ocean" : "crimson",
     motion: "subtle",
     headingFont: w.kind === "project" ? "space-grotesk" : "jetbrains-mono",
@@ -77,6 +90,8 @@ function Window({ w, front, epoch, onFront }: { w: (typeof WINDOWS)[number]; fro
   );
 }
 
+const SWAP_MS = 6500;
+
 /**
  * Both kinds of README at once: two browser windows fanned like cards, swapping places every few
  * seconds (or when the one behind is clicked). Scrolling past spreads them apart.
@@ -86,13 +101,14 @@ export function HeroFan() {
   const [epoch, setEpoch] = useState(0);
   const [hover, setHover] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const mode = useSiteMode();
   const bring = (k: DesignKind) => {
     setFront(k);
     setEpoch((n) => n + 1);
   };
   useEffect(() => {
     if (hover || reducedMotion()) return;
-    const t = window.setTimeout(() => bring(front === "profile" ? "project" : "profile"), 6500);
+    const t = window.setTimeout(() => bring(front === "profile" ? "project" : "profile"), SWAP_MS);
     return () => window.clearTimeout(t);
   }, [front, hover]);
   useScrollProgress(ref, (p) => ref.current?.style.setProperty("--p", p.toFixed(3)));
@@ -116,13 +132,23 @@ export function HeroFan() {
         }}
       >
         {WINDOWS.map((w) => (
-          <Window key={w.kind} w={w} front={front === w.kind} epoch={epoch} onFront={() => bring(w.kind)} />
+          <Window key={w.kind} w={w} front={front === w.kind} epoch={epoch} onFront={() => bring(w.kind)} mode={mode} />
         ))}
       </div>
-      <div className="lp-fan__legend" role="group" aria-label="Which README to show in front">
+      {/* one track, a highlight that slides to the README in front, and under it a line that fills
+          until the windows swap (it holds while the pointer is over them) */}
+      <div
+        className={cn("lp-switch", front === "project" && "is-second", (hover || reducedMotion()) && "is-held")}
+        role="group"
+        aria-label="Which README to show in front"
+      >
+        <span className="lp-switch__thumb" aria-hidden>
+          <span key={`${epoch}-${hover}`} className="lp-switch__timer" style={{ animationDuration: `${SWAP_MS}ms` }} />
+        </span>
         {WINDOWS.map((w) => (
           <button key={w.kind} type="button" aria-pressed={front === w.kind} onClick={() => bring(w.kind)}>
-            <i /> {w.label}
+            {w.kind === "profile" ? <User /> : <FolderGit2 />}
+            {w.label}
           </button>
         ))}
       </div>

@@ -6,7 +6,7 @@ import { WidgetImage } from "../../components/WidgetImage";
 import { cn } from "../../components/ui";
 import { href } from "../../lib/router";
 import { clamp, reducedMotion, span, useScrollProgress } from "./scroll";
-import { useStills } from "./stills";
+import { useSiteMode, useStills } from "./stills";
 
 // ---------------------------------------------------------------- it runs itself
 
@@ -123,7 +123,8 @@ function Strip({
   dir: 1 | -1;
   p: number;
 }) {
-  const rows = useStills(pick(types), { kind, palette });
+  const mode = useSiteMode();
+  const rows = useStills(pick(types), { kind, palette, mode });
   return (
     <div className="lp-strip" style={{ transform: `translateX(${dir === 1 ? -p * 28 : -(1 - p) * 28}%)` }}>
       {rows.map((parts, i) => {
@@ -170,7 +171,8 @@ export function ExtensionScene() {
   const ref = useRef<HTMLDivElement>(null);
   const [manual, setManual] = useState<boolean | null>(null);
   const [auto, setAuto] = useState(reducedMotion());
-  const rows = useStills(pick(["project-hero", "shields", "repo-stats"]), { kind: "project", palette: "github" });
+  const mode = useSiteMode();
+  const rows = useStills(pick(["project-hero", "shields", "repo-stats"]), { kind: "project", palette: "github", mode });
   useScrollProgress(ref, (p) => setAuto(p > 0.42));
   const open = manual ?? auto;
   const store = extensionStore();

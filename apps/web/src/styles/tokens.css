@@ -69,6 +69,10 @@
   --gh-fg: #1f2328;
   --gh-border: #d1d9e0;
   --gh-muted: #59636e;
+  /* GitHub's own surfaces, for mock windows and README previews */
+  --gh-subtle: #f6f8fa;
+  --gh-link: #0969da;
+  --gh-line: #d8dee4;
   color-scheme: light;
 }
 
@@ -101,6 +105,9 @@
     --gh-fg: #f0f6fc;
     --gh-border: #3d444d;
     --gh-muted: #9198a1;
+    --gh-subtle: #151b23;
+    --gh-link: #4493f8;
+    --gh-line: #2f353d;
     color-scheme: dark;
   }
 }
@@ -133,5 +140,8 @@
   --gh-fg: #f0f6fc;
   --gh-border: #3d444d;
   --gh-muted: #9198a1;
+  --gh-subtle: #151b23;
+  --gh-link: #4493f8;
+  --gh-line: #2f353d;
   color-scheme: dark;
 }
