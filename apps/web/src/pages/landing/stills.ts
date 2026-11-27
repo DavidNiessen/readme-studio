@@ -1,6 +1,6 @@
 import { mockData, normalizeConfig, type DesignKind, type Mode, type Motion, type ProfileData } from "@readme-studio/core";
 import { useEffect, useMemo, useState } from "react";
-import { renderLayout, useFontsReady, type RenderedPart } from "../../lib/render";
+import { renderLayout, svgUrl, useFontsReady, type RenderedPart } from "../../lib/render";
 
 const DATE = new Date();
 const PROJECT = { repo: "octocat/aurora", packages: { npm: "aurora" } };
@@ -11,6 +11,40 @@ export function sampleData(kind: DesignKind): ProfileData {
   let d = data.get(kind);
   if (!d) data.set(kind, (d = mockData(DATE, "octocat", "Mona Octocat", "UTC", kind === "project" ? PROJECT.repo : undefined)));
   return d;
+}
+
+/**
+ * Images decoded ahead of need and held, so the browser keeps them parsed: switching the site's
+ * colour scheme then shows the other scheme's images at once instead of parsing dozens of SVG
+ * documents in the frame the switch happens.
+ */
+const held = new Map<string, HTMLImageElement>();
+export function holdImages(rows: RenderedPart[][]): void {
+  for (const part of rows.flat()) {
+    if (!part.svg || part.meta.kind === "markdown") continue;
+    const url = svgUrl(part.svg);
+    if (held.has(url)) continue;
+    const img = new Image();
+    img.src = url;
+    img.decode().catch(() => undefined);
+    held.set(url, img);
+    // a bounded set: the oldest go first
+    if (held.size > 400) held.delete(held.keys().next().value!);
+  }
+}
+
+/** Runs work when the browser is idle, or after a moment where it cannot say. */
+export function whenIdle(fn: () => void, timeout = 2000): () => void {
+  const w = window as Window & {
+    requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number;
+    cancelIdleCallback?: (id: number) => void;
+  };
+  if (w.requestIdleCallback) {
+    const id = w.requestIdleCallback(fn, { timeout });
+    return () => w.cancelIdleCallback?.(id);
+  }
+  const t = window.setTimeout(fn, 200);
+  return () => window.clearTimeout(t);
 }
 
 export interface StillOptions {
@@ -56,10 +90,16 @@ export function useStills(blocks: { type: string; options?: Record<string, unkno
     const mode = o.mode ?? "dark";
     const t = window.setTimeout(() => setParts(renderLayout(config, sampleData(config.kind), mode, DATE).map((r) => r.parts)), 0);
     // the other colour scheme too, later and into the cache, so switching the site's theme is instant
-    const warm = window.setTimeout(() => renderLayout(config, sampleData(config.kind), mode === "dark" ? "light" : "dark", DATE), 2500);
+    let cancelIdle = () => {};
+    const warm = window.setTimeout(() => {
+      cancelIdle = whenIdle(() =>
+        holdImages(renderLayout(config, sampleData(config.kind), mode === "dark" ? "light" : "dark", DATE).map((r) => r.parts)),
+      );
+    }, 2500);
     return () => {
       window.clearTimeout(t);
       window.clearTimeout(warm);
+      cancelIdle();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready, config, o.mode]);
@@ -81,14 +121,22 @@ export function useStillVariants<K extends string>(
     if (!fonts) return;
     let alive = true;
     const keys = Object.keys(variants) as K[];
+    const other: Mode = mode === "dark" ? "light" : "dark";
     let i = 0;
     const next = () => {
-      if (!alive || i >= keys.length) return;
-      const k = keys[i++];
-      const c = configFor(blocks, variants[k]);
-      const rows = renderLayout(c, sampleData(c.kind), mode, DATE).map((r) => r.parts);
-      setDone((d) => ({ mode, renders: { ...(d.mode === mode ? d.renders : {}), [k]: rows } }));
-      window.setTimeout(next, 30);
+      if (!alive) return;
+      if (i < keys.length) {
+        const k = keys[i++];
+        const c = configFor(blocks, variants[k]);
+        const rows = renderLayout(c, sampleData(c.kind), mode, DATE).map((r) => r.parts);
+        setDone((d) => ({ mode, renders: { ...(d.mode === mode ? d.renders : {}), [k]: rows } }));
+        window.setTimeout(next, 30);
+      } else if (i < keys.length * 2) {
+        // then the other colour scheme, decoded and held, for a switch of the site's theme
+        const c = configFor(blocks, variants[keys[i++ - keys.length]]);
+        holdImages(renderLayout(c, sampleData(c.kind), other, DATE).map((r) => r.parts));
+        whenIdle(next);
+      }
     };
     window.setTimeout(next, 0);
     return () => {

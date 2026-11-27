@@ -10,12 +10,12 @@ import {
 } from "@readme-studio/core";
 import { ArrowRight } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
-import { PresetThumb } from "../../components/PresetThumb";
+import { PresetThumb, presetRows } from "../../components/PresetThumb";
 import { cn } from "../../components/ui";
 import { useFontsReady } from "../../lib/render";
 import { href } from "../../lib/router";
 import { clamp, reducedMotion } from "./scroll";
-import { useSiteMode } from "./stills";
+import { holdImages, useSiteMode, whenIdle } from "./stills";
 
 /** Two profiles and two projects, one for each texture: dots, none, grid and lines. */
 const LIST = ["command-center", "minimal-paper", "maintainers-dashboard", "cli-tool"]
@@ -80,6 +80,38 @@ export function PresetShowcase({ head }: { head: ReactNode }) {
   const fonts = useMemo(() => LIST.flatMap((p) => [presetConfig(p.id).theme.font, presetConfig(p.id).theme.headingFont]), []);
   const fontsReady = usePageFonts(fonts);
   const look = presetLook(LIST[index].id, mode);
+  // the READMEs are rendered once the section comes near, not with the rest of the page
+  const [near, setNear] = useState(false);
+  useEffect(() => {
+    const el = section.current;
+    if (!el || near) return;
+    const io = new IntersectionObserver(([e]) => e.isIntersecting && setNear(true), { rootMargin: "250% 0px" });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [near]);
+  // one README per idle moment: all four at once would hold up the scroll for a few hundred milliseconds
+  const [shown, setShown] = useState(0);
+  useEffect(() => {
+    if (!near || shown >= LIST.length) return;
+    return whenIdle(() => setShown((n) => n + 1), 400);
+  }, [near, shown]);
+  // and the other colour scheme's, decoded and held while the browser is idle, for a theme switch
+  useEffect(() => {
+    if (!near) return;
+    const other: Mode = mode === "dark" ? "light" : "dark";
+    let i = 0;
+    let cancel = () => {};
+    const next = () => {
+      if (i >= LIST.length) return;
+      holdImages(presetRows(LIST[i++].id, other, "off", 8).map((r) => r.parts));
+      cancel = whenIdle(next);
+    };
+    const t = window.setTimeout(() => (cancel = whenIdle(next)), 2000);
+    return () => {
+      window.clearTimeout(t);
+      cancel();
+    };
+  }, [near, mode]);
 
   /** How far the page has scrolled through the pinned stretch, from 0 to 1. */
   const progress = () => {
@@ -180,7 +212,7 @@ export function PresetShowcase({ head }: { head: ReactNode }) {
                   tabIndex={i === index ? 0 : -1}
                   aria-label={`Open ${p.name} in the studio`}
                 >
-                  <PresetThumb id={p.id} height={640} maxRows={8} mode={mode} />
+                  {(i < shown || i === index) && <PresetThumb id={p.id} height={640} maxRows={8} mode={mode} motion="off" />}
                 </a>
               ))}
             </div>

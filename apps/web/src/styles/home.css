@@ -2451,9 +2451,14 @@
   transition:
     opacity 0.6s var(--ease),
     transform 0.9s cubic-bezier(0.22, 1, 0.36, 1),
-    border-radius 0.5s var(--ease);
+    border-radius 0.5s var(--ease),
+    visibility 0s linear 0.9s;
+  /* once out of sight it is not painted at all */
+  visibility: hidden;
 }
 .lp-pz__shot.is-on {
+  visibility: visible;
+  transition-delay: 0s;
   opacity: 1;
   transform: none;
   pointer-events: auto;
@@ -2510,5 +2515,19 @@
     position: relative;
     top: 0;
     height: 760px;
+  }
+}
+
+/* ---------------------------------------------------------------- rendering */
+
+/* the widget rows are far wider than the window: cards out of view are not painted, so a theme
+   switch repaints only the few on screen. Their size is fixed, so skipping them moves nothing */
+.lp-strip__item {
+  content-visibility: auto;
+  contain-intrinsic-size: 380px 264px;
+}
+@media (max-width: 760px) {
+  .lp-strip__item {
+    contain-intrinsic-size: 280px 204px;
   }
 }

@@ -114,19 +114,17 @@ function Strip({
   types,
   kind,
   palette,
-  dir,
-  p,
+  stripRef,
 }: {
   types: string[];
   kind: "profile" | "project";
   palette: string;
-  dir: 1 | -1;
-  p: number;
+  stripRef: React.RefObject<HTMLDivElement | null>;
 }) {
   const mode = useSiteMode();
   const rows = useStills(pick(types), { kind, palette, mode });
   return (
-    <div className="lp-strip" style={{ transform: `translateX(${dir === 1 ? -p * 28 : -(1 - p) * 28}%)` }}>
+    <div ref={stripRef} className="lp-strip">
       {rows.map((parts, i) => {
         const part = parts[0];
         if (!part) return null;
@@ -151,12 +149,17 @@ function Strip({
 /** Two rows of widgets drifting past each other as the page scrolls. Hover one to look closer. */
 export function WidgetRows() {
   const ref = useRef<HTMLDivElement>(null);
-  const [p, setP] = useState(0.5);
-  useScrollProgress(ref, (v) => setP(Math.round(v * 400) / 400));
+  const a = useRef<HTMLDivElement>(null);
+  const b = useRef<HTMLDivElement>(null);
+  // the rows move with the scroll by their style alone: re-rendering them every frame would cost far more
+  useScrollProgress(ref, (p) => {
+    a.current?.style.setProperty("transform", `translate3d(${(-p * 28).toFixed(2)}%, 0, 0)`);
+    b.current?.style.setProperty("transform", `translate3d(${(-(1 - p) * 28).toFixed(2)}%, 0, 0)`);
+  });
   return (
     <div ref={ref} className="lp-strips">
-      <Strip types={ROW_A} kind="profile" palette="crimson" dir={1} p={p} />
-      <Strip types={ROW_B} kind="project" palette="ocean" dir={-1} p={p} />
+      <Strip types={ROW_A} kind="profile" palette="crimson" stripRef={a} />
+      <Strip types={ROW_B} kind="project" palette="ocean" stripRef={b} />
       <div className="center-link">
         <a href={href("/docs/widgets")}>
           See all {widgetList.length} widgets and their options <ArrowRight />
