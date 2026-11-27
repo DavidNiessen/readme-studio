@@ -18,11 +18,15 @@ function freeId(c: StudioConfig, name: string): string {
 }
 
 /** Adds an image to the library and returns its id. */
-export function addMedia(c: StudioConfig, name: string, data: string): { config: StudioConfig; id: string } {
+export function addMedia(
+  c: StudioConfig,
+  name: string,
+  image: { data: string; width: number; height: number },
+): { config: StudioConfig; id: string } {
   if (c.media.length >= MAX_MEDIA) throw new Error(`The media library holds up to ${MAX_MEDIA} images. Delete one first.`);
   const id = freeId(c, name);
   const label = name.replace(/\.[a-z0-9]+$/i, "").slice(0, 60) || id;
-  return { config: { ...c, media: [...c.media, { id, name: label, data }] }, id };
+  return { config: { ...c, media: [...c.media, { id, name: label, ...image }] }, id };
 }
 
 const patchMedia = (c: StudioConfig, id: string, patch: Partial<MediaItem>): StudioConfig => ({
@@ -30,8 +34,13 @@ const patchMedia = (c: StudioConfig, id: string, patch: Partial<MediaItem>): Stu
   media: c.media.map((m) => (m.id === id ? { ...m, ...patch } : m)),
 });
 
-/** Replaces an image's picture: every widget using it shows the new one. */
-export const replaceMedia = (c: StudioConfig, id: string, data: string) => patchMedia(c, id, { data });
+/** Replaces an image's picture: every widget using it shows the new one, with the same corners. */
+export const replaceMedia = (c: StudioConfig, id: string, image: { data: string; width: number; height: number }) =>
+  patchMedia(c, id, image);
+
+/** Rounds an image's corners (0 square, 50 a circle or pill), with its size so rounding follows the picture. */
+export const setMediaCorners = (c: StudioConfig, id: string, radius: number, size?: { width: number; height: number }) =>
+  patchMedia(c, id, { radius: Math.round(Math.min(50, Math.max(0, radius))), ...size });
 
 export const renameMedia = (c: StudioConfig, id: string, name: string) => patchMedia(c, id, { name: name.slice(0, 60) });
 

@@ -7,7 +7,7 @@ import { svg, wrapText } from "./lib/svg";
 import { resolveTheme, type Mode } from "./theme";
 import { getWidget } from "./widgets/registry";
 import type { Ctx, GifFrames, ProfileView, ProjectView, WidgetDef } from "./widgets/types";
-import { resolveMedia } from "./lib/images";
+import { resolveMedia, withImageHints } from "./lib/images";
 
 export interface RenderEnv {
   date?: Date;
@@ -18,7 +18,8 @@ export interface RenderEnv {
 export function createCtx(config: StudioConfig, data: ProfileData, mode: Mode, env: RenderEnv = {}): Ctx {
   const date = env.date ?? new Date();
   const d = viewData(config, data);
-  const media = Object.fromEntries((config.media ?? []).map((m) => [m.id, m.data]));
+  // each image carries its corner rounding and size, so every widget draws it the same way
+  const media = Object.fromEntries((config.media ?? []).map((m) => [m.id, withImageHints(m.data, m.radius, m.width, m.height)]));
   const v = views(config, data);
   return {
     theme: resolveTheme(config.theme, mode),

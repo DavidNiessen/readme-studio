@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { arrayMove, SortableItem, SortableList, SortHandle } from "../components/Sortable";
 import { mediaValue } from "../lib/media";
 import { useStudio } from "../state/store";
+import { MediaPreview } from "./Media";
 import { Button, ColorInput, Dialog, Field as FieldWrap, IconButton, Segmented, Select, Slider, TagsInput, TextArea, TextInput, Menu, ToggleRow, cn } from "../components/ui";
 
 function IconGlyph({ id }: { id: string }) {
@@ -11,7 +12,7 @@ function IconGlyph({ id }: { id: string }) {
   const ref = mediaRef(id);
   if (ref !== null) {
     const m = media.find((x) => x.id === ref);
-    return m ? <img src={m.data} alt="" className="icon-upload" /> : <Search />;
+    return m ? <MediaPreview item={m} className="icon-upload" /> : <Search />;
   }
   if (isImageData(id)) return <img src={id} alt="" className="icon-upload" />;
   if (isGlyphName(id)) {
@@ -62,7 +63,7 @@ export function IconPicker({ value, onChange, label, allowGlyphs = true }: { val
     { heading: media.length ? "Media library" : "No images yet" },
     ...media.map((m) => ({
       label: m.name,
-      icon: <img src={m.data} alt="" className="icon-upload" />,
+      icon: <MediaPreview item={m} className="icon-upload" />,
       hint: mediaValue(m.id) === value ? "in use" : `${imageKb(m.data)} KB`,
       onSelect: () => onChange(mediaValue(m.id)),
     })),

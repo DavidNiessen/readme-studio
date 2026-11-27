@@ -2181,9 +2181,38 @@ var iconData = {
 
 // ../core/src/lib/images.ts
 var MAX_IMAGE_CHARS = 2e5;
-var DATA_URI = /^data:image\/(png|jpeg|gif|webp);base64,[A-Za-z0-9+/]+={0,2}$/;
+var DATA_URI = /^(data:image\/(?:png|jpeg|gif|webp);base64,[A-Za-z0-9+/]+={0,2})(?:#r(\d{1,2})w(\d{1,4})h(\d{1,4}))?$/;
 function isImageData(v) {
   return typeof v === "string" && v.length <= MAX_IMAGE_CHARS && DATA_URI.test(v);
+}
+function imageParts(v) {
+  if (v.length > MAX_IMAGE_CHARS) return null;
+  const m = DATA_URI.exec(v);
+  if (!m) return null;
+  return { href: m[1], radius: Math.min(50, Number(m[2] ?? 0)), width: Number(m[3] ?? 0), height: Number(m[4] ?? 0) };
+}
+function withImageHints(data13, radius = 0, width = 0, height = 0) {
+  const r = Math.round(Math.min(50, Math.max(0, radius)));
+  return r > 0 ? `${data13}#r${r}w${Math.round(width)}h${Math.round(height)}` : data13;
+}
+function clipId(s) {
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i += 7) h = Math.imul(h ^ s.charCodeAt(i), 16777619);
+  return `rsimg${(h >>> 0).toString(36)}${s.length.toString(36)}`;
+}
+function imageSvg(value, x, y, size, extra = "") {
+  const img = imageParts(value);
+  if (!img) return "";
+  const pos = `x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${size}" height="${size}"`;
+  if (!img.radius) return `<image href="${img.href}" ${pos} preserveAspectRatio="xMidYMid meet" ${extra}/>`;
+  const aspect = img.width && img.height ? img.width / img.height : 1;
+  const w = aspect >= 1 ? size : size * aspect;
+  const h = aspect >= 1 ? size / aspect : size;
+  const cx = x + (size - w) / 2;
+  const cy = y + (size - h) / 2;
+  const r = Math.min(w, h) * img.radius / 100;
+  const id = clipId(`${value}|${x}|${y}|${size}`);
+  return `<clipPath id="${id}"><rect x="${cx.toFixed(2)}" y="${cy.toFixed(2)}" width="${w.toFixed(2)}" height="${h.toFixed(2)}" rx="${r.toFixed(2)}"/></clipPath><image href="${img.href}" ${pos} preserveAspectRatio="xMidYMid meet" clip-path="url(#${id})" ${extra}/>`;
 }
 var MEDIA_PREFIX = "media:";
 function mediaRef(v) {
@@ -2222,7 +2251,7 @@ function imageIcon(href) {
   return {
     id: href,
     title: "Uploaded image",
-    inner: `<image href="${href}" width="24" height="24" preserveAspectRatio="xMidYMid meet"/>`,
+    inner: imageSvg(href, 0, 0, 24),
     viewBox: "0 0 24 24",
     color: null
   };
@@ -12290,7 +12319,15 @@ function normMedia(v, warnings) {
       break;
     }
     ids.add(id);
-    out.push({ id, name, data: m.data });
+    const item = { id, name, data: m.data };
+    const radius = typeof m.radius === "number" && Number.isFinite(m.radius) ? Math.round(Math.min(50, Math.max(0, m.radius))) : 0;
+    if (radius) item.radius = radius;
+    const dim = (v2) => typeof v2 === "number" && Number.isFinite(v2) && v2 >= 1 && v2 <= 4096 ? Math.round(v2) : 0;
+    if (dim(m.width) && dim(m.height)) {
+      item.width = dim(m.width);
+      item.height = dim(m.height);
+    }
+    out.push(item);
   }
   return out;
 }
@@ -12358,7 +12395,7 @@ function serializeConfig(c) {
 function createCtx(config, data13, mode, env = {}) {
   const date = env.date ?? /* @__PURE__ */ new Date();
   const d = viewData(config, data13);
-  const media = Object.fromEntries((config.media ?? []).map((m) => [m.id, m.data]));
+  const media = Object.fromEntries((config.media ?? []).map((m) => [m.id, withImageHints(m.data, m.radius, m.width, m.height)]));
   const v = views(config, data13);
   return {
     theme: resolveTheme(config.theme, mode),
@@ -14012,7 +14049,10 @@ function configJsonSchema() {
           properties: {
             id: { type: "string", pattern: "^[a-z0-9-]{1,40}$" },
             name: { type: "string", maxLength: 60 },
-            data: { type: "string", pattern: "^data:image/(png|jpeg|gif|webp);base64,", maxLength: 2e5, description: "A base64 data URI; keep images near 256 px." }
+            data: { type: "string", pattern: "^data:image/(png|jpeg|gif|webp);base64,", maxLength: 2e5, description: "A base64 data URI; keep images near 256 px." },
+            radius: { type: "number", minimum: 0, maximum: 50, description: "Corner rounding, % of the picture's shorter side: 0 square, 50 a circle (square image) or pill." },
+            width: { type: "number", minimum: 1, maximum: 4096, description: "The picture's width in pixels; with height, lets rounding follow the picture." },
+            height: { type: "number", minimum: 1, maximum: 4096 }
           }
         }
       },

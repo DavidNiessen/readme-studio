@@ -83,6 +83,11 @@ export interface MediaItem {
   name: string;
   /** the image: a base64 PNG, JPEG, GIF or WebP data URI (see isImageData) */
   data: string;
+  /** corner rounding as a percentage of the picture's shorter side: 0 square, 50 a circle or pill */
+  radius?: number;
+  /** the stored picture's size in pixels, so rounding follows the picture and not its square box */
+  width?: number;
+  height?: number;
 }
 
 /** Most images a design keeps. */
@@ -325,7 +330,15 @@ function normMedia(v: unknown, warnings: string[]): MediaItem[] {
       break;
     }
     ids.add(id);
-    out.push({ id, name, data: m.data as string });
+    const item: MediaItem = { id, name, data: m.data as string };
+    const radius = typeof m.radius === "number" && Number.isFinite(m.radius) ? Math.round(Math.min(50, Math.max(0, m.radius))) : 0;
+    if (radius) item.radius = radius;
+    const dim = (v: unknown) => (typeof v === "number" && Number.isFinite(v) && v >= 1 && v <= 4096 ? Math.round(v) : 0);
+    if (dim(m.width) && dim(m.height)) {
+      item.width = dim(m.width);
+      item.height = dim(m.height);
+    }
+    out.push(item);
   }
   return out;
 }

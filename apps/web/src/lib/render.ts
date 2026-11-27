@@ -69,7 +69,7 @@ function sharedKey(config: StudioConfig, data: ProfileData): string {
   let k = byData.get(data);
   // views: a widget falls back to names and roles other widgets set, so those count too
   // the media library too: replacing an image must redraw every widget that refers to it
-  if (k === undefined) byData.set(data, (k = JSON.stringify([config.theme, views(config, data), (config.media ?? []).map((m) => `${m.id}:${hash(m.data)}`)])));
+  if (k === undefined) byData.set(data, (k = JSON.stringify([config.theme, views(config, data), (config.media ?? []).map((m) => `${m.id}:${hash(m.data)}:${m.radius ?? 0}:${m.width ?? 0}x${m.height ?? 0}`)])));
   return k;
 }
 

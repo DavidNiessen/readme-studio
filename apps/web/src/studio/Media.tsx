@@ -1,10 +1,25 @@
-import { imageKb, MAX_MEDIA, type MediaItem } from "@readme-studio/core";
+import { imageKb, imageSvg, MAX_MEDIA, withImageHints, type MediaItem } from "@readme-studio/core";
 import { AlertTriangle, ImagePlus, RefreshCw, Trash2 } from "lucide-react";
 import { useRef, useState } from "react";
-import { IconButton, cn, useConfirm, useToast } from "../components/ui";
+import { IconButton, Slider, cn, useConfirm, useToast } from "../components/ui";
 import { mediaUses } from "../lib/media";
-import { shrinkImage } from "../lib/uploadImage";
+import { imageSize, shrinkImage } from "../lib/uploadImage";
 import { useStudio } from "../state/store";
+
+/**
+ * An image from the library drawn the way widgets draw it, corners included. Its data has been
+ * validated by the core (a base64 raster), so the markup holds nothing but an <image>.
+ */
+export function MediaPreview({ item, className }: { item: MediaItem; className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      aria-hidden
+      dangerouslySetInnerHTML={{ __html: imageSvg(withImageHints(item.data, item.radius, item.width, item.height), 0, 0, 24) }}
+    />
+  );
+}
 
 /**
  * The design's media library. Images are uploaded once, shrunk, and stored in the design; any icon
@@ -35,7 +50,8 @@ export function MediaPanel() {
   return (
     <div className="media">
       <p className="media__intro">
-        Images for your logo, emblems and icons. Use one with the image button next to any icon field; replace it here and every widget using it updates.
+        Images for your logo, emblems and icons. Use one with the image button next to any icon field; replace it here and every widget
+        using it updates.
       </p>
       <UploadZone busy={busy} full={media.length >= MAX_MEDIA} onFiles={upload} />
       {error && (
@@ -92,7 +108,7 @@ export function UploadZone({
 
 function MediaRow({ item }: { item: MediaItem }) {
   const config = useStudio((s) => s.config);
-  const { replaceMedia, renameMedia, removeMedia } = useStudio.getState();
+  const { replaceMedia, renameMedia, removeMedia, setMediaCorners } = useStudio.getState();
   const confirm = useConfirm();
   const toast = useToast();
   const file = useRef<HTMLInputElement>(null);
@@ -106,6 +122,11 @@ function MediaRow({ item }: { item: MediaItem }) {
     } catch (e) {
       toast(e instanceof Error ? e.message : String(e), <AlertTriangle />);
     }
+  };
+  // rounding follows the picture, so it needs its size: measured once for images stored without it
+  const corners = async (radius: number) => {
+    const size = item.width && item.height ? undefined : await imageSize(item.data).catch(() => undefined);
+    setMediaCorners(item.id, radius, size);
   };
   const remove = async () => {
     if (uses.length) {
@@ -126,7 +147,7 @@ function MediaRow({ item }: { item: MediaItem }) {
 
   return (
     <div className="media__item">
-      <img className="media__thumb" src={item.data} alt="" />
+      <MediaPreview item={item} className="media__thumb" />
       <div className="media__meta">
         <input className="media__name" aria-label="Image name" value={item.name} onChange={(e) => renameMedia(item.id, e.target.value)} />
         <span className="mono">
@@ -140,6 +161,11 @@ function MediaRow({ item }: { item: MediaItem }) {
         <Trash2 />
       </IconButton>
       <input ref={file} type="file" accept="image/*" hidden onChange={(e) => void replace(e.target.files?.[0])} />
+      <div className="media__corners">
+        <span>Corners</span>
+        <Slider label={`Corners of ${item.name}`} value={item.radius ?? 0} min={0} max={50} unit="%" onChange={(v) => void corners(v)} />
+        <span className="media__corners-hint">{!item.radius ? "square" : item.radius >= 50 ? "round" : "rounded"}</span>
+      </div>
     </div>
   );
 }

@@ -165,3 +165,32 @@ describe("media library", () => {
     expect(JSON.parse(serializeConfig(config)).media[0].data).toBe(red);
   });
 });
+
+describe("rounded media", () => {
+  const img = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAAABJRU5ErkJggg==";
+  const heading = (media: Record<string, unknown>) => {
+    const config = normalizeConfig({ media: [{ id: "logo", name: "Logo", data: img, ...media }], layout: [{ blocks: [{ type: "heading", id: "h", options: { icon: "media:logo" } }] }] }).config;
+    const ctx = createCtx(config, mockData(DATE, "mona"), "dark", { date: DATE });
+    return renderPart(blockParts(config.layout[0].blocks[0], ctx)[0], ctx);
+  };
+
+  it("draws a square image as a circle at 50%", () => {
+    const svg = heading({ radius: 50, width: 256, height: 256 });
+    const rect = /<clipPath id="(rsimg[a-z0-9]+)"><rect x="0.00" y="0.00" width="24.00" height="24.00" rx="12.00"\/><\/clipPath>/.exec(svg);
+    expect(rect).not.toBeNull();
+    expect(svg).toContain(`clip-path="url(#${rect![1]})"`);
+    expect(svg).toContain(`<image href="${img}"`);
+  });
+
+  it("rounds a wide image around the picture, not its square box", () => {
+    // 256×128 fills the width and half the height, centred
+    expect(heading({ radius: 50, width: 256, height: 128 })).toContain('<rect x="0.00" y="6.00" width="24.00" height="12.00" rx="6.00"/>');
+  });
+
+  it("leaves an image square unless asked, and keeps the setting in range", () => {
+    expect(heading({})).not.toContain("<clipPath");
+    const { config } = normalizeConfig({ media: [{ id: "a", data: img, radius: 400, width: -3, height: 10 }] });
+    expect(config.media[0].radius).toBe(50);
+    expect(config.media[0].width).toBeUndefined();
+  });
+});

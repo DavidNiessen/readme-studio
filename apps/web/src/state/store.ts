@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { getWidget, hashSeed, mockData, mockWeeks, normalizeConfig, presetConfig, type Mode, type ProfileData, type StudioConfig } from "@readme-studio/core";
 import { addBlock, duplicateBlock, findBlock, flatten, moveBlock, moveBlocksTo, removeBlock, renameBlock, updateBlock, updateOptions } from "../lib/layout";
 import { findDesignBySource, getCurrentId, getPref, loadDesigns, saveDesign, setCurrentId, setPref, type SavedDesign } from "../lib/storage";
-import { addMedia, removeMedia, renameMedia, replaceMedia } from "../lib/media";
+import { addMedia, removeMedia, renameMedia, replaceMedia, setMediaCorners } from "../lib/media";
 
 export type InspectorTab = "block" | "theme" | "data";
 export type DialogId = "export" | "save" | "presets" | "import" | "json" | "shortcuts" | "designs" | "palette" | "add" | null;
@@ -103,8 +103,9 @@ interface StudioState {
   rename: (id: string, wanted: string) => void;
 
   /** the media library: images stored once in the design, used by any widget as media:<id> */
-  addMedia: (name: string, data: string) => string;
-  replaceMedia: (id: string, data: string) => void;
+  addMedia: (name: string, image: { data: string; width: number; height: number }) => string;
+  replaceMedia: (id: string, image: { data: string; width: number; height: number }) => void;
+  setMediaCorners: (id: string, radius: number, size?: { width: number; height: number }) => void;
   renameMedia: (id: string, name: string) => void;
   removeMedia: (id: string) => void;
 
@@ -373,13 +374,17 @@ export const useStudio = create<StudioState>((set, get) => ({
     set({ selected: r.id });
   },
 
-  addMedia(name, data) {
-    const r = addMedia(get().config, name, data);
+  addMedia(name, image) {
+    const r = addMedia(get().config, name, image);
     get().commit(() => r.config);
     return r.id;
   },
-  replaceMedia(id, data) {
-    get().commit((c) => replaceMedia(c, id, data));
+  replaceMedia(id, image) {
+    get().commit((c) => replaceMedia(c, id, image));
+  },
+  setMediaCorners(id, radius, size) {
+    // dragging the slider is one undo step
+    get().commit((c) => setMediaCorners(c, id, radius, size), `media-corners:${id}`);
   },
   renameMedia(id, name) {
     get().commit((c) => renameMedia(c, id, name), `media-name:${id}`);

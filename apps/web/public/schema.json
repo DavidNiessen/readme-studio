@@ -3330,6 +3330,23 @@
             "pattern": "^data:image/(png|jpeg|gif|webp);base64,",
             "maxLength": 200000,
             "description": "A base64 data URI; keep images near 256 px."
+          },
+          "radius": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 50,
+            "description": "Corner rounding, % of the picture's shorter side: 0 square, 50 a circle (square image) or pill."
+          },
+          "width": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 4096,
+            "description": "The picture's width in pixels; with height, lets rounding follow the picture."
+          },
+          "height": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 4096
           }
         }
       }

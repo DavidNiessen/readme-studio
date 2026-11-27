@@ -1,5 +1,5 @@
 import { iconData, type IconData } from "../icons/data";
-import { isImageData } from "./images";
+import { imageSvg, isImageData } from "./images";
 
 export interface Icon {
   id: string;
@@ -48,7 +48,7 @@ function imageIcon(href: string): Icon {
   return {
     id: href,
     title: "Uploaded image",
-    inner: `<image href="${href}" width="24" height="24" preserveAspectRatio="xMidYMid meet"/>`,
+    inner: imageSvg(href, 0, 0, 24),
     viewBox: "0 0 24 24",
     color: null,
   };
