@@ -8,7 +8,7 @@ import type { Theme } from "../theme";
 import { hasMark, items, mark, str } from "./kit-c";
 import { compact, optBool, optList, optPick } from "./kit-d";
 import { ciColor, ciFill, ciStatus, latestRelease, latestTag, pdata, repoUrl, xglyphs, type CiStatus } from "./kit-e";
-import { glyphs, onAccent } from "./parts";
+import { glyphShape, isGlyphName, onAccent } from "./parts";
 import { fillPlaceholders } from "./placeholders";
 import { defineWidget, type Ctx } from "./types";
 
@@ -167,7 +167,10 @@ function drawIcon(t: Theme, id: string, x: number, y: number, size: number, colo
     if (!xglyphs[name]) return "";
     return `<svg x="${x}" y="${y}" width="${size}" height="${size}" viewBox="0 0 16 16" fill="none" stroke="${color}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${xglyphs[name]}</svg>`;
   }
-  if (id in glyphs) return `<svg x="${x}" y="${y}" width="${size}" height="${size}" viewBox="0 0 16 16" fill="none" stroke="${color}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${glyphs[id as keyof typeof glyphs]}</svg>`;
+  if (isGlyphName(id)) {
+    const g = glyphShape(id, 1.6);
+    return `<svg x="${x}" y="${y}" width="${size}" height="${size}" viewBox="${g.viewBox}" fill="none" stroke="${color}" stroke-width="${g.strokeWidth}" stroke-linecap="round" stroke-linejoin="round">${g.inner}</svg>`;
+  }
   return hasMark(id) ? mark(t, id, x, y, size, color) : "";
 }
 

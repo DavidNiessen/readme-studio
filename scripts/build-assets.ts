@@ -8,7 +8,9 @@
  *   packages/core/assets/fonts/<id>-<weight>.{woff,woff2}   vendored font files
  *   packages/core/src/fonts/data/<id>.ts                    base64 woff2 per weight (lazy-loadable)
  *   packages/core/src/fonts/metrics.ts                      advance widths for text measurement
- *   packages/core/src/icons/data.ts                         brand icon bodies
+ *   packages/core/src/icons/data.ts                         brand icon bodies (in every bundle)
+ *   packages/core/src/icons/more.ts                         more brands, loaded on demand (loadMoreIcons)
+ *   packages/core/src/icons/lines.ts                        line icons (Lucide), drawn like the widget glyphs
  */
 import { copyFileSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
@@ -99,6 +101,31 @@ const ICON_SLUGS =
     " ",
   );
 
+/** More brands, added for the icon picker: tools, services, platforms and communities. */
+const MORE_SLUGS = [
+  "assemblyscript clojure coffeescript crystal d elm erlang fortran fsharp gleam nim ocaml perl purescript racket solidity v webassembly zod nodemon pnpm",
+  "yarn turborepo nx lerna rollupdotjs esbuild swc babel eslint prettier biome jest vitest cypress mocha storybook testinglibrary selenium puppeteer",
+  "postman insomnia swagger openapiinitiative json yaml toml remix gatsby qwik preact alpinedotjs lit emberdotjs backbonedotjs jquery bootstrap bulma",
+  "chakraui mui antdesign shadcnui radixui headlessui framer gsap d3 chartdotjs redux mobx reactquery reactrouter trpc apollographql hasura laravel",
+  "symfony rubyonrails phoenixframework quarkus ktor gin actix rocket axios socketdotio fastify hono koa adonisjs strapi directus contentful sanity ghost",
+  "wordpress drupal shopify woocommerce stripe auth0 clerk okta keycloak letsencrypt mariadb cockroachlabs planetscale neo4j apachecassandra influxdb",
+  "timescale clickhouse duckdb snowflake databricks apachespark apacheairflow minio googlecloudstorage digitalocean hetzner ovh render railway flydotio",
+  "fastly akamai openstack proxmox vmware virtualbox vagrant packer pulumi consul vault nomad podman containerd circleci travisci bitbucket gitea",
+  "codeberg sourcehut teamcity buildkite drone snyk dependabot codecov sentry datadog newrelic opentelemetry jaeger kibana logstash splunk pagerduty",
+  "statuspage uptimekuma traefikproxy caddy apache haproxy envoyproxy istio linkerd rancher k3s anaconda scikitlearn keras opencv langchain ollama",
+  "googlegemini mistralai perplexity replicate weightsandbiases streamlit gradio plotly mqtt homeassistant espressif nvidia amd intel arm qualcomm",
+  "sublimetext zedindustries cursor xcode androidstudio eclipseide webstorm pycharm goland clion rider datagrip macos ios fedora archlinux manjaro centos",
+  "redhat opensuse kalilinux alpinelinux nixos freebsd gnu gnubash zsh fishshell iterm2 warp alacritty wezterm tmux homebrew chocolatey githubcopilot",
+  "githubpages gitbook readthedocs docusaurus hugo jekyll eleventy hexo zoom googlemeet jitsi element matrix zulip mattermost rocketdotchat facebook",
+  "messenger linktree pinterest tumblr snapchat tiktok vimeo soundcloud bandcamp applemusic lastdotfm goodreads letterboxd imdb duolingo codesandbox",
+  "stackblitz replit glitch codewars codeforces codechef topcoder exercism freecodecamp coursera udemy edx khanacademy wikipedia quora lobsters lemmy",
+  "pixelfed peertube keybase gnuprivacyguard protonmail bitwarden 1password keepassxc brave firefox googlechrome safari opera vivaldi thunderbird airbnb",
+  "uber netflix epicgames itchdotio roblox gogdotcom ubisoft ea riotgames valorant leagueoflegends chessdotcom lichess inkscape gimp krita sketch penpot",
+  "miro trello jira confluence asana clickup linear todoist evernote logseq roamresearch airtable zapier make n8n ifttt",
+]
+  .join(" ")
+  .split(" ");
+
 const bySlug = new Map<string, { title: string; hex: string; path: string }>();
 for (const k of Object.keys(simpleIcons)) {
   const i = simpleIcons[k];
@@ -106,7 +133,42 @@ for (const k of Object.keys(simpleIcons)) {
 }
 
 /** Renamed ids: keep friendlier names for the UI. */
-const ALIAS: Record<string, string> = { amazonwebservices: "aws", nodedotjs: "nodejs", vuedotjs: "vue", nextdotjs: "nextjs", threedotjs: "threejs", devdotto: "devto", openjdk: "openjdk", junit5: "junit" };
+const ALIAS: Record<string, string> = {
+  amazonwebservices: "aws",
+  nodedotjs: "nodejs",
+  vuedotjs: "vue",
+  nextdotjs: "nextjs",
+  threedotjs: "threejs",
+  devdotto: "devto",
+  openjdk: "openjdk",
+  junit5: "junit",
+  rollupdotjs: "rollup",
+  alpinedotjs: "alpinejs",
+  emberdotjs: "ember",
+  backbonedotjs: "backbone",
+  socketdotio: "socketio",
+  chartdotjs: "chartjs",
+  flydotio: "flyio",
+  rocketdotchat: "rocketchat",
+  lastdotfm: "lastfm",
+  itchdotio: "itchio",
+  gogdotcom: "gog",
+  chessdotcom: "chesscom",
+  traefikproxy: "traefik",
+  envoyproxy: "envoy",
+  cockroachlabs: "cockroachdb",
+  zedindustries: "zed",
+  gnubash: "bash",
+  fishshell: "fish",
+  gnuprivacyguard: "gnupg",
+  openapiinitiative: "openapi",
+  phoenixframework: "phoenix",
+  eclipseide: "eclipse",
+  // names a line icon already has: the brand gets an unmistakable id
+  rocket: "rocketrs",
+  ghost: "ghostcms",
+  vault: "hashicorpvault",
+};
 
 interface IconRec {
   t: string;
@@ -117,10 +179,17 @@ interface IconRec {
 }
 const icons: Record<string, IconRec> = {};
 
-for (const slug of ICON_SLUGS) {
+const fromSimpleIcons = (slug: string): IconRec => {
   const i = bySlug.get(slug);
   if (!i) throw new Error(`simple-icons is missing ${slug}`);
-  icons[ALIAS[slug] ?? slug] = { t: i.title, c: `#${i.hex}`, v: "0 0 24 24", b: `<path fill="currentColor" d="${i.path}"/>`, src: "si" };
+  return { t: i.title, c: `#${i.hex}`, v: "0 0 24 24", b: `<path fill="currentColor" d="${i.path}"/>`, src: "si" };
+};
+for (const slug of ICON_SLUGS) icons[ALIAS[slug] ?? slug] = fromSimpleIcons(slug);
+// kept in a module of their own: the website loads them only where icons are picked (the studio)
+const more: Record<string, IconRec> = {};
+for (const slug of MORE_SLUGS) {
+  const id = ALIAS[slug] ?? slug;
+  if (!icons[id]) more[id] = fromSimpleIcons(slug);
 }
 
 // vendored extras that simple-icons no longer ships
@@ -182,3 +251,65 @@ writeFileSync(
   `// generated by scripts/build-assets.ts. Do not edit.\n// Sources: Simple Icons (CC0), Font Awesome Free brands (CC BY 4.0), Streamline, hand-drawn glyphs.\n/** t = title, c = brand colour ("multi" = keep own colours), v = viewBox, b = inner markup */\nexport interface IconData { t: string; c: string; v: string; b: string }\nexport const iconData: Record<string, IconData> = {\n${iconLines}\n};\n`,
 );
 console.log(`${Object.keys(icons).length} icons`);
+const moreLines = Object.entries(more)
+  .sort(([a], [b]) => a.localeCompare(b))
+  .map(([id, i]) => `  ${JSON.stringify(id)}: ${JSON.stringify({ t: i.t, c: i.c, v: i.v, b: i.b })},`)
+  .join("\n");
+writeFileSync(
+  join(core, "src/icons/more.ts"),
+  `// generated by scripts/build-assets.ts. Do not edit.\n// Source: Simple Icons (CC0). Loaded on demand: see loadMoreIcons in lib/icons.ts.\nimport type { IconData } from "./data";\nexport const moreIconData: Record<string, IconData> = {\n${moreLines}\n};\n`,
+);
+console.log(`${Object.keys(more).length} more icons`);
+
+// ---------------------------------------------------------------- line icons
+
+/**
+ * Everyday line icons from Lucide (ISC), for features, facts and emblems. They are stroked like the
+ * hand-drawn widget glyphs, on a 24 grid instead of 16. A name a glyph or a brand already has is
+ * skipped, so an existing design never changes its icon.
+ */
+const LINE_ICONS = [
+  "activity alarm-clock album anchor aperture archive arrow-right arrow-up-right atom award baby backpack badge-check banknote bar-chart-3 battery-full",
+  "beaker bed beer bell bike binary bird bitcoin blocks bluetooth bold bomb bone book-open bookmark bot box boxes brain brick-wall brush bug building",
+  "building-2 bus cable calculator camera candy car carrot cast castle cat cctv chart-line chart-pie chef-hat cherry church cigarette circle-dot",
+  "circuit-board citrus clapperboard clipboard clipboard-check cloud cloud-download cloud-upload clover cog coins compass component computer construction",
+  "contact container cookie copy copyright cpu credit-card croissant crown cup-soda database diamond dice-5 disc dna dog dollar-sign donut door-open",
+  "download drafting-compass drama droplet drum dumbbell ear earth egg euro factory feather file file-code file-text film filter fish flag flask-conical",
+  "flower flower-2 folder folder-git-2 footprints fuel gamepad-2 gauge gem ghost gift git-branch git-compare git-merge git-pull-request glasses",
+  "globe-lock graduation-cap grape grid-3x3 hammer hand hand-heart handshake hard-drive hash headphones headset heart-pulse hexagon highlighter history",
+  "home hourglass ice-cream-cone image inbox infinity info joystick kanban key keyboard lamp landmark languages laptop layers layout-dashboard leaf",
+  "library lightbulb lock log-in mail mailbox map map-pin martini medal megaphone message-circle message-square mic microscope milestone monitor",
+  "monitor-smartphone mountain mountain-snow mouse-pointer-click navigation network newspaper notebook notebook-pen package package-check paintbrush",
+  "palette paperclip party-popper pause paw-print pencil-ruler percent phone piano pickaxe piggy-bank pill pizza plane plug plug-zap podcast popcorn",
+  "power presentation printer puzzle qr-code quote radar radio rainbow receipt recycle refresh-cw reply rocket rotate-ccw route router rss ruler sailboat",
+  "save scale scan school scissors scroll search send server settings shapes share-2 shield shield-check ship shirt shopping-bag shopping-cart shovel",
+  "shrub signal siren skull smartphone smile snowflake soup speaker sprout square-terminal squirrel stamp stethoscope sticky-note store sun sunrise",
+  "sunset swords syringe table tablet target telescope tent test-tube thermometer thumbs-up ticket timer toggle-right tool-case tractor traffic-cone",
+  "train-front tram-front trash-2 tree-palm tree-pine trees trending-up triangle truck tv umbrella university unplug upload user user-check user-round",
+  "vault video volume-2 wallet wand-sparkles warehouse watch waves webhook weight wheat wifi wind wine workflow wrench zap",
+]
+  .join(" ")
+  .split(" ");
+
+const lucideDir = join(root, "node_modules/lucide-react/dist/esm/icons");
+const glyphNames = new Set([...readFileSync(join(core, "src/widgets/parts.ts"), "utf8").matchAll(/^  ([a-z]+): `/gm)].map((m) => m[1]));
+const lineOut: [string, string][] = [];
+for (const name of LINE_ICONS) {
+  if (glyphNames.has(name) || icons[name] || more[name]) continue;
+  let src = readFileSync(join(lucideDir, `${name}.mjs`), "utf8");
+  // a renamed icon's old name re-exports the new file
+  const alias = /export \{ default \} from '\.\/([a-z0-9-]+)\.mjs'/.exec(src)?.[1];
+  if (alias) src = readFileSync(join(lucideDir, `${alias}.mjs`), "utf8");
+  const literal = /const __iconData = (\{[\s\S]*?\n\});/.exec(src)?.[1];
+  if (!literal) throw new Error(`lucide is missing ${name}`);
+  const data = new Function(`return ${literal}`)() as { node: [string, Record<string, string>][] };
+  const body = data.node
+    .map(([tag, attrs]) => `<${tag} ${Object.entries(attrs).filter(([k]) => k !== "key").map(([k, v]) => `${k}="${v}"`).join(" ")}/>`)
+    .join("");
+  lineOut.push([name, body]);
+}
+writeFileSync(
+  join(core, "src/icons/lines.ts"),
+  `// generated by scripts/build-assets.ts. Do not edit.\n// Source: Lucide (ISC licence, https://lucide.dev). Drawn stroked on a 24×24 grid.\nexport const lineIcons = {\n${lineOut.map(([n, b]) => `  ${JSON.stringify(n)}: ${JSON.stringify(b)},`).join("\n")}\n} as const;\n\nexport type LineIconName = keyof typeof lineIcons;\n`,
+);
+console.log(`${lineOut.length} line icons`);

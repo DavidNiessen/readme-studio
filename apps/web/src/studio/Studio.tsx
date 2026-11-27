@@ -61,6 +61,10 @@ import { extensionStore, InstallExtensionButton } from "../components/InstallExt
 import { useLiveData } from "../lib/liveData";
 import { flushSync } from "react-dom";
 import { switchTheme } from "../lib/themeTransition";
+import { wantAllIcons } from "../lib/render";
+
+// designs here can use any icon: renders wait for the larger brand set, which other pages skip
+wantAllIcons();
 
 export function useUiTheme(): ["light" | "dark" | "system", (t: "light" | "dark" | "system") => void] {
   const [t, setT] = useState<"light" | "dark" | "system">(() => getPref("ui-theme-choice", "system"));

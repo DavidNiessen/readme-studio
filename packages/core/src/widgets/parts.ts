@@ -1,3 +1,4 @@
+import { lineIcons, type LineIconName } from "../icons/lines";
 import type { Theme } from "../theme";
 import { luminance, mix } from "../lib/color";
 
@@ -54,10 +55,25 @@ export const glyphs = {
   cake: `<path d="M2.5 14V9a1.5 1.5 0 0 1 1.5-1.5h8A1.5 1.5 0 0 1 13.5 9v5M1.5 14h13M2.5 11c1 .8 2 .8 3 0s2-.8 3 0 2 .8 3 0 1.5-.6 2 0M8 7.5V5M8 3.2V3"/>`,
 };
 
-export type GlyphName = keyof typeof glyphs;
+/** A hand-drawn glyph (16 grid) or one of the line icons (Lucide, 24 grid): both are drawn stroked. */
+export type GlyphName = keyof typeof glyphs | LineIconName;
+
+/** Every glyph name: the hand-drawn ones first, then the line icons. */
+export const glyphNames = [...Object.keys(glyphs), ...Object.keys(lineIcons)] as GlyphName[];
+
+export function isGlyphName(id: string): id is GlyphName {
+  return Object.prototype.hasOwnProperty.call(glyphs, id) || Object.prototype.hasOwnProperty.call(lineIcons, id);
+}
+
+/** A glyph's markup and grid, for drawing it at any size. The stroke matches across both grids. */
+export function glyphShape(name: GlyphName, weight = 1.5): { viewBox: string; inner: string; strokeWidth: number } {
+  if (Object.prototype.hasOwnProperty.call(glyphs, name)) return { viewBox: "0 0 16 16", inner: glyphs[name as keyof typeof glyphs], strokeWidth: weight };
+  return { viewBox: "0 0 24 24", inner: lineIcons[name as LineIconName] ?? glyphs.code, strokeWidth: (weight * 24) / 16 };
+}
 
 export function glyph(name: GlyphName, x: number, y: number, size: number, color: string, extra = ""): string {
-  return `<svg x="${x}" y="${y}" width="${size}" height="${size}" viewBox="0 0 16 16" fill="none" stroke="${color}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" ${extra}>${glyphs[name]}</svg>`;
+  const g = glyphShape(name);
+  return `<svg x="${x}" y="${y}" width="${size}" height="${size}" viewBox="${g.viewBox}" fill="none" stroke="${color}" stroke-width="${g.strokeWidth}" stroke-linecap="round" stroke-linejoin="round" ${extra}>${g.inner}</svg>`;
 }
 
 /** Deterministic pseudo-random in [0,1) from a string + index. */

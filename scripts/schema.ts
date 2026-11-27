@@ -5,7 +5,10 @@
 import { writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { configJsonSchema, llmsFullTxt, llmsTxt, presetCatalog, themeCatalog, widgetCatalog } from "../packages/core/src/index";
+import { configJsonSchema, llmsFullTxt, llmsTxt, loadMoreIcons, presetCatalog, themeCatalog, widgetCatalog } from "../packages/core/src/index";
+
+// the icon list in llms-full.txt names every brand, the on-demand ones too
+await loadMoreIcons();
 
 const out = join(dirname(fileURLToPath(import.meta.url)), "../apps/web/public");
 const json = (v: unknown) => `${JSON.stringify(v, null, 2)}\n`;

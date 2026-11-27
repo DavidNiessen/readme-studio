@@ -9,8 +9,37 @@ export interface Icon {
   color: string | null;
 }
 
+/** Brands loaded on demand (see loadMoreIcons), added to the built-in ones. */
+const more: Record<string, IconData> = {};
+let moreVersion = 0;
+let moreLoading: Promise<void> | null = null;
+
+const lookup = (id: string): IconData | undefined => iconData[id] ?? more[id];
+
+/**
+ * Loads the larger brand set: several hundred more logos. Renderers that may meet them (the
+ * action, the CLI, the studio) call this first; a page that only shows built-in designs need not.
+ */
+export function loadMoreIcons(): Promise<void> {
+  moreLoading ??= import("../icons/more").then((m) => {
+    Object.assign(more, m.moreIconData);
+    moreVersion++;
+  });
+  return moreLoading;
+}
+
+/** True once loadMoreIcons has finished. */
+export function moreIconsLoaded(): boolean {
+  return moreVersion > 0;
+}
+
+/** Changes when more icons arrive, for caches of rendered output. */
+export function iconsVersion(): number {
+  return moreVersion;
+}
+
 export function hasIcon(id: string): boolean {
-  return id in iconData;
+  return lookup(id) !== undefined;
 }
 
 function toIcon(id: string, d: IconData): Icon {
@@ -20,12 +49,12 @@ function toIcon(id: string, d: IconData): Icon {
 /** Icon by id; unknown ids get the generic code glyph. */
 export function icon(id: string): Icon {
   const key = id.toLowerCase().replace(/[^a-z0-9]/g, "");
-  const d = iconData[id] ?? iconData[key] ?? iconData.code;
-  return toIcon(iconData[id] ? id : iconData[key] ? key : "code", d);
+  const found = lookup(id) ? id : lookup(key) ? key : "code";
+  return toIcon(found, lookup(found) ?? iconData.code);
 }
 
 export function iconList(): Icon[] {
-  return Object.entries(iconData).map(([id, d]) => toIcon(id, d));
+  return [...Object.entries(iconData), ...Object.entries(more)].sort(([a], [b]) => a.localeCompare(b)).map(([id, d]) => toIcon(id, d));
 }
 
 /** Render an icon as a nested <svg> at (x, y). `fill` overrides the brand colour; "brand" keeps it. */

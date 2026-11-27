@@ -1,25 +1,44 @@
-import { glyphs, iconList, type Field } from "@readme-studio/core";
+import { glyphNames, glyphShape, hasIcon, icon, iconList, isGlyphName, loadMoreIcons, type Field } from "@readme-studio/core";
 import { ArrowDown, ArrowUp, ChevronRight, Plus, Search, Trash2 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { arrayMove, SortableItem, SortableList, SortHandle } from "../components/Sortable";
 import { Button, ColorInput, Dialog, Field as FieldWrap, IconButton, Segmented, Select, Slider, TagsInput, TextArea, TextInput, ToggleRow, cn } from "../components/ui";
 
-const GLYPHS = Object.keys(glyphs);
-
 function IconGlyph({ id }: { id: string }) {
-  const brand = iconList().find((i) => i.id === id);
-  if (brand) return <svg viewBox={brand.viewBox} fill="currentColor" dangerouslySetInnerHTML={{ __html: brand.inner }} />;
-  const g = (glyphs as Record<string, string>)[id];
-  return <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" dangerouslySetInnerHTML={{ __html: g ?? glyphs.code }} />;
+  if (isGlyphName(id)) {
+    const g = glyphShape(id);
+    return <svg viewBox={g.viewBox} fill="none" stroke="currentColor" strokeWidth={g.strokeWidth} strokeLinecap="round" strokeLinejoin="round" dangerouslySetInnerHTML={{ __html: g.inner }} />;
+  }
+  const brand = icon(id);
+  return <svg viewBox={brand.viewBox} fill="currentColor" dangerouslySetInnerHTML={{ __html: brand.inner }} />;
 }
+
+/** A line icon's name as words, for its tooltip and for search: `git-branch` → `git branch`. */
+const words = (id: string) => id.replace(/-/g, " ");
 
 export function IconPicker({ value, onChange, label, allowGlyphs = true }: { value: string; onChange: (v: string) => void; label: string; allowGlyphs?: boolean }) {
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
-  const all = useMemo(() => iconList(), []);
-  const brand = open ? all.filter((i) => !q || i.id.includes(q.toLowerCase()) || i.title.toLowerCase().includes(q.toLowerCase())) : [];
-  const glyphHits = open && allowGlyphs ? GLYPHS.filter((g) => !q || g.includes(q.toLowerCase())) : [];
-  const title = all.find((i) => i.id === value)?.title ?? (value || "None");
+  // the larger brand set comes in on demand; the list refreshes once it is here
+  const [loaded, setLoaded] = useState(0);
+  useEffect(() => {
+    if (!open) return;
+    let alive = true;
+    loadMoreIcons().then(() => alive && setLoaded((n) => n + 1));
+    return () => {
+      alive = false;
+    };
+  }, [open]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const all = useMemo(() => (open ? iconList() : []), [open, loaded]);
+  const needle = q.trim().toLowerCase();
+  const brand = open ? all.filter((i) => !needle || i.id.includes(needle.replace(/[^a-z0-9]/g, "")) || i.title.toLowerCase().includes(needle)) : [];
+  const glyphHits = open && allowGlyphs ? glyphNames.filter((g) => !needle || words(g).includes(needle) || g.includes(needle)) : [];
+  const title = isGlyphName(value) ? words(value) : value && hasIcon(value) ? icon(value).title : value || "None";
+  const pick = (id: string) => {
+    onChange(id);
+    setOpen(false);
+  };
   return (
     <>
       <button type="button" className="icon-current" onClick={() => setOpen(true)} aria-label={`${label}: ${title}`}>
@@ -29,49 +48,50 @@ export function IconPicker({ value, onChange, label, allowGlyphs = true }: { val
           {value}
         </span>
       </button>
-      {/* built only while open: the grid is 150+ buttons, and the inspector re-renders on every keystroke */}
+      {/* built only while open: the grid is hundreds of buttons, and the inspector re-renders on every keystroke */}
       {open && (
-      <Dialog open onClose={() => setOpen(false)} title={label} subtitle="Brand icons from Simple Icons, plus line glyphs." width={460}>
-        <input className="input" placeholder="Search 150+ icons" value={q} onChange={(e) => setQ(e.target.value)} data-autofocus style={{ marginBottom: 12 }} />
-        {glyphHits.length > 0 && (
-          <>
-            <div className="subhead">Line glyphs</div>
-            <div className="icon-picker">
-              {glyphHits.map((g) => (
-                <button
-                  key={g}
-                  type="button"
-                  title={g}
-                  aria-pressed={g === value}
-                  onClick={() => {
-                    onChange(g);
-                    setOpen(false);
-                  }}
-                >
-                  <IconGlyph id={g} />
-                </button>
-              ))}
-            </div>
-          </>
-        )}
-        <div className="subhead">Brands</div>
-        <div className="icon-picker" style={{ maxHeight: 300 }}>
-          {brand.map((i) => (
-            <button
-              key={i.id}
-              type="button"
-              title={i.title}
-              aria-pressed={i.id === value}
-              onClick={() => {
-                onChange(i.id);
-                setOpen(false);
-              }}
-            >
-              <IconGlyph id={i.id} />
-            </button>
-          ))}
+      <Dialog
+        open
+        onClose={() => setOpen(false)}
+        title={label}
+        subtitle={allowGlyphs ? "Line icons for anything, and brand logos from Simple Icons." : "Brand logos from Simple Icons."}
+        width={560}
+      >
+        <input
+          className="input"
+          placeholder={`Search ${(allowGlyphs ? glyphNames.length : 0) + all.length} icons, e.g. rocket, database, rust`}
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          data-autofocus
+          style={{ marginBottom: 12 }}
+        />
+        <div className="icon-picker__scroll">
+          {glyphHits.length > 0 && (
+            <>
+              <div className="subhead">Line icons · {glyphHits.length}</div>
+              <div className="icon-picker">
+                {glyphHits.map((g) => (
+                  <button key={g} type="button" title={words(g)} aria-label={words(g)} aria-pressed={g === value} onClick={() => pick(g)}>
+                    <IconGlyph id={g} />
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+          {brand.length > 0 && (
+            <>
+              <div className="subhead">Brands · {brand.length}</div>
+              <div className="icon-picker">
+                {brand.map((i) => (
+                  <button key={i.id} type="button" title={i.title} aria-label={i.title} aria-pressed={i.id === value} onClick={() => pick(i.id)}>
+                    <IconGlyph id={i.id} />
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+          {!brand.length && !glyphHits.length && <div className="empty">No icon matches “{q}”.</div>}
         </div>
-        {!brand.length && !glyphHits.length && <div className="empty">No icon matches “{q}”.</div>}
       </Dialog>
       )}
     </>

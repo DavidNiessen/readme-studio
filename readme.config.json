@@ -257,7 +257,7 @@
           "id": "readme-11",
           "type": "markdown",
           "options": {
-            "text": "## License\n\nMIT © David Nießen. Bundled fonts are licensed under the SIL Open Font License; brand icons come from Simple Icons (CC0) and Font Awesome Free (CC BY 4.0). See [`packages/core/assets/LICENSES.md`](packages/core/assets/LICENSES.md)."
+            "text": "## License\n\nMIT © David Nießen. Bundled fonts are licensed under the SIL Open Font License; brand icons come from Simple Icons (CC0) and Font Awesome Free (CC BY 4.0), and line icons from Lucide (ISC). See [`packages/core/assets/LICENSES.md`](packages/core/assets/LICENSES.md)."
           }
         }
       ]

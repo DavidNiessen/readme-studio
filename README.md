@@ -203,7 +203,7 @@ Bug reports, widget ideas, presets and pull requests are welcome. [CONTRIBUTING.
 
 ## License
 
-MIT © David Nießen. Bundled fonts are licensed under the SIL Open Font License; brand icons come from Simple Icons (CC0) and Font Awesome Free (CC BY 4.0). See [`packages/core/assets/LICENSES.md`](packages/core/assets/LICENSES.md).
+MIT © David Nießen. Bundled fonts are licensed under the SIL Open Font License; brand icons come from Simple Icons (CC0) and Font Awesome Free (CC BY 4.0), and line icons from Lucide (ISC). See [`packages/core/assets/LICENSES.md`](packages/core/assets/LICENSES.md).
 
 <p align="center">
 <a href="https://readme.niessen.dev/"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/DavidNiessen/readme-studio/readme-studio/footer-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/DavidNiessen/readme-studio/readme-studio/footer-light.svg"><img alt="footer · made with Readme Studio" src="https://raw.githubusercontent.com/DavidNiessen/readme-studio/readme-studio/footer-dark.svg" width="100%"></picture></a>

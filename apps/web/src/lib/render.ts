@@ -13,6 +13,9 @@ import {
   type ProfileData,
   type StudioConfig,
   views,
+  iconsVersion,
+  loadMoreIcons,
+  moreIconsLoaded,
 } from "@readme-studio/core";
 import { useEffect, useMemo, useRef, useState } from "react";
 
@@ -63,7 +66,8 @@ function sharedKey(config: StudioConfig, data: ProfileData): string {
 }
 
 function cacheKey(block: Block, part: PartMeta, config: StudioConfig, data: ProfileData, mode: Mode, minute: number): string {
-  return JSON.stringify([block.type, block.options, part.key, mode, dataId(data), minute]) + sharedKey(config, data);
+  // the icon version: a render made before the larger icon set arrived may hold a stand-in icon
+  return JSON.stringify([block.type, block.options, part.key, mode, dataId(data), minute, iconsVersion()]) + sharedKey(config, data);
 }
 
 /** A part's render when it is cached already, without rendering it. */
@@ -159,18 +163,28 @@ export function svgUrl(svg: string, epoch = 0): string {
 
 // ---------------------------------------------------------------- hooks
 
-/** Resolves once the fonts of a config are registered (embedding needs the data). */
+/**
+ * Where designs can use any icon (the studio), renders also wait for the larger brand set. Pages
+ * that show only built-in designs (the landing page, docs) never load it.
+ */
+let allIcons = false;
+export function wantAllIcons(): void {
+  allIcons = true;
+}
+const iconsReady = () => !allIcons || moreIconsLoaded();
+
+/** Resolves once the fonts of a config are registered (embedding needs the data), and the icons where wanted. */
 export function useFontsReady(fonts: string[]): boolean {
   const key = fonts.join(",");
-  const [ready, setReady] = useState(() => fonts.every(isFontLoaded));
+  const [ready, setReady] = useState(() => fonts.every(isFontLoaded) && iconsReady());
   useEffect(() => {
-    if (fonts.every(isFontLoaded)) {
+    if (fonts.every(isFontLoaded) && iconsReady()) {
       setReady(true);
       return;
     }
     setReady(false);
     let alive = true;
-    loadFonts(fonts).then(() => alive && setReady(true));
+    Promise.all([loadFonts(fonts), allIcons ? loadMoreIcons() : undefined]).then(() => alive && setReady(true));
     return () => {
       alive = false;
     };

@@ -6,6 +6,8 @@ import { CONFIG_VERSION, SCHEMA_URL, type DesignKind } from "./config";
 import { FONTS } from "./fonts";
 import { layoutPresets } from "./presets";
 import { palettePresets } from "./theme";
+import { iconList, moreIconsLoaded } from "./lib/icons";
+import { glyphNames } from "./widgets/parts";
 import { widgetList } from "./widgets/registry";
 import { PLACEHOLDERS } from "./widgets/placeholders";
 import { widgetFits, type Field } from "./widgets/types";
@@ -147,6 +149,7 @@ Everything is driven by one file, \`readme.config.json\` (schema: ${SCHEMA_URL})
 - \`theme\`: \`preset\` (palette), \`font\`, \`headingFont\`, \`radius\`, \`border\`, \`texture\` (dots|grid|lines|none), \`motion\` (full|subtle|off), \`surface\`, optional \`accent\` to generate a palette.
 - \`output\`: \`branch\` (asset branch, default "readme-studio"), \`modes\` (["dark","light"]), \`schedule\` (cron), \`repository\`.
 - Free text accepts placeholders: ${PLACEHOLDERS.map((p) => p.token).join(" ")}.
+- Icon options take a line icon (\`rocket\`, \`database\`, \`git-branch\`) or a brand (\`rust\`, \`docker\`, \`figma\`). llms-full.txt lists every id.
 - Unknown widgets are skipped and invalid values repaired; \`validate\` lists every repair.
 
 ## Palettes
@@ -174,6 +177,7 @@ Full option reference: ${STUDIO_URL}llms-full.txt · JSON: ${STUDIO_URL}widgets.
 /** llms.txt plus every widget's options. */
 export function llmsFullTxt(): string {
   const w = widgetCatalog();
+  const brands = iconList().map((i) => i.id);
   return `${llmsTxt()}
 ## Widget options
 
@@ -188,6 +192,14 @@ ${x.options.length ? x.options.map((o) => optionLine(o)).join("\n") : "No option
 `,
   )
   .join("\n")}
+## Icons
+
+Any option of type icon takes one of these ids. Line icons are drawn in the theme's colours; brands keep their own colour where the widget allows it.
+
+Line icons (${glyphNames.length}): ${glyphNames.join(", ")}
+
+Brands (${brands.length}${moreIconsLoaded() ? "" : ", built-in set only"}): ${brands.join(", ")}
+
 Config version ${CONFIG_VERSION}.
 `;
 }

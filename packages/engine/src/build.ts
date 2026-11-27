@@ -9,6 +9,7 @@ import {
   getWidget,
   layoutParts,
   loadFonts,
+  loadMoreIcons,
   mockData,
   renderFrames,
   renderPart,
@@ -105,7 +106,8 @@ export async function build(o: BuildOptions): Promise<BuildResult> {
   const log = o.log ?? (() => {});
   const now = o.now ?? new Date();
   const { config } = o;
-  await loadFonts([config.theme.font, config.theme.headingFont]);
+  // fonts to measure and embed, and the full brand icon set (the website loads it only in the studio)
+  await Promise.all([loadFonts([config.theme.font, config.theme.headingFont]), loadMoreIcons()]);
   const data = o.data ?? (await loadData({ ...o, now }));
   log(`data source: ${data.source}, ${data.weeks.length} weeks, ${data.lastYearTotal} contributions in the last year`);
   if (!o.only) rmSync(o.outDir, { recursive: true, force: true });

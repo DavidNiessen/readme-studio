@@ -4,7 +4,7 @@ import { hasIcon, icon, iconSvg } from "../lib/icons";
 import { esc } from "../lib/escape";
 import { textWidth } from "../lib/svg";
 import type { Theme } from "../theme";
-import { glyph, glyphs, type GlyphName } from "./parts";
+import { glyph, isGlyphName, type GlyphName } from "./parts";
 
 /** Option value as a trimmed string (anything else → fallback). */
 export function str(v: unknown, d = ""): string {
@@ -33,7 +33,7 @@ export function pick<T extends string>(v: unknown, list: readonly T[], d: T): T 
 }
 
 export function isGlyph(id: string): id is GlyphName {
-  return Object.prototype.hasOwnProperty.call(glyphs, id);
+  return isGlyphName(id);
 }
 
 /** True when the id names either a line glyph or a brand icon. */
