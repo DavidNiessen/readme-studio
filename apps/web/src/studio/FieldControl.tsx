@@ -1,12 +1,10 @@
-import { glyphNames, glyphShape, hasIcon, icon, iconList, imageKb, isGlyphName, isImageData, loadMoreIcons, MAX_MEDIA, mediaRef, type Field } from "@readme-studio/core";
-import { ArrowDown, ArrowUp, ChevronRight, Images, Plus, Search, Shapes, Trash2 } from "lucide-react";
+import { glyphNames, glyphShape, hasIcon, icon, iconList, imageKb, isGlyphName, isImageData, loadMoreIcons, mediaRef, type Field } from "@readme-studio/core";
+import { ArrowDown, ArrowUp, ChevronRight, Images, Plus, Search, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { arrayMove, SortableItem, SortableList, SortHandle } from "../components/Sortable";
 import { mediaValue } from "../lib/media";
-import { shrinkImage } from "../lib/uploadImage";
 import { useStudio } from "../state/store";
-import { UploadZone } from "./Media";
-import { Button, ColorInput, Dialog, Field as FieldWrap, IconButton, Segmented, Select, Slider, TagsInput, TextArea, TextInput, Tabs, ToggleRow, cn } from "../components/ui";
+import { Button, ColorInput, Dialog, Field as FieldWrap, IconButton, Segmented, Select, Slider, TagsInput, TextArea, TextInput, Menu, ToggleRow, cn } from "../components/ui";
 
 function IconGlyph({ id }: { id: string }) {
   const media = useStudio((st) => st.config.media);
@@ -46,15 +44,12 @@ export function IconPicker({ value, onChange, label, allowGlyphs = true }: { val
   const brand = open ? all.filter((i) => !needle || i.id.includes(needle.replace(/[^a-z0-9]/g, "")) || i.title.toLowerCase().includes(needle)) : [];
   const glyphHits = open && allowGlyphs ? glyphNames.filter((g) => !needle || words(g).includes(needle) || g.includes(needle)) : [];
   const media = useStudio((st) => st.config.media);
-  const addMedia = useStudio((st) => st.addMedia);
   const ref = mediaRef(value);
   const used = ref !== null ? media.find((m) => m.id === ref) : undefined;
   const uploaded = isImageData(value);
   const title = ref !== null ? (used ? used.name : "Missing image") : uploaded ? "Uploaded image" : isGlyphName(value) ? words(value) : value && hasIcon(value) ? icon(value).title : value || "None";
-  // icons and the media library are separate tabs; a field that already uses an image opens on media
-  const [tab, setTab] = useState<"icons" | "media">("icons");
+  const setRailTab = useStudio((st) => st.setRailTab);
   const openPicker = () => {
-    setTab(ref !== null || uploaded ? "media" : "icons");
     setQ("");
     setOpen(true);
   };
@@ -62,108 +57,83 @@ export function IconPicker({ value, onChange, label, allowGlyphs = true }: { val
     onChange(id);
     setOpen(false);
   };
-  // an upload goes into the design's media library (a README's images cannot load anything from
-  // elsewhere), and the field refers to it: replacing it there updates everything that uses it
-  const [upload, setUpload] = useState<{ busy: boolean; error?: string }>({ busy: false });
-  const take = async (files: FileList | File[]) => {
-    const file = [...files][0];
-    if (!file) return;
-    setUpload({ busy: true });
-    try {
-      const id = addMedia(file.name, await shrinkImage(file));
-      setUpload({ busy: false });
-      pick(mediaValue(id));
-    } catch (e) {
-      setUpload({ busy: false, error: e instanceof Error ? e.message : String(e) });
-    }
-  };
+  // images come from the media library (its own tab in the left panel), through a menu beside the icon
+  const mediaItems = () => [
+    { heading: media.length ? "Media library" : "No images yet" },
+    ...media.map((m) => ({
+      label: m.name,
+      icon: <img src={m.data} alt="" className="icon-upload" />,
+      hint: mediaValue(m.id) === value ? "in use" : `${imageKb(m.data)} KB`,
+      onSelect: () => onChange(mediaValue(m.id)),
+    })),
+    "sep" as const,
+    { label: media.length ? "Manage images in the Media tab" : "Upload images in the Media tab", icon: <Images />, onSelect: () => setRailTab("media") },
+    ...(ref !== null || uploaded ? [{ label: "Remove the image", icon: <Trash2 />, onSelect: () => onChange("") }] : []),
+  ];
   return (
     <>
-      <button type="button" className="icon-current" onClick={openPicker} aria-label={`${label}: ${title}`}>
-        {value ? <IconGlyph id={value} /> : <Search />}
-        <span>{title}</span>
-        <span className="mono" style={{ fontSize: 11, color: "var(--faint)", flex: "none" }}>
-          {used ? `media · ${imageKb(used.data)} KB` : uploaded ? `${imageKb(value)} KB` : value}
-        </span>
-      </button>
+      <div className="icon-field">
+        <button type="button" className="icon-current" onClick={openPicker} aria-label={`${label}: ${title}`}>
+          {value ? <IconGlyph id={value} /> : <Search />}
+          <span>{title}</span>
+          <span className="mono" style={{ fontSize: 11, color: "var(--faint)", flex: "none" }}>
+            {used ? `media · ${imageKb(used.data)} KB` : uploaded ? `${imageKb(value)} KB` : value}
+          </span>
+        </button>
+        <Menu
+          label={`${label}: image from the media library`}
+          items={mediaItems}
+          trigger={
+            <IconButton label="Use an image from the media library" active={ref !== null || uploaded}>
+              <Images />
+            </IconButton>
+          }
+        />
+      </div>
       {/* built only while open: the grid is hundreds of buttons, and the inspector re-renders on every keystroke */}
       {open && (
       <Dialog
         open
         onClose={() => setOpen(false)}
         title={label}
-        subtitle={allowGlyphs ? "Line icons, brand logos, or an image from your media library." : "Brand logos, or an image from your media library."}
+        subtitle={allowGlyphs ? "Line icons for anything, and brand logos from Simple Icons." : "Brand logos from Simple Icons."}
         width={560}
       >
-        <Tabs
-          label="Icon source"
-          value={tab}
-          onChange={setTab}
-          tabs={[
-            { value: "icons", label: "Icons", icon: <Shapes /> },
-            { value: "media", label: media.length ? `Media · ${media.length}` : "Media", icon: <Images /> },
-          ]}
+        <input
+          className="input"
+          placeholder={`Search ${(allowGlyphs ? glyphNames.length : 0) + all.length} icons, e.g. rocket, database, rust`}
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          data-autofocus
+          style={{ marginBottom: 12 }}
         />
-        {tab === "icons" ? (
-          <>
-            <input
-              className="input"
-              placeholder={`Search ${(allowGlyphs ? glyphNames.length : 0) + all.length} icons, e.g. rocket, database, rust`}
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              data-autofocus
-              style={{ margin: "14px 0 12px" }}
-            />
-            <div className="icon-picker__scroll">
-              {glyphHits.length > 0 && (
-                <>
-                  <div className="subhead">Line icons · {glyphHits.length}</div>
-                  <div className="icon-picker">
-                    {glyphHits.map((g) => (
-                      <button key={g} type="button" title={words(g)} aria-label={words(g)} aria-pressed={g === value} onClick={() => pick(g)}>
-                        <IconGlyph id={g} />
-                      </button>
-                    ))}
-                  </div>
-                </>
-              )}
-              {brand.length > 0 && (
-                <>
-                  <div className="subhead">Brands · {brand.length}</div>
-                  <div className="icon-picker">
-                    {brand.map((i) => (
-                      <button key={i.id} type="button" title={i.title} aria-label={i.title} aria-pressed={i.id === value} onClick={() => pick(i.id)}>
-                        <IconGlyph id={i.id} />
-                      </button>
-                    ))}
-                  </div>
-                </>
-              )}
-              {!brand.length && !glyphHits.length && <div className="empty">No icon matches “{q}”.</div>}
-            </div>
-          </>
-        ) : (
-          <div className="icon-media">
-            <UploadZone busy={upload.busy} full={media.length >= MAX_MEDIA} onFiles={(f) => void take(f)} label="Upload an image" />
-            {upload.error && (
-              <p className="icon-drop__error" role="alert">
-                {upload.error}
-              </p>
-            )}
-            {media.length > 0 ? (
-              <div className="icon-media__grid">
-                {media.map((m) => (
-                  <button key={m.id} type="button" className="icon-media__tile" aria-pressed={mediaValue(m.id) === value} onClick={() => pick(mediaValue(m.id))}>
-                    <img src={m.data} alt="" />
-                    <span>{m.name}</span>
+        <div className="icon-picker__scroll">
+          {glyphHits.length > 0 && (
+            <>
+              <div className="subhead">Line icons · {glyphHits.length}</div>
+              <div className="icon-picker">
+                {glyphHits.map((g) => (
+                  <button key={g} type="button" title={words(g)} aria-label={words(g)} aria-pressed={g === value} onClick={() => pick(g)}>
+                    <IconGlyph id={g} />
                   </button>
                 ))}
               </div>
-            ) : (
-              <div className="empty">No images in this design yet. Upload one: it goes into the media library, where you can reuse or replace it.</div>
-            )}
-          </div>
-        )}
+            </>
+          )}
+          {brand.length > 0 && (
+            <>
+              <div className="subhead">Brands · {brand.length}</div>
+              <div className="icon-picker">
+                {brand.map((i) => (
+                  <button key={i.id} type="button" title={i.title} aria-label={i.title} aria-pressed={i.id === value} onClick={() => pick(i.id)}>
+                    <IconGlyph id={i.id} />
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+          {!brand.length && !glyphHits.length && <div className="empty">No icon matches “{q}”.</div>}
+        </div>
       </Dialog>
       )}
     </>

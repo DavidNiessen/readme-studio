@@ -995,11 +995,6 @@
   color: var(--muted);
   font-size: var(--t-xs);
 }
-.icon-drop__error {
-  margin: -4px 0 12px;
-  color: var(--danger, #d1242f);
-  font-size: var(--t-sm);
-}
 .icon-upload {
   width: 18px;
   height: 18px;
@@ -1093,56 +1088,15 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-/* the icon picker's media tab: the upload area, then the library as named tiles */
-.icon-media {
-  display: grid;
-  gap: 12px;
-  margin-top: 14px;
-}
-.icon-media .icon-drop {
-  margin-bottom: 0;
-}
-.icon-media__grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
-  gap: 8px;
-  max-height: min(46vh, 380px);
-  overflow: auto;
-  padding: 2px;
-}
-.icon-media__tile {
-  display: grid;
+/* an icon field: the icon (opens the picker) and, beside it, images from the media library */
+.icon-field {
+  display: flex;
   gap: 6px;
-  padding: 8px;
-  border: 1px solid var(--line);
-  border-radius: var(--r-3);
-  background: var(--surface);
-  color: var(--ink-2);
-  font-size: var(--t-xs);
-  text-align: center;
-  transition:
-    border-color var(--dur-1),
-    background var(--dur-1);
+  align-items: center;
 }
-.icon-media__tile:hover {
-  border-color: var(--line-strong);
-  background: var(--sunken);
-}
-.icon-media__tile[aria-pressed="true"] {
-  border-color: var(--ink);
-  box-shadow: 0 0 0 1px var(--ink);
-}
-.icon-media__tile img {
-  width: 100%;
-  aspect-ratio: 1;
-  object-fit: contain;
-  border-radius: 6px;
-  background: repeating-conic-gradient(var(--sunken) 0 25%, var(--surface) 0 50%) 0 0 / 10px 10px;
-}
-.icon-media__tile span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.icon-field .icon-current {
+  flex: 1;
+  min-width: 0;
 }
 /* one scroll for both sections, so searching never leaves a short list stranded in a tall box */
 .icon-picker__scroll {

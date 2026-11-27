@@ -35,7 +35,7 @@ export function MediaPanel() {
   return (
     <div className="media">
       <p className="media__intro">
-        Images for your logo, emblems and icons. Use one anywhere an icon goes; replace it here and every widget using it updates.
+        Images for your logo, emblems and icons. Use one with the image button next to any icon field; replace it here and every widget using it updates.
       </p>
       <UploadZone busy={busy} full={media.length >= MAX_MEDIA} onFiles={upload} />
       {error && (
@@ -48,7 +48,7 @@ export function MediaPanel() {
           <MediaRow key={m.id} item={m} />
         ))}
       </div>
-      {!media.length && <div className="empty">No images yet. Upload one, or pick “Upload an image” in any icon’s picker.</div>}
+      {!media.length && <div className="empty">No images yet. Upload one, then use it with the image button next to any icon field.</div>}
     </div>
   );
 }
