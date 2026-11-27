@@ -404,7 +404,7 @@ function ActionReference() {
       </p>
       <CodeBlock code={SAMPLE_WORKFLOW} maxHeight={560} />
       <p>
-        The <code>push</code> trigger re-renders as soon as you commit a new config, and <code>concurrency</code> cancels a run that is superseded by a newer one.
+        The <code>push</code> trigger re-renders as soon as you commit a new config, and <code>concurrency</code> cancels a run that is superseded by a newer one on the same branch, so a push to a pull request never cancels the run that publishes from the default branch.
       </p>
 
       <Heading id="inputs">Inputs</Heading>

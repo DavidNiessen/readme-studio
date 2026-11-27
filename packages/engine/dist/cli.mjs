@@ -11759,8 +11759,10 @@ on:
 permissions:
   contents: write
 
+# One run per branch: a push to another branch must not cancel the run that publishes
+# from the default branch.
 concurrency:
-  group: readme-studio
+  group: readme-studio-\${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
