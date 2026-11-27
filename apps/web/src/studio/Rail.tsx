@@ -11,6 +11,7 @@ import { renderBlock, useFontsReady } from "../lib/render";
 import { useStudio } from "../state/store";
 import { blockActions, clickBlock, onBlockContextMenu, onEmptyContextMenu, targetsOf } from "./blockActions";
 import { WidgetIcon } from "./icons";
+import { pressLibraryWidget } from "./useCanvasDrag";
 
 /**
  * One layer. It reads only what it shows from the store, and is memoised, so typing in the
@@ -240,6 +241,9 @@ function Library() {
                   type="button"
                   key={w.type}
                   className="lib-card"
+                  // drag it onto the canvas to place it, or click to add it after the selection
+                  onPointerDown={(e) => pressLibraryWidget(e, w.type)}
+                  title="Click to add, or drag onto the canvas"
                   onClick={() => {
                     add(w.type);
                     if (window.matchMedia("(max-width: 960px)").matches) setPane("canvas");

@@ -81,6 +81,8 @@ interface StudioState {
   setName: (n: string) => void;
 
   add: (type: string, options?: Record<string, unknown>) => void;
+  /** Adds a widget next to `at` (before or after it), or at the end without one: a drop from the library. */
+  addAt: (type: string, at: { id: string; after: boolean } | null) => void;
   remove: (id: string) => void;
   duplicate: (id: string) => void;
   move: (id: string, dir: -1 | 1) => void;
@@ -274,6 +276,13 @@ export const useStudio = create<StudioState>((set, get) => ({
     const r = addBlock(s.config, type, s.selected, options);
     get().commit(() => r.config);
     set({ selected: r.id, tab: "block", railTab: "layers" });
+  },
+  addAt(type, at) {
+    const s = get();
+    if (!getWidget(type)) return;
+    const r = addBlock(s.config, type, null);
+    get().commit(() => (at ? moveBlocksTo(r.config, [r.id], at.id, at.after) : r.config));
+    set({ selected: r.id, selection: [r.id], tab: "block", railTab: "layers" });
   },
   remove(id) {
     const s = get();

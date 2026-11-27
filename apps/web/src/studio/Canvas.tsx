@@ -226,7 +226,7 @@ export function Canvas() {
       </div>
       {dragging && (
         <div className="cv-ghost" style={{ left: dragging.x + 14, top: dragging.y + 14 }} aria-hidden>
-          Moving {dragging.label}
+          {dragging.ids.length ? "Moving" : "Add"} {dragging.label}
         </div>
       )}
     </main>
