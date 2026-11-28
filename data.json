@@ -1,0 +1,223 @@
+{
+  "source": "graphql",
+  "generatedAt": "2026-11-28T10:33:39.176Z",
+  "login": "DavidNiessen",
+  "name": "DavidNiessen",
+  "createdAt": null,
+  "avatarUrl": "",
+  "bio": "",
+  "company": "",
+  "location": "",
+  "blog": "",
+  "followers": 0,
+  "following": 0,
+  "repoCount": 0,
+  "weeks": [],
+  "lastYearTotal": 0,
+  "yearTotal": 0,
+  "allTimeTotal": 0,
+  "totals": {
+    "commits": null,
+    "pullRequests": null,
+    "issues": null,
+    "reviews": null,
+    "stars": null,
+    "forks": null,
+    "privateContributions": null
+  },
+  "languages": [],
+  "projects": [],
+  "repos": [],
+  "yearTotals": {},
+  "events": [],
+  "commitHours": null,
+  "weather": null,
+  "releases": [],
+  "feeds": {},
+  "project": {
+    "owner": "DavidNiessen",
+    "name": "readme-studio",
+    "fullName": "DavidNiessen/readme-studio",
+    "description": "Design animated, self-updating GitHub profile and project READMEs in the browser; a GitHub Action re-renders them on a schedule.",
+    "homepage": "http://readme.niessen.dev/",
+    "url": "https://github.com/DavidNiessen/readme-studio",
+    "topics": [
+      "animated-svg",
+      "developer-tools",
+      "github-actions",
+      "github-profile",
+      "github-stats",
+      "profile-readme",
+      "readme",
+      "readme-generator",
+      "svg"
+    ],
+    "license": "MIT",
+    "defaultBranch": "main",
+    "createdAt": "2026-11-26T09:17:39Z",
+    "pushedAt": "2026-11-27T17:58:06Z",
+    "stars": 1,
+    "forks": 0,
+    "watchers": 0,
+    "openIssues": 0,
+    "closedIssues": 0,
+    "openPulls": 2,
+    "mergedPulls": 16,
+    "size": 7999,
+    "language": {
+      "name": "TypeScript",
+      "color": "#3178c6"
+    },
+    "languages": [
+      {
+        "name": "TypeScript",
+        "color": "#3178c6",
+        "bytes": 2042299
+      },
+      {
+        "name": "CSS",
+        "color": "#663399",
+        "bytes": 165246
+      },
+      {
+        "name": "HTML",
+        "color": "#e34c26",
+        "bytes": 38048
+      },
+      {
+        "name": "JavaScript",
+        "color": "#f1e05a",
+        "bytes": 1783
+      }
+    ],
+    "contributors": [
+      {
+        "login": "DavidNiessen",
+        "avatar": "data:image/jpeg;base64,/9j/2wCEAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDIBCQkJDAsMGA0NGDIhHCEyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMv/AABEIAEAAQAMBIgACEQEDEQH/xAGiAAABBQEBAQEBAQAAAAAAAAAAAQIDBAUGBwgJCgsQAAIBAwMCBAMFBQQEAAABfQECAwAEEQUSITFBBhNRYQcicRQygZGhCCNCscEVUtHwJDNicoIJChYXGBkaJSYnKCkqNDU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6g4SFhoeIiYqSk5SVlpeYmZqio6Slpqeoqaqys7S1tre4ubrCw8TFxsfIycrS09TV1tfY2drh4uPk5ebn6Onq8fLz9PX29/j5+gEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoLEQACAQIEBAMEBwUEBAABAncAAQIDEQQFITEGEkFRB2FxEyIygQgUQpGhscEJIzNS8BVictEKFiQ04SXxFxgZGiYnKCkqNTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqCg4SFhoeIiYqSk5SVlpeYmZqio6Slpqeoqaqys7S1tre4ubrCw8TFxsfIycrS09TV1tfY2dri4+Tl5ufo6ery8/T19vf4+fr/2gAMAwEAAhEDEQA/AMOOLNThAop8acU5lO7FbWGRBTmnC6tQ21pVB6e351T126Nho80yZ3cLx71zCQalqUC/YoZGB4IAG0e9ZTnysuMeY7SK9s5pvJS4QyHouev0qw0VcE1hqdhEz3Vk25X++M7lHqK7XRdSXVbHzOPNjO1x7+tFOpzaBODiEkPtVWSKtd046VVkjrYzHxL2qSRAMGki7VPIMx1bRKZj69YzX+kSQ24zICGC/wB72rR0K8sdLeGwl3eaECcRnGR3zjB64/CpbcBplBGR6VZmu1izO8UXyLuLeWCQBzXFiKfMzqoVfZ6hd6tpVxqAs/mMmfmBjOD7Vi6Doo0q51IrxHJMRGvooz/Un8qfb69Jql9YSWNlbSWlxu8yWRAsikHsM8/r+Fbj4LMQMZOTU0KbjPQutWVSF3uV3Xiqsi9auPVeQV3WOO5AjBRnNBkLn2qAthQKVWq5EomW6igmiEkqo0jBEyfvMegFbi6FDbqxE5UMxdgqZ5PJ715ylhd6/wCPlhiuIYo7Dy5f3zkDAKkgYBySTXrjW9wy7kiMieqc/wD164a1SPNZnTTpya5ktDAHhbTr7UoLy1uRJc2oPlKRsx+GcVyt14yGm67caff2M0MUbbQ7DDjjqVPUHqPauwvcWxacbo3jG48YOBXF/ESxa6trbVxl5Ij5UzHk7Tyv5HI/EVjTnKM0m9zapCMqbcVax0VvfWt/CJrWdJU9VPT6+lD15NZX9xYTLNaymN/Y8H6+or0rTdQGo6bDc8B2GHA7MOtehCVzhasQNJ0FOWSqTSfNUiycVchI5PSlttY8YyvcagLKMyFklPfB4HUdRXr8VtqcMe+0njkTGQBJ/Q15N4q8PwaVHFdW6solPzrngE88elJp/jjVLVRFcFbmIADn5WA+o/rmvNmvaLmidtOSpPlloeuLqk6gW2oWLOp/vpkfgaTU7LTNa0e5sY1aN5oyDn+E9j+BwawdE8UrqkWbW5O9Vy8L/eX8O49xWqk7mXzSRu6nAxXHJNPsdykpLueJ3dhc2F/NZ3SNHLC21l/qD3BrpvB92UkuLNmyrL5iZ7EcH+n5V3fibw7beINMEqBI76Mfupf7w/ut7fyrzPR3ex12OOZCjhjE6kYIJ4/nXo4eqp69TzK1J035H//Z",
+        "contributions": 157
+      }
+    ],
+    "contributorCount": 2,
+    "commitWeeks": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      149
+    ],
+    "lastCommit": {
+      "message": "feat(core): the 3D skyline turns smoothly",
+      "sha": "11aeb5b",
+      "date": "2026-11-27T17:56:17Z",
+      "author": "DavidNiessen"
+    },
+    "releases": [
+      {
+        "repo": "readme-studio",
+        "tag": "v1.3.0",
+        "name": "Readme Studio 1.3.0",
+        "url": "https://github.com/DavidNiessen/readme-studio/releases/tag/v1.3.0",
+        "publishedAt": "2026-11-27T17:38:47Z"
+      },
+      {
+        "repo": "readme-studio",
+        "tag": "v1.2.0",
+        "name": "Readme Studio 1.2.0",
+        "url": "https://github.com/DavidNiessen/readme-studio/releases/tag/v1.2.0",
+        "publishedAt": "2026-11-27T11:02:43Z"
+      },
+      {
+        "repo": "readme-studio",
+        "tag": "v1.1.0",
+        "name": "Readme Studio 1.1.0",
+        "url": "https://github.com/DavidNiessen/readme-studio/releases/tag/v1.1.0",
+        "publishedAt": "2026-11-26T20:16:17Z"
+      },
+      {
+        "repo": "readme-studio",
+        "tag": "v1.0.1",
+        "name": "Readme Studio 1.0.1",
+        "url": "https://github.com/DavidNiessen/readme-studio/releases/tag/v1.0.1",
+        "publishedAt": "2026-11-26T18:41:42Z"
+      },
+      {
+        "repo": "readme-studio",
+        "tag": "v1.0.0",
+        "name": "Readme Studio 1.0.0",
+        "url": "https://github.com/DavidNiessen/readme-studio/releases/tag/v1.0.0",
+        "publishedAt": "2026-11-26T16:56:57Z"
+      }
+    ],
+    "releaseNotes": {
+      "v1.3.0": "fix(core): keep the workflow's concurrency group per branch by @DavidNiessen in · fix(core): calm still frames for looping widget elements by @DavidNiessen in",
+      "v1.2.0": "",
+      "v1.1.0": "",
+      "v1.0.1": "",
+      "v1.0.0": "feat: Readme Studio, a designer, renderer and action for animated profile READMEs by @DavidNiessen in · feat: project READMEs, a release pipeline and studio polish by @DavidNiessen in · feat: AI-agent support and open-s…"
+    },
+    "starHistory": [
+      {
+        "date": "2026-11-27",
+        "stars": 1
+      },
+      {
+        "date": "2026-11-28",
+        "stars": 1
+      }
+    ],
+    "ci": {
+      "name": "pages",
+      "status": "passing",
+      "url": "https://github.com/DavidNiessen/readme-studio/actions/runs/46045664641"
+    },
+    "milestones": [],
+    "downloads": []
+  }
+}
